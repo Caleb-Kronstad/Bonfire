@@ -18,9 +18,8 @@ IncludeDir["ASSIMP"] = os.realpath("Engine/External/assimp/include")
 IncludeDir["GLM"] = os.realpath("Engine/External/glm/glm")
 IncludeDir["IMGUIZMO"] = os.realpath("Engine/External/imguizmo")
 
-group "External"
+group "_External"
    include "Engine/External/glad/Build-GLAD.lua"
-   include "Engine/External/vulkan/Build-VULKAN.lua"
    include "Engine/External/glfw/Build-GLFW.lua"
    include "Engine/External/imgui/Build-IMGUI.lua"
    include "Engine/External/assimp/Build-ASSIMP.lua"
