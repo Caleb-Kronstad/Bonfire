@@ -1,0 +1,15 @@
+[submodule "Engine/External/imguizmo"]
+	path = Engine/External/imguizmo
+	url = https://github.com/Caleb-Kronstad/ImGuizmo
+[submodule "Engine/External/glfw"]
+	path = Engine/External/glfw
+	url = https://github.com/Caleb-Kronstad/glfw
+[submodule "Engine/External/glm"]
+	path = Engine/External/glm
+	url = https://github.com/Caleb-Kronstad/glm
+[submodule "Engine/External/assimp"]
+	path = Engine/External/assimp
+	url = https://github.com/Caleb-Kronstad/assimp
+[submodule "Engine/External/imgui"]
+	path = Engine/External/imgui
+	url = https://github.com/Caleb-Kronstad/imgui
