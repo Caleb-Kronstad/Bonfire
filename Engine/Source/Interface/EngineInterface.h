@@ -27,9 +27,6 @@ namespace Bonfire
 	private:
 		bool m_BlockInputs = false;
 
-		ImFont* m_InterfaceFont;
-		bool m_InterfaceFontLoaded = false;
-
 		GLuint m_FileImage = 0;
 		int m_FileImageWidth = 0;
 		int m_FileImageHeight = 0;

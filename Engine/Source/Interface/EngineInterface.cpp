@@ -60,12 +60,6 @@ namespace Bonfire
 
 		ImGuiWindowFlags window_flags = 0;
 
-		if (!m_InterfaceFontLoaded)
-		{
-			ImGui::PushFont(m_InterfaceFont);
-			m_InterfaceFontLoaded = true;
-		}
-
 		End();
 	}
 
