@@ -1,6 +1,7 @@
 
 # directories
 .vs/
+.idea/
 bin/
 bin-int/
 

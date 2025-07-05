@@ -17,8 +17,8 @@ namespace Bonfire
 		s_EngineInterface = new EngineInterface();
 
 		m_Window = Window(WindowProperties(1280, 720, 0, 0, m_ProjectName));
-		float viewportWidth = m_Window.GetWidth() * viewportSizeAdjust;
-		float viewportHeight = m_Window.GetHeight() * viewportSizeAdjust;
+		unsigned int viewportWidth = m_Window.GetWidth() * viewportSizeAdjust;
+		unsigned int viewportHeight = m_Window.GetHeight() * viewportSizeAdjust;
 		m_ViewportProps = WindowProperties(viewportWidth, viewportHeight, m_Window.GetWidth() - viewportWidth, m_Window.GetHeight() - viewportHeight, "Viewport");
 	}
 
@@ -47,7 +47,7 @@ namespace Bonfire
 
 	void Project::Run()
 	{
-		std::cout << "Current Project Path: " << std::filesystem::current_path() << std::endl;
+		std::cout << "Current Project Path: " << std::filesystem::current_path() << "\n";
 
 		InitializeOpenGL();
 
@@ -153,8 +153,8 @@ namespace Bonfire
 	{
 		m_Window.GetWidth() = width;
 		m_Window.GetHeight() = height;
-		float viewportWidth = m_Window.GetWidth() * viewportSizeAdjust;
-		float viewportHeight = m_Window.GetHeight() * viewportSizeAdjust;
+		unsigned int viewportWidth = m_Window.GetWidth() * viewportSizeAdjust;
+		unsigned int viewportHeight = m_Window.GetHeight() * viewportSizeAdjust;
 		m_ViewportProps.Width = viewportWidth;
 		m_ViewportProps.Height = viewportHeight;
 		m_ViewportProps.xOffset = m_Window.GetWidth() - viewportWidth;

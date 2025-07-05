@@ -76,7 +76,7 @@ namespace Bonfire
 	private:
 		Window m_Window;
 		WindowProperties m_ViewportProps;
-		float viewportSizeAdjust = 0.75;
+		unsigned int viewportSizeAdjust = 1;
 		
 		unsigned int m_AntiAliasingLevel = 4;
 		bool m_EngineRunning = true;

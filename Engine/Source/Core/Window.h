@@ -29,7 +29,7 @@ namespace Bonfire
 		void SetNativeWindow(GLFWwindow* window) { m_Window = window; }
 
 		// Getters
-		GLFWwindow* GetNativeWindow() { return m_Window; }
+		GLFWwindow* GetNativeWindow() const { return m_Window; }
 		unsigned int& GetWidth() { return m_WindowProps.Width; }
 		unsigned int& GetHeight() { return m_WindowProps.Height; }
 		unsigned int& GetXOffset() { return m_WindowProps.xOffset; }
@@ -37,7 +37,7 @@ namespace Bonfire
 		std::string& GetTitle() { return m_WindowProps.Title; }
 		
 		// VSync
-		void SetVSync(bool enabled) { m_IsVSync = enabled; }
+		void SetVSync(bool const enabled) { m_IsVSync = enabled; }
 		bool IsVSync() const { return m_IsVSync; }
 
 	private:
