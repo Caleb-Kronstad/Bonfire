@@ -11,22 +11,22 @@ project "Project"
         "Source/**.hpp",
         "Source/**.c",
 
-        "Assets/**.vert",
-        "Assets/**.frag",
-        "Assets/**.geom",
+        "Resources/**.vert",
+        "Resources/**.frag",
+        "Resources/**.geom",
 
-        "Assets/**.obj",
-        "Assets/**.mtl",
-        "Assets/**.blend",
-        "Assets/**.blend1",
-        "Assets/**.png",
-        "Assets/**.jpg",
-        "Assets/**.ttf"
+        "Resources/**.obj",
+        "Resources/**.mtl",
+        "Resources/**.blend",
+        "Resources/**.blend1",
+        "Resources/**.png",
+        "Resources/**.jpg",
+        "Resources/**.ttf"
     }
 
     includedirs {
         "Source",
-        "Assets",
+        "Resources",
 
         -- Include Core
         "../Engine/Source",
