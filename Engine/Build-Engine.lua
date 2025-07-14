@@ -5,7 +5,7 @@ project "Engine"
     targetdir "bin/%{cfg.buildcfg}"
     staticruntime "on"
 
-    pchheader "bonfire_pch.h"
+    pchheader "bonfire_pch.hpp"
     pchsource "Source/bonfire_pch.cpp"
 
     files {

@@ -1,5 +1,5 @@
-#include "bonfire_pch.h"
-#include "Shader.h"
+#include "bonfire_pch.hpp"
+#include "Shader.hpp"
 
 namespace Bonfire
 {

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Core/Layer.h"
+#include "Core/Layer.hpp"
 
 namespace Bonfire
 {
-	class EngineInterface : public Layer
+	class Interface : public Layer
 	{
 	public:
-		EngineInterface();
-		~EngineInterface();
+		Interface();
+		~Interface();
 
 		void OnAttach() override;
 		void OnDetach() override;

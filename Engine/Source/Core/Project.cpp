@@ -1,25 +1,25 @@
-#include "bonfire_pch.h"
-#include "Project.h"
+#include "bonfire_pch.hpp"
+#include "Project.hpp"
 
-#include "Core/Utility.h"
+#include "Core/Utility.hpp"
 
 namespace Bonfire
 {
 	Project* Project::s_Instance = nullptr;
 	Renderer* Project::s_Renderer = nullptr;
-	EngineInterface* Project::s_EngineInterface = nullptr;
+	Interface* Project::s_Interface = nullptr;
 
 	Project::Project(std::string projectName)
 		: m_ProjectName(projectName)
 	{
 		s_Instance = this;
 		s_Renderer = new Renderer();
-		s_EngineInterface = new EngineInterface();
+		s_Interface = new Interface();
 
 		m_Window = Window(WindowProperties(1280, 720, 0, 0, m_ProjectName));
-		unsigned int viewportWidth = m_Window.GetWidth() * viewportSizeAdjust;
+		/*unsigned int viewportWidth = m_Window.GetWidth() * viewportSizeAdjust;
 		unsigned int viewportHeight = m_Window.GetHeight() * viewportSizeAdjust;
-		m_ViewportProps = WindowProperties(viewportWidth, viewportHeight, m_Window.GetWidth() - viewportWidth, m_Window.GetHeight() - viewportHeight, "Viewport");
+		m_ViewportProps = WindowProperties(viewportWidth, viewportHeight, m_Window.GetWidth() - viewportWidth, m_Window.GetHeight() - viewportHeight, "Viewport");*/
 	}
 
 	Project::~Project()
@@ -57,7 +57,7 @@ namespace Bonfire
 		glfwSetScrollCallback(m_Window.GetNativeWindow(), scrollcallback_dispatch);
 		glfwSetFramebufferSizeCallback(m_Window.GetNativeWindow(), framebuffersizecallback_dispatch);
 
-		s_EngineInterface->OnAttach();
+		s_Interface->OnAttach();
 		s_Renderer->OnAttach();
 		for (Layer* layer : m_Layers)
 			layer->OnAttach();
@@ -69,7 +69,7 @@ namespace Bonfire
 			s_Renderer->OnUpdate();
 			for (Layer* layer : m_Layers)
 				layer->OnUpdate();
-			s_EngineInterface->OnUpdate();
+			s_Interface->OnUpdate();
 
 			glfwSwapBuffers(m_Window.GetNativeWindow());
 			glfwPollEvents();
@@ -81,7 +81,7 @@ namespace Bonfire
 		for (Layer* layer : m_Layers)
 			layer->OnDetach();
 		s_Renderer->OnDetach();
-		s_EngineInterface->OnDetach();
+		s_Interface->OnDetach();
 		glfwTerminate();
 	}
 
@@ -92,7 +92,7 @@ namespace Bonfire
 			KeyPressedInput input(keycode);
 
 			s_Renderer->OnInput(input);
-			s_EngineInterface->OnInput(input);
+			s_Interface->OnInput(input);
 			for (Layer* layer : m_Layers)
 				layer->OnInput(input);
 		}
@@ -101,7 +101,7 @@ namespace Bonfire
 			KeyReleasedInput input(keycode);
 
 			s_Renderer->OnInput(input);
-			s_EngineInterface->OnInput(input);
+			s_Interface->OnInput(input);
 			for (Layer* layer : m_Layers)
 				layer->OnInput(input);
 		}
@@ -114,7 +114,7 @@ namespace Bonfire
 			MouseButtonPressedInput input(button);
 
 			s_Renderer->OnInput(input);
-			s_EngineInterface->OnInput(input);
+			s_Interface->OnInput(input);
 			for (Layer* layer : m_Layers)
 				layer->OnInput(input);
 		}
@@ -123,7 +123,7 @@ namespace Bonfire
 			MouseButtonReleasedInput input(button);
 
 			s_Renderer->OnInput(input);
-			s_EngineInterface->OnInput(input);
+			s_Interface->OnInput(input);
 			for (Layer* layer : m_Layers)
 				layer->OnInput(input);
 		}
@@ -134,7 +134,7 @@ namespace Bonfire
 		MouseMovedInput input(xposin, yposin);
 
 		s_Renderer->OnInput(input);
-		s_EngineInterface->OnInput(input);
+		s_Interface->OnInput(input);
 		for (Layer* layer : m_Layers)
 			layer->OnInput(input);
 	}
@@ -144,7 +144,7 @@ namespace Bonfire
 		MouseScrolledInput input(xoffset, yoffset);
 
 		s_Renderer->OnInput(input);
-		s_EngineInterface->OnInput(input);
+		s_Interface->OnInput(input);
 		for (Layer* layer : m_Layers)
 			layer->OnInput(input);
 	}
@@ -153,13 +153,15 @@ namespace Bonfire
 	{
 		m_Window.GetWidth() = width;
 		m_Window.GetHeight() = height;
-		unsigned int viewportWidth = m_Window.GetWidth() * viewportSizeAdjust;
+		/*unsigned int viewportWidth = m_Window.GetWidth() * viewportSizeAdjust;
 		unsigned int viewportHeight = m_Window.GetHeight() * viewportSizeAdjust;
 		m_ViewportProps.Width = viewportWidth;
 		m_ViewportProps.Height = viewportHeight;
 		m_ViewportProps.xOffset = m_Window.GetWidth() - viewportWidth;
 		m_ViewportProps.yOffset = m_Window.GetHeight() - viewportHeight;
-		glViewport(m_ViewportProps.xOffset, m_ViewportProps.yOffset, m_ViewportProps.Width, m_ViewportProps.Height);
+		glViewport(m_ViewportProps.xOffset, m_ViewportProps.yOffset, m_ViewportProps.Width, m_ViewportProps.Height);*/
+
+		glViewport(0, 0, width, height); // for testing before adding in custom rendering window size
 	}
 
 	void Project::InitializeOpenGL()

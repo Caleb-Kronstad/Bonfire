@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "bonfire_pch.h"
+#include "bonfire_pch.hpp"
 #include <string>
 
 namespace ImGui

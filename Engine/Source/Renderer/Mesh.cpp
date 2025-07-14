@@ -1,5 +1,5 @@
-﻿#include "bonfire_pch.h"
-#include "Mesh.h"
+﻿#include "bonfire_pch.hpp"
+#include "Mesh.hpp"
 
 namespace Bonfire
 {

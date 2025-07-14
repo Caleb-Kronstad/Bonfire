@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Core/Layer.h"
+#include "Core/Layer.hpp"
 
+#include "Renderer/Camera.h"
 #include "Renderer/Mesh.h"
 
-#include "Input/Input.h"
-#include "Input/InputCodes.h"
-#include "Input/InputTypes.h"
+#include "Input/Input.hpp"
+#include "Input/InputCodes.hpp"
+#include "Input/InputTypes.hpp"
 
 namespace Bonfire
 {
@@ -22,5 +23,10 @@ namespace Bonfire
 		void OnInput(Input& input) override;
 
 	private:
+		std::string m_ProjectPath;
+		glm::mat4* m_ManipulationMatrix;
+		Camera* m_EngineCamera;
+		
+		Shader* m_TestShader;
 	};
 }

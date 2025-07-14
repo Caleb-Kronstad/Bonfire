@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Input/Input.h"
-#include "Input/InputCodes.h"
-#include "Input/InputTypes.h"
+#include "Input/Input.hpp"
+#include "Input/InputCodes.hpp"
+#include "Input/InputTypes.hpp"
 
-#include "Interface/EngineInterface.h"
+#include "Interface/Interface.hpp"
 
-#include "Core/Window.h"
-#include "Core/Layer.h"
+#include "Core/Window.hpp"
+#include "Core/Layer.hpp"
 
 #include "Renderer/Renderer.h"
 
@@ -30,7 +30,7 @@ namespace Bonfire
 		bool& GetEngineRunState() { return m_EngineRunning; }
 		std::string GetProjectName() const { return m_ProjectName; }
 		float GetDeltaTime() const { return m_DeltaTime; }
-		Window& GetWindow() { return m_Window; }
+		Window GetWindow() const { return m_Window; }
 
 		// Callback functions
 		void keycallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -75,8 +75,8 @@ namespace Bonfire
 
 	private:
 		Window m_Window;
-		WindowProperties m_ViewportProps;
-		unsigned int viewportSizeAdjust = 1;
+		/*WindowProperties m_ViewportProps;
+		float viewportSizeAdjust = 1;*/
 		
 		unsigned int m_AntiAliasingLevel = 4;
 		bool m_EngineRunning = true;
@@ -87,7 +87,7 @@ namespace Bonfire
 		std::vector<Layer*> m_Layers;
 
 		static Renderer* s_Renderer;
-		static EngineInterface* s_EngineInterface;
+		static Interface* s_Interface;
 		static Project* s_Instance;
 	};
 }

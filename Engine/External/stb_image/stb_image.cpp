@@ -1,4 +1,4 @@
-#include "bonfire_pch.h"
+#include "bonfire_pch.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

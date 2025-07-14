@@ -1,5 +1,5 @@
-#include "bonfire_pch.h"
-#include "Utility.h"
+#include "bonfire_pch.hpp"
+#include "Utility.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 

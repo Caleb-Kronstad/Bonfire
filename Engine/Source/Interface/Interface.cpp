@@ -1,21 +1,21 @@
-#include "bonfire_pch.h"
-#include "EngineInterface.h"
+#include "bonfire_pch.hpp"
+#include "Interface.hpp"
 
-#include "Core/Utility.h"
-#include "Core/Project.h"
+#include "Core/Utility.hpp"
+#include "Core/Project.hpp"
 
 namespace Bonfire
 {
-	EngineInterface::EngineInterface()
+	Interface::Interface()
 	{
 
 	}
-	EngineInterface::~EngineInterface()
+	Interface::~Interface()
 	{
 
 	}
 
-	void EngineInterface::OnAttach()
+	void Interface::OnAttach()
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -26,28 +26,28 @@ namespace Bonfire
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 460");
 	}
-	void EngineInterface::OnDetach()
+	void Interface::OnDetach()
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 
-	void EngineInterface::Begin()
+	void Interface::Begin()
 	{
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
 	}
-	void EngineInterface::End()
+	void Interface::End()
 	{
 		ImGui::Render();
 		ImGui::EndFrame();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
-	void EngineInterface::OnUpdate()
+	void Interface::OnUpdate()
 	{
 		Begin();
 
@@ -63,7 +63,7 @@ namespace Bonfire
 		End();
 	}
 
-	void EngineInterface::OnInput(Input& input)
+	void Interface::OnInput(Input& input)
 	{
 		if (m_BlockInputs)
 		{
@@ -73,7 +73,7 @@ namespace Bonfire
 		}
 	}
 
-	void EngineInterface::SetCustomStyle()
+	void Interface::SetCustomStyle()
 	{
 		ImGuiStyle* style = &ImGui::GetStyle();
 
@@ -122,7 +122,7 @@ namespace Bonfire
 		style->ScrollbarRounding = 0.0f;
 	}
 
-	void EngineInterface::SetClearStyle()
+	void Interface::SetClearStyle()
 	{
 		ImGuiStyle* style = &ImGui::GetStyle();
 

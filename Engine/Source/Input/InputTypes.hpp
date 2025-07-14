@@ -1,8 +1,8 @@
 #pragma once
 
-#include "bonfire_pch.h"
-#include "Input.h"
-#include "InputCodes.h"
+#include "bonfire_pch.hpp"
+#include "Input.hpp"
+#include "InputCodes.hpp"
 
 namespace Bonfire
 {

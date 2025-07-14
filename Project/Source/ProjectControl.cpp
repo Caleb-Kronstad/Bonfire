@@ -1,6 +1,6 @@
-#include "Engine.h"
+#include "BonfireEngine.hpp"
 
-#include "TestLayer.h"
+#include "TestLayer.hpp"
 
 class ProjectInstance : public Project
 {

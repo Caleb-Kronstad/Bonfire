@@ -1,5 +1,5 @@
-#include "bonfire_pch.h"
-#include "Layer.h"
+#include "bonfire_pch.hpp"
+#include "Layer.hpp"
 
 namespace Bonfire
 {

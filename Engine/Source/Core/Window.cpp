@@ -1,5 +1,5 @@
-#include "bonfire_pch.h"
-#include "Window.h"
+#include "bonfire_pch.hpp"
+#include "Window.hpp"
 
 namespace Bonfire
 {
