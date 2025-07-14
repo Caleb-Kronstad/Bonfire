@@ -3,14 +3,12 @@
 
 namespace Bonfire
 {
-	Shader::Shader(const std::string& shaderName,
-		std::string vertexPath, std::string fragmentPath, std::string geometryPath)
+	Shader::Shader(std::string vertexPath, std::string fragmentPath, std::string geometryPath)
 	{
-		Load(shaderName, vertexPath, fragmentPath, geometryPath);
+		Load(vertexPath, fragmentPath, geometryPath);
 	}
 
-	void Shader::Load(const std::string& shaderName,
-		std::string vertexPath, std::string fragmentPath, std::string geometryPath)
+	void Shader::Load(std::string vertexPath, std::string fragmentPath, std::string geometryPath)
 	{
 		if (vertexPath != "None") vPath = std::string(vertexPath);
 		if (fragmentPath != "None") fPath = std::string(fragmentPath);
@@ -61,7 +59,7 @@ namespace Bonfire
 		}
 		catch (std::ifstream::failure e)
 		{
-			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
+			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ\n";
 		}
 
 		// Compile shaders
@@ -173,8 +171,8 @@ namespace Bonfire
 			if (!success)
 			{
 				glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-				std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-				std::cout << vPath << "\n" << fPath << "\n" << gPath << std::endl;
+				std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << "\n";
+				std::cout << vPath << "\n" << fPath << "\n" << gPath << "\n";
 			}
 		}
 		else
@@ -183,8 +181,8 @@ namespace Bonfire
 			if (!success)
 			{
 				glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-				std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-				std::cout << vPath << "\n" << fPath << "\n" << gPath << std::endl;
+				std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << "\n";
+				std::cout << vPath << "\n" << fPath << "\n" << gPath << "\n";
 			}
 		}
 	}

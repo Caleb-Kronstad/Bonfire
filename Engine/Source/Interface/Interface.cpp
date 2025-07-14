@@ -20,7 +20,7 @@ namespace Bonfire
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		
-		Project& project = Project::Get();
+		Project& project = Project::GetInstance();
 		GLFWwindow* window = project.GetWindow().GetNativeWindow();
 
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -51,7 +51,7 @@ namespace Bonfire
 	{
 		Begin();
 
-		Project& project = Project::Get();
+		Project& project = Project::GetInstance();
 		Renderer& renderer = Project::GetRenderer();
 		Window& window = project.GetWindow();
 

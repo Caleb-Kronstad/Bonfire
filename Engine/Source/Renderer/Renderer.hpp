@@ -2,8 +2,8 @@
 
 #include "Core/Layer.hpp"
 
-#include "Renderer/Camera.h"
-#include "Renderer/Mesh.h"
+#include "Renderer/Camera.hpp"
+#include "Renderer/Mesh.hpp"
 
 #include "Input/Input.hpp"
 #include "Input/InputCodes.hpp"

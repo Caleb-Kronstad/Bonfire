@@ -20,4 +20,6 @@
 
 // Renderer
 #include "Renderer/Shader.hpp"
+#include "Renderer/Camera.hpp"
+#include "Renderer/Mesh.hpp"
 #include "Renderer/Renderer.hpp"

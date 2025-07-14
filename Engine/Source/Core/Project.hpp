@@ -9,7 +9,7 @@
 #include "Core/Window.hpp"
 #include "Core/Layer.hpp"
 
-#include "Renderer/Renderer.h"
+#include "Renderer/Renderer.hpp"
 
 namespace Bonfire
 {
@@ -24,13 +24,13 @@ namespace Bonfire
 		void PopLayer(Layer* layer);
 
 		// Getters
-		static Project& Get() { return *s_Instance; }
+		static Project& GetInstance() { return *s_Instance; }
 		static Renderer& GetRenderer() { return *s_Renderer; }
 		bool& GetProjectRunState() { return m_ProjectRunning; }
 		bool& GetEngineRunState() { return m_EngineRunning; }
 		std::string GetProjectName() const { return m_ProjectName; }
 		float GetDeltaTime() const { return m_DeltaTime; }
-		Window GetWindow() const { return m_Window; }
+		Window& GetWindow() { return m_Window; }
 
 		// Callback functions
 		void keycallback(GLFWwindow* window, int key, int scancode, int action, int mods);

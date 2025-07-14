@@ -1,5 +1,9 @@
 #pragma once
 
+// --- Engine ------------------
+#include "BonfireEnums.hpp"
+// ------------------------------
+
 // --- General ------------------
 #include <iostream>
 #include <sstream>
