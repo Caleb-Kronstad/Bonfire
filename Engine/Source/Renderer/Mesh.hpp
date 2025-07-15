@@ -18,6 +18,13 @@ namespace Bonfire
     
     class Mesh
     {
+    public:
+        Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
+        void Draw(Shader& shader);
+
+    private:
+        void SetupMesh();
+        
     private:
         GLuint VBO, EBO, VAO;
 
@@ -25,10 +32,6 @@ namespace Bonfire
         std::vector<GLuint> indices;
         std::vector<Texture> textures;
         
-    public:
-
-        Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
-        //void Draw(Shader& shader);
     };
 
 }

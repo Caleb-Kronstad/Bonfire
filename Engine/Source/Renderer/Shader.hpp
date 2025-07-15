@@ -5,9 +5,9 @@ namespace Bonfire
 	class Shader
 	{
 	public:
-		Shader(std::string vertexPath = "None", std::string fragmentPath = "None", std::string geometryPath = "None");
+		Shader(std::string name = "NewShader", std::string vertexPath = "None", std::string fragmentPath = "None", std::string geometryPath = "None");
 
-		void Load(std::string vertexPath = "None", std::string fragmentPath = "None", std::string geometryPath = "None");
+		void Load(std::string& name, std::string& vertexPath, std::string& fragmentPath, std::string& geometryPath);
 		void Use();
 
 		void SetBool(const std::string& name, bool value) const;

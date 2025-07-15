@@ -37,13 +37,13 @@ namespace Bonfire
             Position += Right * velocity;
     }
     
-    void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
+    void Camera::ProcessMouseMovement(float x_offset, float y_offset, GLboolean constrainPitch)
     {
-        xoffset *= MouseSensitivity;
-        yoffset *= MouseSensitivity;
+        x_offset *= MouseSensitivity;
+        y_offset *= MouseSensitivity;
 
-        Yaw += xoffset;
-        Pitch -= yoffset;
+        Yaw += x_offset;
+        Pitch -= y_offset;
 
         // make sure that when pitch is out of bounds, screen doesn't get flipped
         if (constrainPitch)

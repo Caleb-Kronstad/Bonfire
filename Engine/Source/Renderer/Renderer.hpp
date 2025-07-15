@@ -28,5 +28,8 @@ namespace Bonfire
 		Camera* m_EngineCamera;
 		
 		Shader* m_TestShader;
+		Mesh* m_TestMesh;
+
+		bool m_WindowFocused;
 	};
 }

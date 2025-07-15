@@ -2,6 +2,7 @@
 
 // --- Engine ------------------
 #include "BonfireEnums.hpp"
+#include "BonfireLog.hpp"
 // ------------------------------
 
 // --- General ------------------
