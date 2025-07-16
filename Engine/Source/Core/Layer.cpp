@@ -3,7 +3,7 @@
 
 namespace Bonfire
 {
-	Layer::Layer(const std::string& name) : m_DebugName(name)
+	Layer::Layer(std::string debug_name) : debug_name(debug_name)
 	{
 	}
 

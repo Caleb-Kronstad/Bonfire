@@ -16,9 +16,10 @@ namespace Bonfire
 	public:
 		virtual ~Input() = default;
 
-		bool Handled = false;
-
 		virtual InputType GetInputType() const = 0;
 		virtual std::string ToString() const { return ""; }
+
+	public:
+		bool Handled = false;
 	};
 }

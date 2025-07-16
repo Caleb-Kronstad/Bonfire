@@ -4,6 +4,7 @@
 
 #include "Renderer/Camera.hpp"
 #include "Renderer/Mesh.hpp"
+#include "Renderer/Model.hpp"
 
 #include "Input/Input.hpp"
 #include "Input/InputCodes.hpp"
@@ -23,13 +24,15 @@ namespace Bonfire
 		void OnInput(Input& input) override;
 
 	private:
-		std::string m_ProjectPath;
-		glm::mat4* m_ManipulationMatrix;
-		Camera* m_EngineCamera;
+		std::string project_path;
+		glm::mat4 manipulation_matrix;
 		
-		Shader* m_TestShader;
-		Mesh* m_TestMesh;
+		std::unique_ptr<Camera> engine_camera;
 
-		bool m_WindowFocused;
+		// -- TEST MEMBERS --
+		std::unique_ptr<Shader> test_shader;
+		std::shared_ptr<Texture> test_texture;
+		std::unique_ptr<Model> test_model;
+		// --
 	};
 }

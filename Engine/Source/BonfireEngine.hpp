@@ -21,5 +21,7 @@
 // Renderer
 #include "Renderer/Shader.hpp"
 #include "Renderer/Camera.hpp"
+#include "Renderer/Texture.hpp"
 #include "Renderer/Mesh.hpp"
+#include "Renderer/Model.hpp"
 #include "Renderer/Renderer.hpp"

@@ -20,11 +20,8 @@ namespace Bonfire
 	class Window
 	{
 	public:
-		Window(WindowProperties winProps = WindowProperties())
-			: m_WindowProps(winProps)
-		{
-		}
-		~Window() = default;
+		Window(WindowProperties winProps = WindowProperties());
+		~Window();
 
 		void SetNativeWindow(GLFWwindow* window) { m_Window = window; }
 

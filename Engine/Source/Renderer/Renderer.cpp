@@ -7,7 +7,7 @@ namespace Bonfire
 {
 	Renderer::Renderer()
 	{
-		m_ProjectPath = std::filesystem::current_path().generic_string();
+		project_path = std::filesystem::current_path().generic_string();
 	}
 	Renderer::~Renderer()
 	{
@@ -16,61 +16,18 @@ namespace Bonfire
 
 	void Renderer::OnAttach()
 	{
-		m_ManipulationMatrix = new glm::mat4(1.0f);
-		m_EngineCamera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+		manipulation_matrix = glm::mat4(1.0f);
+		engine_camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
 
-		std::vector<Vertex> test_vertices = {
-			// Front face
-			{{-0.5f, -0.5f,  0.5f},  {0.0f,  0.0f,  1.0f}, {0.0f, 0.0f}}, // Bottom Left
-			{{ 0.5f, -0.5f,  0.5f},  {0.0f,  0.0f,  1.0f}, {1.0f, 0.0f}}, // Bottom Right
-			{{ 0.5f,  0.5f,  0.5f},  {0.0f,  0.0f,  1.0f}, {1.0f, 1.0f}}, // Top Right
-			{{-0.5f,  0.5f,  0.5f},  {0.0f,  0.0f,  1.0f}, {0.0f, 1.0f}}, // Top Left
+		test_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", DIFFUSE);
+		test_model = std::make_unique<Model>("Resources/Models/Cube.obj");
+		test_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
 
-			// Back face
-			{{ 0.5f, -0.5f, -0.5f},  {0.0f,  0.0f, -1.0f}, {0.0f, 0.0f}},
-			{{-0.5f, -0.5f, -0.5f},  {0.0f,  0.0f, -1.0f}, {1.0f, 0.0f}},
-			{{-0.5f,  0.5f, -0.5f},  {0.0f,  0.0f, -1.0f}, {1.0f, 1.0f}},
-			{{ 0.5f,  0.5f, -0.5f},  {0.0f,  0.0f, -1.0f}, {0.0f, 1.0f}},
-
-			// Left face
-			{{-0.5f, -0.5f, -0.5f},  {-1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}},
-			{{-0.5f, -0.5f,  0.5f},  {-1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}},
-			{{-0.5f,  0.5f,  0.5f},  {-1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}},
-			{{-0.5f,  0.5f, -0.5f},  {-1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}},
-
-			// Right face
-			{{ 0.5f, -0.5f,  0.5f},  {1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}},
-			{{ 0.5f, -0.5f, -0.5f},  {1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}},
-			{{ 0.5f,  0.5f, -0.5f},  {1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}},
-			{{ 0.5f,  0.5f,  0.5f},  {1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}},
-
-			// Top face
-			{{-0.5f,  0.5f,  0.5f},  {0.0f,  1.0f,  0.0f}, {0.0f, 0.0f}},
-			{{ 0.5f,  0.5f,  0.5f},  {0.0f,  1.0f,  0.0f}, {1.0f, 0.0f}},
-			{{ 0.5f,  0.5f, -0.5f},  {0.0f,  1.0f,  0.0f}, {1.0f, 1.0f}},
-			{{-0.5f,  0.5f, -0.5f},  {0.0f,  1.0f,  0.0f}, {0.0f, 1.0f}},
-
-			// Bottom face
-			{{-0.5f, -0.5f, -0.5f},  {0.0f, -1.0f,  0.0f}, {0.0f, 0.0f}},
-			{{ 0.5f, -0.5f, -0.5f},  {0.0f, -1.0f,  0.0f}, {1.0f, 0.0f}},
-			{{ 0.5f, -0.5f,  0.5f},  {0.0f, -1.0f,  0.0f}, {1.0f, 1.0f}},
-			{{-0.5f, -0.5f,  0.5f},  {0.0f, -1.0f,  0.0f}, {0.0f, 1.0f}},
-		};
-		std::vector<GLuint> test_indices = {
-			0, 1, 2,  2, 3, 0,        // Front
-			4, 5, 6,  6, 7, 4,        // Back
-			8, 9,10, 10,11, 8,        // Left
-		   12,13,14, 14,15,12,        // Right
-		   16,17,18, 18,19,16,        // Top
-		   20,21,22, 22,23,20         // Bottom
-		};
-		std::vector<Texture> test_textures = {};
+		test_model->AddTexture(test_texture);
+		test_model->Load();
 		
-		m_TestMesh = new Mesh(test_vertices, test_indices, test_textures);
-		m_TestShader = new Shader("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
-		
-		m_TestShader->Use();
-		m_TestShader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
+		test_shader->Use();
+		test_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
 	}
 	void Renderer::OnDetach()
 	{
@@ -84,26 +41,26 @@ namespace Bonfire
 		const float deltaTime = project.GetDeltaTime();
 
 		if (glfwGetKey(glfwWindow, InputCode::W) == GLFW_PRESS)
-			m_EngineCamera->ProcessKeyboard(FORWARD, deltaTime);
+			engine_camera->ProcessKeyboard(FORWARD, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::S) == GLFW_PRESS)
-			m_EngineCamera->ProcessKeyboard(BACKWARD, deltaTime);
+			engine_camera->ProcessKeyboard(BACKWARD, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::A) == GLFW_PRESS)
-			m_EngineCamera->ProcessKeyboard(LEFT, deltaTime);
+			engine_camera->ProcessKeyboard(LEFT, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::D) == GLFW_PRESS)
-			m_EngineCamera->ProcessKeyboard(RIGHT, deltaTime);
+			engine_camera->ProcessKeyboard(RIGHT, deltaTime);
 		
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glm::mat4 projection = m_EngineCamera->GetProjectionMatrix(window.GetWidth(), window.GetHeight());
-		glm::mat4 view = m_EngineCamera->GetViewMatrix();
+		glm::mat4 projection = engine_camera->GetProjectionMatrix(window.GetWidth(), window.GetHeight());
+		glm::mat4 view = engine_camera->GetViewMatrix();
 
-		m_TestShader->Use();
-		m_TestShader->SetMat4("projection", projection);
-		m_TestShader->SetMat4("view", view);
-		m_TestShader->SetMat4("model", glm::mat4(1.0f));
+		test_shader->Use();
+		test_shader->SetMat4("projection", projection);
+		test_shader->SetMat4("view", view);
+		test_shader->SetMat4("model", manipulation_matrix);
 
-		m_TestMesh->Draw(*m_TestShader);
+		test_model->Draw(*test_shader);
 	}
 
 	void Renderer::OnInput(Input& input)
@@ -154,20 +111,20 @@ namespace Bonfire
 				const float x_position = mouseInput.GetX();
 				const float y_position = mouseInput.GetY();
 
-				if (m_EngineCamera->firstMouse)
+				if (engine_camera->firstMouse)
 				{
-					m_EngineCamera->lastX = x_position;
-					m_EngineCamera->lastY = y_position;
-					m_EngineCamera->firstMouse = false;
+					engine_camera->lastX = x_position;
+					engine_camera->lastY = y_position;
+					engine_camera->firstMouse = false;
 				}
 
-				const float x_offset = x_position - m_EngineCamera->lastX;
-				const float y_offset = y_position - m_EngineCamera->lastY;
+				const float x_offset = x_position - engine_camera->lastX;
+				const float y_offset = y_position - engine_camera->lastY;
 
-				m_EngineCamera->lastX = x_position;
-				m_EngineCamera->lastY = y_position;
+				engine_camera->lastX = x_position;
+				engine_camera->lastY = y_position;
 
-				m_EngineCamera->ProcessMouseMovement(x_offset, y_offset);
+				engine_camera->ProcessMouseMovement(x_offset, y_offset);
 				
 				break;
 			}
@@ -180,7 +137,11 @@ namespace Bonfire
 				break;
 			}
 		case InputType::None:
-			break;
+			{
+				break;
+			}
+		default:
+				break;
 		}
 	}
 }

@@ -8,11 +8,8 @@ namespace Bonfire
 {
 	class Layer
 	{
-	protected:
-		std::string m_DebugName;
-
 	public:
-		Layer(const std::string& name = "Layer");
+		Layer(std::string debug_name = "Layer");
 		virtual ~Layer() = default;
 
 		virtual void OnAttach();
@@ -20,6 +17,9 @@ namespace Bonfire
 		virtual void OnUpdate();
 		virtual void OnInput(Input& input);
 
-		std::string GetName() const { return m_DebugName; }
+		std::string GetName() const { return debug_name; }
+		
+	protected:
+		std::string debug_name;
 	};
 }

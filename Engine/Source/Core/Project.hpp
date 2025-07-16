@@ -24,13 +24,13 @@ namespace Bonfire
 		void PopLayer(Layer* layer);
 
 		// Getters
-		static Project& GetInstance() { return *s_Instance; }
-		static Renderer& GetRenderer() { return *s_Renderer; }
-		bool& GetProjectRunState() { return m_ProjectRunning; }
-		bool& GetEngineRunState() { return m_EngineRunning; }
-		std::string GetProjectName() const { return m_ProjectName; }
-		float GetDeltaTime() const { return m_DeltaTime; }
-		Window& GetWindow() { return m_Window; }
+		static Project& GetInstance() { return *static_project_instance; }
+		static Renderer& GetRenderer() { return *static_renderer; }
+		bool& GetProjectRunState() { return project_running; }
+		bool& GetEngineRunState() { return engine_running; }
+		std::string GetProjectName() const { return project_name; }
+		float GetDeltaTime() const { return delta_time; }
+		Window& GetWindow() { return window; }
 
 		// Callback functions
 		void keycallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -39,30 +39,30 @@ namespace Bonfire
 		void scrollcallback(GLFWwindow* window, double xoffset, double yoffset);
 		void framebuffersizecallback(GLFWwindow* window, int width, int height);
 
-		static void keycallback_dispatch(GLFWwindow* window, int key, int scancode, int action, int mods)
+		static void KeyCallbackDispatch(GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
-			if (s_Instance)
-				s_Instance->keycallback(window, key, scancode, action, mods);
+			if (static_project_instance)
+				static_project_instance->keycallback(window, key, scancode, action, mods);
 		}
-		static void mousebuttoncallback_dispatch(GLFWwindow* window, int key, int action, int mods)
+		static void MouseButtonCallbackDispatch(GLFWwindow* window, int key, int action, int mods)
 		{
-			if (s_Instance)
-				s_Instance->mousebuttoncallback(window, key, action, mods);
+			if (static_project_instance)
+				static_project_instance->mousebuttoncallback(window, key, action, mods);
 		}
-		static void mousecallback_dispatch(GLFWwindow* window, double xposin, double yposin)
+		static void MouseCallbackDispatch(GLFWwindow* window, double xposin, double yposin)
 		{
-			if (s_Instance)
-				s_Instance->mousecallback(window, xposin, yposin);
+			if (static_project_instance)
+				static_project_instance->mousecallback(window, xposin, yposin);
 		}
-		static void scrollcallback_dispatch(GLFWwindow* window, double xoffset, double yoffset)
+		static void ScrollCallbackDispatch(GLFWwindow* window, double xoffset, double yoffset)
 		{
-			if (s_Instance)
-				s_Instance->scrollcallback(window, xoffset, yoffset);
+			if (static_project_instance)
+				static_project_instance->scrollcallback(window, xoffset, yoffset);
 		}
-		static void framebuffersizecallback_dispatch(GLFWwindow* window, int width, int height)
+		static void FramebufferSizeCallbackDispatch(GLFWwindow* window, int width, int height)
 		{
-			if (s_Instance)
-				s_Instance->framebuffersizecallback(window, width, height);
+			if (static_project_instance)
+				static_project_instance->framebuffersizecallback(window, width, height);
 		}
 
 	private:
@@ -70,24 +70,24 @@ namespace Bonfire
 		void TickDeltaTime();
 
 	private:
-		float m_DeltaTime = 0.0f;
-		float m_LastFrameTime = 0.0f;
+		float delta_time = 0.0f;
+		float last_frame_time = 0.0f;
 
 	private:
-		Window m_Window;
+		Window window;
 		/*WindowProperties m_ViewportProps;
 		float viewportSizeAdjust = 1;*/
 		
-		unsigned int m_AntiAliasingLevel = 4;
-		bool m_EngineRunning = true;
-		bool m_ProjectRunning = false;
+		unsigned int anti_aliasing_level = 4;
+		bool engine_running = true;
+		bool project_running = false;
 
-		std::string m_ProjectName;
+		std::string project_name;
 		
-		std::vector<Layer*> m_Layers;
+		std::vector<Layer*> layers;
 
-		static Renderer* s_Renderer;
-		static Interface* s_Interface;
-		static Project* s_Instance;
+		static Renderer* static_renderer;
+		static Interface* static_interface;
+		static Project* static_project_instance;
 	};
 }

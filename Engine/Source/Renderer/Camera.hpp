@@ -30,8 +30,7 @@ namespace Bonfire
         bool flying = false;
         bool sprinting = false;
         // --
-
-
+        
         glm::vec3 Position;
         glm::vec3 Front;
         glm::vec3 Up;
