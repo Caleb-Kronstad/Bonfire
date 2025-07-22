@@ -4,8 +4,9 @@
 namespace Bonfire
 {
     Texture::Texture(std::string path, TEXTURE_TYPE type, bool flip)
-        : path(path), type(type), flip(flip)
+        : path(std::move(path)), type(type), flip(flip)
     {
+        gl_id = 0;
     }
 
     void Texture::Load()
@@ -38,10 +39,7 @@ namespace Bonfire
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         else
-        {
             Log::Error("Texture failed to load at path: " + std::string(path) + "\n");
-            gl_id = 0;
-        }
         stbi_image_free(data);
     }
 }

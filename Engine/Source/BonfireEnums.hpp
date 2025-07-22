@@ -4,7 +4,8 @@
 
 namespace Bonfire
 {
-    enum MOVEMENT_DIRECTION : std::uint8_t {
+    enum MOVEMENT_DIRECTION : std::uint8_t
+    {
         FORWARD,
         BACKWARD,
         LEFT,
@@ -13,7 +14,6 @@ namespace Bonfire
 
     enum TEXTURE_TYPE : std::uint8_t
     {
-        NONE,
         DIFFUSE,
         SPECULAR,
         NORMAL,

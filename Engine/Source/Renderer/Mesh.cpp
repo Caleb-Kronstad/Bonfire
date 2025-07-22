@@ -15,7 +15,7 @@ namespace Bonfire
 		{
 		    glActiveTexture(GL_TEXTURE0+i);
 
-			std::string texture_type_name;
+			std::string texture_type_name = "diffuse";
 			switch (textures[i]->type)
 			{
 			case DIFFUSE:
@@ -39,10 +39,7 @@ namespace Bonfire
 					break;
 				}
 			default:
-				{
-					texture_type_name = "diffuse";
-					break;
-				}
+				break;
 			}
 			shader.SetInt("material."+texture_type_name, static_cast<int>(i));
 			glBindTexture(GL_TEXTURE_2D, textures[i]->gl_id);
@@ -50,7 +47,7 @@ namespace Bonfire
         
         // bind and draw mesh
         glBindVertexArray(vertex_array);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
 
         // unbind
         glBindVertexArray(0);

@@ -137,9 +137,7 @@ namespace Bonfire
 				break;
 			}
 		case InputType::None:
-			{
 				break;
-			}
 		default:
 				break;
 		}
