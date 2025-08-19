@@ -13,6 +13,7 @@ public:
 	void OnAttach() override;
 	void OnDetach() override;
 	void OnUpdate() override;
+	void OnInterfaceUpdate() override;
 	void OnInput(Input& input) override;
 
 private:

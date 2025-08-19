@@ -66,14 +66,21 @@ namespace Bonfire
 		{
 			TickDeltaTime();
 
+			// Update Project
 			static_renderer->OnUpdate();
 			for (Layer* layer : layers)
 				layer->OnUpdate();
+
+			// Update Interface
+			static_interface->Begin();
 			static_interface->OnUpdate();
+			for (Layer* layer : layers)
+				layer->OnInterfaceUpdate();
+			static_interface->End();
 
 			glfwSwapBuffers(window.GetNativeWindow());
 			glfwPollEvents();
-
+			
 			if (glfwWindowShouldClose(window.GetNativeWindow()))
 				engine_running = false;
 		}

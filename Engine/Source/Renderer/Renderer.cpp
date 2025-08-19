@@ -40,6 +40,9 @@ namespace Bonfire
 		GLFWwindow* glfwWindow = window.GetNativeWindow();
 		const float deltaTime = project.GetDeltaTime();
 
+		if (window.GetWidth() <= 0 || window.GetHeight() <= 0)
+			return;
+
 		if (glfwGetKey(glfwWindow, InputCode::W) == GLFW_PRESS)
 			engine_camera->ProcessKeyboard(FORWARD, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::S) == GLFW_PRESS)
@@ -51,7 +54,7 @@ namespace Bonfire
 		
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		
 		glm::mat4 projection = engine_camera->GetProjectionMatrix(window.GetWidth(), window.GetHeight());
 		glm::mat4 view = engine_camera->GetViewMatrix();
 
@@ -61,6 +64,26 @@ namespace Bonfire
 		test_shader->SetMat4("model", manipulation_matrix);
 
 		test_model->Draw(*test_shader);
+	}
+
+	void Renderer::OnInterfaceUpdate()
+	{
+		Project& project = Project::GetInstance();
+		Window& window = project.GetWindow();
+
+		ImGuiWindowFlags window_flags = 0;
+		
+		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Always);
+		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+		ImGui::Begin("Hierarchy", nullptr, window_flags);
+		ImGui::Text("Hierarchy");
+		ImGui::End();
+		
+		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Always);
+		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 4), ImGuiCond_Always);
+		ImGui::Begin("Properties", nullptr, window_flags);
+		ImGui::Text("Properties");
+		ImGui::End();
 	}
 
 	void Renderer::OnInput(Input& input)
@@ -85,6 +108,14 @@ namespace Bonfire
 
 				// actions here
 				
+				break;
+			}
+		case InputType::KeyTyped:
+			{
+				const auto keyInput = dynamic_cast<KeyTypedInput&>(input);
+
+				// actions here
+
 				break;
 			}
 		case InputType::MouseButtonPressed:

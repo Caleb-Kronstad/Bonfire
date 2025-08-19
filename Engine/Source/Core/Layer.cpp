@@ -3,7 +3,8 @@
 
 namespace Bonfire
 {
-	Layer::Layer(std::string debug_name) : debug_name(debug_name)
+	Layer::Layer(std::string debug_name)
+		: debug_name(debug_name)
 	{
 	}
 
@@ -15,6 +16,10 @@ namespace Bonfire
 	}
 	void Layer::OnUpdate()
 	{
+	}
+	void Layer::OnInterfaceUpdate()
+	{
+		
 	}
 	void Layer::OnInput(Input& input)
 	{

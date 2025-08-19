@@ -21,6 +21,10 @@ void TestLayer::OnUpdate()
 {
 
 }
+void TestLayer::OnInterfaceUpdate()
+{
+	
+}
 void TestLayer::OnInput(Input& input)
 {
 	

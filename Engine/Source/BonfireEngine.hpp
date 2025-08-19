@@ -18,10 +18,15 @@
 
 // Physics
 
+// Entity Components
+#include "Renderer/Components/Component.hpp"
+#include "Renderer/Components/Transform.hpp"
+
 // Renderer
 #include "Renderer/Shader.hpp"
 #include "Renderer/Camera.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/Mesh.hpp"
 #include "Renderer/Model.hpp"
+#include "Renderer/Entity.hpp"
 #include "Renderer/Renderer.hpp"

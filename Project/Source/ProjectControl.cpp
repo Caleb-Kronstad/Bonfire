@@ -5,7 +5,7 @@
 class ProjectInstance : public Project
 {
 public:
-	ProjectInstance() : Project()
+	ProjectInstance()
 	{
 		PushLayer(new TestLayer());
 	}

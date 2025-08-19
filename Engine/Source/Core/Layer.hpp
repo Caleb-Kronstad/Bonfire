@@ -15,6 +15,7 @@ namespace Bonfire
 		virtual void OnAttach();
 		virtual void OnDetach();
 		virtual void OnUpdate();
+		virtual void OnInterfaceUpdate();
 		virtual void OnInput(Input& input);
 
 		std::string GetName() const { return debug_name; }

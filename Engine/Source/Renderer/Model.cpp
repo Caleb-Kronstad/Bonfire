@@ -38,7 +38,7 @@ namespace Bonfire
             texture->Load();
             return true;
         }
-        Log::Warning("Texture found -- Failed to add Texture to Model");
+        Log::Warning("[FAILED] Texture already added to Model");
         return false;
     }
     bool Model::RemoveTexture(std::shared_ptr<Texture> texture)
@@ -49,45 +49,9 @@ namespace Bonfire
             textures.erase(it);
             return true;
         }
-        Log::Warning("Texture not found -- Failed to remove Texture from Model");
+        Log::Warning("[FAILED] Model does not contain this Texture");
         return false;
     }
-
-    /*std::vector<Texture> Model::AddTextures(unsigned int amount, TEXTURE_TYPE type)
-    {
-        std::vector<Texture> textures;
-
-        for (unsigned int i = 0; i < amount; i++)
-        {
-            std::string path = std::string(type);
-            path = directory + '/' + path + "_" + std::to_string(i) + ".png";
-
-            unsigned int id = LoadTexture(path.c_str());
-            if (id == 0) return textures; // if there is no texture at this path then return all previously stored textures
-
-            bool already_added = false;
-            for (unsigned int j = 0; j < textures_loaded.size(); j++)
-            {
-                if (std::strcmp(textures_loaded[j].path.data(), path.c_str()) == 0)
-                {
-                    textures.push_back(textures_loaded[j]);
-                    already_added = true;
-                    break;
-                }
-            }
-
-            if (!already_added) {
-                auto texture = Texture(path);
-                texture.gl_id = LoadTexture(path.c_str());
-                texture.type = type;
-
-                textures.push_back(texture);
-                textures_loaded.push_back(texture);
-            }
-        }
-
-        return textures;
-    }*/
     
     void Model::ProcessNode(aiNode* node, const aiScene* scene)
     {

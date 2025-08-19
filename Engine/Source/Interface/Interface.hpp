@@ -9,7 +9,9 @@ namespace Bonfire
 	public:
 		Interface();
 		~Interface();
-
+		
+		void Begin();
+		void End();
 		void OnAttach() override;
 		void OnDetach() override;
 		void OnUpdate() override;
@@ -18,20 +20,16 @@ namespace Bonfire
 		void SetCustomStyle();
 		void SetClearStyle();
 
-	private:
-		void Begin();
-		void End();
-
 	public:
 
 	private:
-		bool m_BlockInputs = false;
+		bool block_inputs = false;
 
-		GLuint m_FileImage = 0;
-		int m_FileImageWidth = 0;
-		int m_FileImageHeight = 0;
+		GLuint file_image = 0;
+		int file_image_width = 0;
+		int file_image_height = 0;
 
-		int m_GizmoType = (int)ImGuizmo::TRANSLATE;
-		int m_GizmoSpace = 0;
+		int gizmo_type = (int)ImGuizmo::TRANSLATE;
+		int gizmo_space = 0;
 	};
 }

@@ -49,23 +49,12 @@ namespace Bonfire
 
 	void Interface::OnUpdate()
 	{
-		Begin();
-
-		Project& project = Project::GetInstance();
-		Renderer& renderer = Project::GetRenderer();
-		Window& window = project.GetWindow();
-
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.DisplaySize = ImVec2(window.GetWidth(), window.GetHeight());
-
-		ImGuiWindowFlags window_flags = 0;
-
-		End();
+		// maybe this will be used for something someday
 	}
 
 	void Interface::OnInput(Input& input)
 	{
-		if (m_BlockInputs)
+		if (block_inputs)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			input.Handled |= io.WantCaptureMouse;
@@ -73,7 +62,7 @@ namespace Bonfire
 		}
 	}
 
-	void Interface::SetCustomStyle()
+	void Interface::SetCustomStyle() // hard coded style for the time being, will update for customization later
 	{
 		ImGuiStyle* style = &ImGui::GetStyle();
 
