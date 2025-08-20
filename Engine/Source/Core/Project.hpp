@@ -20,8 +20,8 @@ namespace Bonfire
 		virtual ~Project();
 
 		void Run();
-		void PushLayer(Layer* layer);
-		void PopLayer(Layer* layer);
+		void PushLayer(std::shared_ptr<Layer> layer);
+		void PopLayer(std::shared_ptr<Layer> layer);
 
 		// Getters
 		static Project& GetInstance() { return *static_project_instance; }
@@ -84,7 +84,7 @@ namespace Bonfire
 
 		std::string project_name;
 		
-		std::vector<Layer*> layers;
+		std::vector<std::shared_ptr<Layer>> layers;
 
 		static Renderer* static_renderer;
 		static Interface* static_interface;

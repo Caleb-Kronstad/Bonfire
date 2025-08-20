@@ -19,4 +19,11 @@ namespace Bonfire
         NORMAL,
         HEIGHT
     };
+
+    enum COMPONENT_TYPE : std::uint8_t
+    {
+        TRANSFORM,
+        MODEL_DATA,
+        COUNT // used to count how many component types there are
+    };
 }

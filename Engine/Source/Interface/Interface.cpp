@@ -1,7 +1,6 @@
 #include "bonfire_pch.hpp"
 #include "Interface.hpp"
 
-#include "Core/Utility.hpp"
 #include "Core/Project.hpp"
 
 namespace Bonfire
@@ -21,9 +20,9 @@ namespace Bonfire
 		ImGui::CreateContext();
 		
 		Project& project = Project::GetInstance();
-		GLFWwindow* window = project.GetWindow().GetNativeWindow();
+		GLFWwindow* glfw_window = project.GetWindow().GetNativeWindow();
 
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
+		ImGui_ImplGlfw_InitForOpenGL(glfw_window, true);
 		ImGui_ImplOpenGL3_Init("#version 460");
 	}
 	void Interface::OnDetach()

@@ -7,7 +7,7 @@ class ProjectInstance : public Project
 public:
 	ProjectInstance()
 	{
-		PushLayer(new TestLayer());
+		PushLayer(std::make_shared<TestLayer>());
 	}
 
 	~ProjectInstance()

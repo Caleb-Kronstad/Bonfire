@@ -1,12 +1,8 @@
 ﻿#pragma once
 
 #include "Model.hpp"
-#include "Mesh.hpp"
 #include "Shader.hpp"
-
-// entity components
-#include "Components/Component.hpp"
-#include "Components/Transform.hpp"
+#include "Components.hpp"
 
 namespace Bonfire
 {
@@ -15,13 +11,50 @@ namespace Bonfire
     public:
         Entity(std::string name = "NewEntity");
 
-        bool AddComponent(std::shared_ptr<Component>& component);
-        bool RemoveComponent(std::shared_ptr<Component>& component);
+        void Draw(Shader& shader, glm::mat4& matrix);
+
+        template<typename T, typename... Args>
+        bool AddComponent(Args&&... args)
+        {
+            static_assert(std::is_base_of_v<Component, T>, "T must derive from Component");
+
+            COMPONENT_TYPE type = T::TYPE;
+
+            if (components[type] != nullptr) {
+                Log::Warning("[FAILED] Component already added to Entity");
+                return false;
+            }
+
+            components[type] = std::make_shared<T>(std::forward<Args>(args)...);
+            return true;
+        }
+        bool RemoveComponent(COMPONENT_TYPE type)
+        {
+            if (components[type] != nullptr) {
+                components[type] = nullptr;
+                return true;
+            }
+    
+            Log::Warning("[FAILED] Entity does not contain this Component");
+            return false;
+        }
+        template<typename T>
+        std::shared_ptr<T> GetComponent()
+        {
+            COMPONENT_TYPE type = T::TYPE;
+    
+            if (components[type] != nullptr) {
+                return std::static_pointer_cast<T>(components[type]);
+            }
+            return nullptr;
+        }
 
     public:
         std::string name;
         bool enabled;
-        std::vector<std::shared_ptr<Component>> components;
+
+        // CHANGE THIS TO AN ARRAY -- LOOK AT VISUAL PLAN FOR REFERENCE
+        std::array<std::shared_ptr<Component>, COMPONENT_TYPE::COUNT> components;
 
     };
 }

@@ -9,26 +9,16 @@ namespace Bonfire
         enabled = true;
     }
 
-    bool Entity::AddComponent(std::shared_ptr<Component>& component)
+    void Entity::Draw(Shader& shader, glm::mat4& matrix)
     {
-        auto it = std::find(components.begin(), components.end(), component);
-        if (it == components.end())
-        {
-            components.push_back(component);
-            return true;
-        }
-        Log::Warning("[FAILED] Component already added to Entity");
-        return false;
-    }
-    bool Entity::RemoveComponent(std::shared_ptr<Component>& component)
-    {
-        auto it = std::find(components.begin(), components.end(), component);
-        if (it != components.end())
-        {
-            components.erase(it);
-            return true;
-        }
-        Log::Warning("[FAILED] Entity does not contain this Component");
-        return false;
+        if (GetComponent<Transform>() == nullptr)
+            return;
+
+        matrix = GetComponent<Transform>()->GetTransformMatrix();
+        shader.SetMat4("model", matrix);
+        
+        auto model_data = GetComponent<ModelData>();
+        if (model_data)
+            model_data->model->Draw(shader);
     }
 }

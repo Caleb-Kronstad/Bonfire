@@ -4,7 +4,7 @@
 namespace Bonfire
 {
     Window::Window(WindowProperties winProps)
-                : m_WindowProps(winProps)
+                : window_props(winProps)
     {
     }
     Window::~Window()

@@ -23,24 +23,24 @@ namespace Bonfire
 		Window(WindowProperties winProps = WindowProperties());
 		~Window();
 
-		void SetNativeWindow(GLFWwindow* window) { m_Window = window; }
+		void SetNativeWindow(GLFWwindow* window) { glfw_window = window; }
 
 		// Getters
-		GLFWwindow* GetNativeWindow() const { return m_Window; }
-		unsigned int& GetWidth() { return m_WindowProps.Width; }
-		unsigned int& GetHeight() { return m_WindowProps.Height; }
-		unsigned int& GetXOffset() { return m_WindowProps.xOffset; }
-		unsigned int& GetYOffset() { return m_WindowProps.yOffset; }
-		std::string& GetTitle() { return m_WindowProps.Title; }
+		GLFWwindow* GetNativeWindow() const { return glfw_window; }
+		unsigned int& GetWidth() { return window_props.Width; }
+		unsigned int& GetHeight() { return window_props.Height; }
+		unsigned int& GetXOffset() { return window_props.xOffset; }
+		unsigned int& GetYOffset() { return window_props.yOffset; }
+		std::string& GetTitle() { return window_props.Title; }
 		
 		// VSync
-		void SetVSync(bool const enabled) { m_IsVSync = enabled; }
-		bool IsVSync() const { return m_IsVSync; }
+		void SetVSync(bool const enabled) { is_v_sync = enabled; }
+		bool IsVSync() const { return is_v_sync; }
 
 	private:
-		GLFWwindow* m_Window = nullptr;
-		WindowProperties m_WindowProps;
-		bool m_IsVSync = false;
+		GLFWwindow* glfw_window = nullptr;
+		WindowProperties window_props;
+		bool is_v_sync = false;
 
 	};
 }

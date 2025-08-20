@@ -18,16 +18,35 @@ namespace Bonfire
 	{
 		manipulation_matrix = glm::mat4(1.0f);
 		engine_camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
-
-		test_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", DIFFUSE);
-		test_model = std::make_unique<Model>("Resources/Models/Cube.obj");
-		test_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
-
-		test_model->AddTexture(test_texture);
-		test_model->Load();
+		engine_camera_can_rotate = false;
 		
-		test_shader->Use();
-		test_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
+		default_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
+
+		wood_floor_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", DIFFUSE);
+		checkered_texture = std::make_shared<Texture>("Resources/Textures/checkered.png", DIFFUSE);
+		
+		cube_model = std::make_shared<Model>("Resources/Models/Cube.obj");
+		sphere_model = std::make_shared<Model>("Resources/Models/Sphere.obj");
+
+		cube_model->AddTexture(wood_floor_texture);
+		sphere_model->AddTexture(checkered_texture);
+		
+		cube_model->Load();
+		sphere_model->Load();
+
+		std::shared_ptr<Entity> test_cube_entity = std::make_shared<Entity>("Test Cube Entity");
+		test_cube_entity->AddComponent<Transform>(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(5.0f, 0.25f, 5.0f));
+		test_cube_entity->AddComponent<ModelData>(cube_model);
+
+		std::shared_ptr<Entity> test_sphere_entity = std::make_shared<Entity>("Test Sphere Entity");
+		test_sphere_entity->AddComponent<Transform>();
+		test_sphere_entity->AddComponent<ModelData>(sphere_model);
+		
+		entities.push_back(test_cube_entity);
+		entities.push_back(test_sphere_entity);
+		
+		default_shader->Use();
+		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
 	}
 	void Renderer::OnDetach()
 	{
@@ -58,34 +77,33 @@ namespace Bonfire
 		glm::mat4 projection = engine_camera->GetProjectionMatrix(window.GetWidth(), window.GetHeight());
 		glm::mat4 view = engine_camera->GetViewMatrix();
 
-		test_shader->Use();
-		test_shader->SetMat4("projection", projection);
-		test_shader->SetMat4("view", view);
-		test_shader->SetMat4("model", manipulation_matrix);
+		default_shader->Use();
+		default_shader->SetMat4("projection", projection);
+		default_shader->SetMat4("view", view);
 
-		test_model->Draw(*test_shader);
+		for (const std::shared_ptr<Entity>& entity : entities)
+		{
+			entity->Draw(*default_shader, manipulation_matrix);
+		}
 	}
 
 	void Renderer::OnInterfaceUpdate()
 	{
 		Project& project = Project::GetInstance();
 		Window& window = project.GetWindow();
-
-		ImGuiWindowFlags window_flags = 0;
 		
-		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Always);
-		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-		ImGui::Begin("Hierarchy", nullptr, window_flags);
-		ImGui::Text("Hierarchy");
+		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
+		ImGui::Begin("Hierarchy", nullptr);
 		ImGui::End();
 		
-		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Always);
-		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 4), ImGuiCond_Always);
-		ImGui::Begin("Properties", nullptr, window_flags);
-		ImGui::Text("Properties");
+		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 4), ImGuiCond_Once);
+		ImGui::Begin("Properties", nullptr);
 		ImGui::End();
 	}
 
+	// Used for engine input, not game logic input
 	void Renderer::OnInput(Input& input)
 	{
 		Project& project = Project::GetInstance();
@@ -98,7 +116,13 @@ namespace Bonfire
 			{
 				const auto keyInput = dynamic_cast<KeyPressedInput&>(input);
 
-				// actions here
+				// -- actions here --
+
+				// maximize window
+				if (keyInput.GetKeyCode() == InputCode::F11)
+				{
+					glfwMaximizeWindow(window.GetNativeWindow());
+				}
 				
 				break;
 			}
@@ -106,7 +130,7 @@ namespace Bonfire
 			{
 				const auto keyInput = dynamic_cast<KeyReleasedInput&>(input);
 
-				// actions here
+				// -- actions here --
 				
 				break;
 			}
@@ -114,7 +138,7 @@ namespace Bonfire
 			{
 				const auto keyInput = dynamic_cast<KeyTypedInput&>(input);
 
-				// actions here
+				// -- actions here --
 
 				break;
 			}
@@ -122,7 +146,14 @@ namespace Bonfire
 			{
 				const auto mouseInput = dynamic_cast<MouseButtonPressedInput&>(input);
 				
-				// actions here
+				// -- actions here --
+
+				// enable engine camera rotation
+				if (mouseInput.GetMouseButton() == InputCode::Button1)
+				{
+					engine_camera_can_rotate = true;
+					glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				}
 				
 				break;
 			}
@@ -130,7 +161,14 @@ namespace Bonfire
 			{
 				const auto mouseInput = dynamic_cast<MouseButtonReleasedInput&>(input);
 				
-				// actions here
+				// -- actions here --
+
+				// disable engine camera rotation
+				if (mouseInput.GetMouseButton() == InputCode::Button1)
+				{
+					engine_camera_can_rotate = false;
+					glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				}
 				
 				break;
 			}
@@ -138,7 +176,9 @@ namespace Bonfire
 			{
 				const auto mouseInput = dynamic_cast<MouseMovedInput&>(input);
 
-				// actions here
+				// -- actions here --
+
+				// move engine camera based on mouse position and movement
 				const float x_position = mouseInput.GetX();
 				const float y_position = mouseInput.GetY();
 
@@ -155,7 +195,8 @@ namespace Bonfire
 				engine_camera->lastX = x_position;
 				engine_camera->lastY = y_position;
 
-				engine_camera->ProcessMouseMovement(x_offset, y_offset);
+				if (engine_camera_can_rotate)
+					engine_camera->ProcessMouseMovement(x_offset, y_offset);
 				
 				break;
 			}
@@ -163,13 +204,11 @@ namespace Bonfire
 			{
 				const auto mouseInput = dynamic_cast<MouseScrolledInput&>(input);
 
-				// actions here
+				// -- actions here --
 				
 				break;
 			}
 		case InputType::None:
-				break;
-		default:
 				break;
 		}
 	}

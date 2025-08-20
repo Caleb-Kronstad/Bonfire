@@ -24,18 +24,17 @@ namespace Bonfire
 
 	Project::~Project()
 	{
-		for (Layer* layer : layers)
+		for (const auto& layer : layers)
 		{
 			layer->OnDetach();
-			delete layer;
 		}
 	}
 
-	void Project::PushLayer(Layer* layer)
+	void Project::PushLayer(std::shared_ptr<Layer> layer)
 	{
 		layers.emplace_back(layer);
 	}
-	void Project::PopLayer(Layer* layer)
+	void Project::PopLayer(std::shared_ptr<Layer> layer)
 	{
 		auto it = std::find(layers.begin(), layers.end(), layer);
 		if (it != layers.end())
@@ -59,7 +58,7 @@ namespace Bonfire
 
 		static_interface->OnAttach();
 		static_renderer->OnAttach();
-		for (Layer* layer : layers)
+		for (const auto& layer : layers)
 			layer->OnAttach();
 
 		while (engine_running)
@@ -68,13 +67,14 @@ namespace Bonfire
 
 			// Update Project
 			static_renderer->OnUpdate();
-			for (Layer* layer : layers)
+			for (const auto& layer : layers)
 				layer->OnUpdate();
 
 			// Update Interface
 			static_interface->Begin();
 			static_interface->OnUpdate();
-			for (Layer* layer : layers)
+			static_renderer->OnInterfaceUpdate();
+			for (const auto& layer : layers)
 				layer->OnInterfaceUpdate();
 			static_interface->End();
 
@@ -85,11 +85,15 @@ namespace Bonfire
 				engine_running = false;
 		}
 
-		for (Layer* layer : layers)
+		for (const auto& layer : layers)
 			layer->OnDetach();
 		static_renderer->OnDetach();
 		static_interface->OnDetach();
+		glfwDestroyWindow(window.GetNativeWindow());
 		glfwTerminate();
+		delete static_interface;
+		delete static_renderer;
+		delete static_project_instance;
 	}
 
 	void Project::keycallback(GLFWwindow* glfw_window, int keycode, int scancode, int action, int mods)
@@ -100,7 +104,7 @@ namespace Bonfire
 
 			static_renderer->OnInput(input);
 			static_interface->OnInput(input);
-			for (Layer* layer : layers)
+			for (const auto& layer : layers)
 				layer->OnInput(input);
 		}
 		else if (action == GLFW_RELEASE)
@@ -109,7 +113,7 @@ namespace Bonfire
 
 			static_renderer->OnInput(input);
 			static_interface->OnInput(input);
-			for (Layer* layer : layers)
+			for (const auto& layer : layers)
 				layer->OnInput(input);
 		}
 	}
@@ -122,7 +126,7 @@ namespace Bonfire
 
 			static_renderer->OnInput(input);
 			static_interface->OnInput(input);
-			for (Layer* layer : layers)
+			for (const auto& layer : layers)
 				layer->OnInput(input);
 		}
 		else if (action == GLFW_RELEASE)
@@ -131,7 +135,7 @@ namespace Bonfire
 
 			static_renderer->OnInput(input);
 			static_interface->OnInput(input);
-			for (Layer* layer : layers)
+			for (const auto& layer : layers)
 				layer->OnInput(input);
 		}
 	}
@@ -142,7 +146,7 @@ namespace Bonfire
 
 		static_renderer->OnInput(input);
 		static_interface->OnInput(input);
-		for (Layer* layer : layers)
+		for (const auto& layer : layers)
 			layer->OnInput(input);
 	}
 
@@ -152,7 +156,7 @@ namespace Bonfire
 
 		static_renderer->OnInput(input);
 		static_interface->OnInput(input);
-		for (Layer* layer : layers)
+		for (const auto& layer : layers)
 			layer->OnInput(input);
 	}
 
@@ -173,7 +177,11 @@ namespace Bonfire
 
 	void Project::InitializeOpenGL()
 	{
-		glfwInit();
+		if (!glfwInit())
+		{
+			Log::Error("Error initializing GLFW");
+			return;
+		}
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -188,7 +196,7 @@ namespace Bonfire
 		if (window.GetNativeWindow() == NULL)
 		{
 			Log::Error("Error creating GLFW window");
-			glfwTerminate();
+			return;
 		}
 
 		glfwMakeContextCurrent(window.GetNativeWindow());
