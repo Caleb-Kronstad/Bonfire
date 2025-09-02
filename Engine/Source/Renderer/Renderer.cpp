@@ -24,26 +24,26 @@ namespace Bonfire
 
 		wood_floor_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", DIFFUSE);
 		checkered_texture = std::make_shared<Texture>("Resources/Textures/checkered.png", DIFFUSE);
-		
-		cube_model = std::make_shared<Model>("Resources/Models/Cube.obj");
-		sphere_model = std::make_shared<Model>("Resources/Models/Sphere.obj");
-
-		cube_model->AddTexture(wood_floor_texture);
-		sphere_model->AddTexture(checkered_texture);
-		
-		cube_model->Load();
-		sphere_model->Load();
 
 		std::shared_ptr<Entity> test_cube_entity = std::make_shared<Entity>("Test Cube Entity");
 		test_cube_entity->AddComponent<Transform>(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(5.0f, 0.25f, 5.0f));
-		test_cube_entity->AddComponent<ModelData>(cube_model);
+		test_cube_entity->AddComponent<Model>("Resources/Models/Cube.obj");
+		test_cube_entity->AddComponent<Textures>();
+		test_cube_entity->GetComponent<Textures>()->AddTexture(wood_floor_texture);
 
 		std::shared_ptr<Entity> test_sphere_entity = std::make_shared<Entity>("Test Sphere Entity");
 		test_sphere_entity->AddComponent<Transform>();
-		test_sphere_entity->AddComponent<ModelData>(sphere_model);
+		test_sphere_entity->AddComponent<Model>("Resources/Models/Sphere.obj");
+		test_sphere_entity->AddComponent<Textures>();
+		test_sphere_entity->GetComponent<Textures>()->AddTexture(checkered_texture);
 		
 		entities.push_back(test_cube_entity);
 		entities.push_back(test_sphere_entity);
+
+		for (auto entity : entities)
+		{
+			entity->LoadComponents();
+		}
 		
 		default_shader->Use();
 		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));

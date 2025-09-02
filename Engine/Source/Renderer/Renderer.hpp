@@ -1,10 +1,10 @@
-#pragma once
+#ifndef BONFIRE_RENDERER_HPP
+#define BONFIRE_RENDERER_HPP
 
 #include "Core/Layer.hpp"
 
 #include "Renderer/Camera.hpp"
 #include "Renderer/Mesh.hpp"
-#include "Renderer/Model.hpp"
 #include "Renderer/Entity.hpp"
 
 #include "Input/Input.hpp"
@@ -35,12 +35,19 @@ namespace Bonfire
 
 		std::vector<std::shared_ptr<Entity>> entities;
 
+		// component vector pools
+		std::vector<Transform> transform_components;
+		std::vector<Model> model_components;
+		std::vector<Textures> textures_components;
+
 		// -- TEST MEMBERS --
 		std::unique_ptr<Shader> default_shader;
 		std::shared_ptr<Texture> wood_floor_texture;
 		std::shared_ptr<Texture> checkered_texture;
-		std::shared_ptr<Model> cube_model;
-		std::shared_ptr<Model> sphere_model;
+		std::shared_ptr<Textures> cube_textures;
+		std::shared_ptr<Textures> sphere_textures;
 		// --
 	};
 }
+
+#endif

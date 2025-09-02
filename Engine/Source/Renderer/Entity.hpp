@@ -1,6 +1,6 @@
-﻿#pragma once
+﻿#ifndef BONFIRE_ENTITY_HPP
+#define BONFIRE_ENTITY_HPP
 
-#include "Model.hpp"
 #include "Shader.hpp"
 #include "Components.hpp"
 
@@ -12,6 +12,7 @@ namespace Bonfire
         Entity(std::string name = "NewEntity");
 
         void Draw(Shader& shader, glm::mat4& matrix);
+        void LoadComponents();
 
         template<typename T, typename... Args>
         bool AddComponent(Args&&... args)
@@ -53,8 +54,9 @@ namespace Bonfire
         std::string name;
         bool enabled;
 
-        // CHANGE THIS TO AN ARRAY -- LOOK AT VISUAL PLAN FOR REFERENCE
         std::array<std::shared_ptr<Component>, COMPONENT_TYPE::COUNT> components;
 
     };
 }
+
+#endif

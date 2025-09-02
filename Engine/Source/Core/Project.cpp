@@ -10,8 +10,8 @@ namespace Bonfire
 	Interface* Project::static_interface = nullptr;
 
 	Project::Project(std::string projectName)
-		: project_name(projectName)
 	{
+		project_name = "Bonfire: " +  projectName;
 		static_project_instance = this;
 		static_renderer = new Renderer();
 		static_interface = new Interface();

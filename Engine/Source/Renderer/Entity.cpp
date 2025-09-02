@@ -9,6 +9,17 @@ namespace Bonfire
         enabled = true;
     }
 
+    void Entity::LoadComponents()
+    {
+        auto model = GetComponent<Model>();
+        auto textures = GetComponent<Textures>();
+        if (model)
+        {
+            model->Load(textures);
+        }
+    }
+
+
     void Entity::Draw(Shader& shader, glm::mat4& matrix)
     {
         if (GetComponent<Transform>() == nullptr)
@@ -17,8 +28,8 @@ namespace Bonfire
         matrix = GetComponent<Transform>()->GetTransformMatrix();
         shader.SetMat4("model", matrix);
         
-        auto model_data = GetComponent<ModelData>();
-        if (model_data)
-            model_data->model->Draw(shader);
+        auto model = GetComponent<Model>();
+        if (model)
+            model->Draw(shader);
     }
 }

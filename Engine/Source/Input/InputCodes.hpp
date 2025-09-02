@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BONFIRE_INPUTCODES_HPP
+#define BONFIRE_INPUTCODES_HPP
 
 #include "bonfire_pch.hpp"
 
@@ -162,3 +163,5 @@ namespace Bonfire
 	}
 	
 }
+
+#endif

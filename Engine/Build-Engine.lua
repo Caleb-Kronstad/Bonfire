@@ -54,7 +54,7 @@ project "Engine"
         }
 
         --postbuildcommands { -- build commands for dll
-        --    ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. OutputDir .. "/Sandbox")
+        --    ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. OutputDir .. "/Project")
         --}
 
     filter "configurations:Debug"

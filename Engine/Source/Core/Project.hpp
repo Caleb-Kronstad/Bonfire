@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BONFIRE_PROJECT_HPP
+#define BONFIRE_PROJECT_HPP
 
 #include "Input/Input.hpp"
 #include "Input/InputCodes.hpp"
@@ -91,3 +92,5 @@ namespace Bonfire
 		static Project* static_project_instance;
 	};
 }
+
+#endif

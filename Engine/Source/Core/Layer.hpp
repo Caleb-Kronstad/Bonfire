@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BONFIRE_LAYER_HPP
+#define BONFIRE_LAYER_HPP
 
 #include "Input/Input.hpp"
 #include "Input/InputCodes.hpp"
@@ -24,3 +25,5 @@ namespace Bonfire
 		std::string debug_name;
 	};
 }
+
+#endif

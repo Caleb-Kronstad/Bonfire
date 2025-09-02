@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BONFIRE_ENUMS_HPP
+#define BONFIRE_ENUMS_HPP
 
 #include "iostream"
 
@@ -23,7 +24,10 @@ namespace Bonfire
     enum COMPONENT_TYPE : std::uint8_t
     {
         TRANSFORM,
-        MODEL_DATA,
+        MODEL,
+        TEXTURES,
         COUNT // used to count how many component types there are
     };
 }
+
+#endif

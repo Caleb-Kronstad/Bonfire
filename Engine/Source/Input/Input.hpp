@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BONFIRE_INPUT_HPP
+#define BONFIRE_INPUT_HPP
 
 #include "bonfire_pch.hpp"
 
@@ -23,3 +24,5 @@ namespace Bonfire
 		bool Handled = false;
 	};
 }
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BONFIRE_PCH_HPP
+#define BONFIRE_PCH_HPP
 
 // --- Engine ------------------
 #include "BonfireEnums.hpp"
@@ -61,4 +62,6 @@
 #include <shtypes.h>
 #include <ShlObj_core.h>
 #include <ShlObj.h>
+#endif
+
 #endif

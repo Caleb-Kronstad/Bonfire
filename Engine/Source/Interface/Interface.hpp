@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BONFIRE_INTERFACE_HPP
+#define BONFIRE_INTERFACE_HPP
 
 #include "Core/Layer.hpp"
 
@@ -33,3 +34,5 @@ namespace Bonfire
 		int gizmo_space = 0;
 	};
 }
+
+#endif
