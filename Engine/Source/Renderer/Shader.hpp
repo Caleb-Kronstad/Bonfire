@@ -1,5 +1,4 @@
-#ifndef BONFIRE_SHADER_HPP
-#define BONFIRE_SHADER_HPP
+#pragma once
 
 namespace Bonfire
 {
@@ -42,5 +41,3 @@ namespace Bonfire
 		std::string gPath = "None";
 	};
 }
-
-#endif

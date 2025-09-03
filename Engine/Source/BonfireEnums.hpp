@@ -1,5 +1,4 @@
-#ifndef BONFIRE_ENUMS_HPP
-#define BONFIRE_ENUMS_HPP
+#pragma once
 
 #include "iostream"
 
@@ -29,5 +28,3 @@ namespace Bonfire
         COUNT // used to count how many component types there are
     };
 }
-
-#endif

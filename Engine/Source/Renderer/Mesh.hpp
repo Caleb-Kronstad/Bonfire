@@ -1,5 +1,4 @@
-﻿#ifndef BONFIRE_MESH_HPP
-#define BONFIRE_MESH_HPP
+﻿#pragma once
 
 #include "Shader.hpp"
 #include "Texture.hpp"
@@ -32,5 +31,3 @@ namespace Bonfire
     };
 
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef BONFIRE_UTILITY_HPP
-#define BONFIRE_UTILITY_HPP
+#pragma once
 
 #include "bonfire_pch.hpp"
 
@@ -39,5 +38,3 @@ namespace Bonfire
 		}
 	};
 }
-
-#endif

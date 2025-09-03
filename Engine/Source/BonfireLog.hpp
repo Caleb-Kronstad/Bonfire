@@ -1,5 +1,4 @@
-﻿#ifndef BONFIRE_LOG_H
-#define BONFIRE_LOG_H
+﻿#pragma once
 
 #include <iostream>
 
@@ -34,5 +33,3 @@ namespace Bonfire
 #define WARNING(x) std::cout << "\x1b[33m " << "[WARNING] " << (x) << "\x1b[37m\n";
 #define ERROR(x) std::cout << "\x1b[31m " << "[ERROR] " << (x) << "\x1b[37m\n";
 */
-
-#endif

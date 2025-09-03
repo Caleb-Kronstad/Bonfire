@@ -1,5 +1,4 @@
-#ifndef BONFIRE_WINDOW_HPP
-#define BONFIRE_WINDOW_HPP
+#pragma once
 
 namespace Bonfire
 {
@@ -45,5 +44,3 @@ namespace Bonfire
 
 	};
 }
-
-#endif

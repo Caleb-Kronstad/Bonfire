@@ -1,5 +1,4 @@
-﻿#ifndef BONFIRE_CAMERA_HPP
-#define BONFIRE_CAMERA_HPP
+﻿#pragma once
 
 namespace Bonfire
 {
@@ -47,5 +46,3 @@ namespace Bonfire
     };
 
 }
-
-#endif

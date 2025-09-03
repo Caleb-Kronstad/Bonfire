@@ -1,5 +1,4 @@
-﻿#ifndef BONFIRE_TEXTURE_HPP
-#define BONFIRE_TEXTURE_HPP
+﻿#pragma once
 
 namespace Bonfire
 {
@@ -17,5 +16,3 @@ namespace Bonfire
         std::string path;
     };
 }
-
-#endif

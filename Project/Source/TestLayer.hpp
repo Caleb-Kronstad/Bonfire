@@ -1,5 +1,4 @@
-#ifndef BONFIRE_TEST_LAYER_HPP
-#define BONFIRE_TEST_LAYER_HPP
+#pragma once
 
 #include "BonfireEngine.hpp"
 
@@ -20,5 +19,3 @@ public:
 private:
 
 };
-
-#endif

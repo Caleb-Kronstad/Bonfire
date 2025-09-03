@@ -1,5 +1,4 @@
-#ifndef BONFIRE_ENGINE_HPP
-#define BONFIRE_ENGINE_HPP
+#pragma once
 
 // Utility
 #include "Core/Utility.hpp"
@@ -27,5 +26,3 @@
 #include "Renderer/Components.hpp"
 #include "Renderer/Entity.hpp"
 #include "Renderer/Renderer.hpp"
-
-#endif

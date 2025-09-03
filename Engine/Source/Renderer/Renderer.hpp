@@ -1,5 +1,4 @@
-#ifndef BONFIRE_RENDERER_HPP
-#define BONFIRE_RENDERER_HPP
+#pragma once
 
 #include "Core/Layer.hpp"
 
@@ -49,5 +48,3 @@ namespace Bonfire
 		// --
 	};
 }
-
-#endif

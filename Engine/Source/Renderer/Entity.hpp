@@ -1,5 +1,4 @@
-﻿#ifndef BONFIRE_ENTITY_HPP
-#define BONFIRE_ENTITY_HPP
+﻿#pragma once
 
 #include "Shader.hpp"
 #include "Components.hpp"
@@ -58,5 +57,3 @@ namespace Bonfire
 
     };
 }
-
-#endif

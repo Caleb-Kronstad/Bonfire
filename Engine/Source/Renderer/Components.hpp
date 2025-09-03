@@ -1,5 +1,4 @@
-﻿#ifndef BONFIRE_COMPONENTS_HPP
-#define BONFIRE_COMPONENTS_HPP
+﻿#pragma once
 
 #include "Core/Utility.hpp"
 
@@ -61,5 +60,3 @@ namespace Bonfire
         Textures(std::vector<std::shared_ptr<Texture>> textures = {});
     };
 }
-
-#endif
