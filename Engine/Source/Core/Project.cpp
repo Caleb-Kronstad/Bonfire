@@ -190,6 +190,9 @@ namespace Bonfire
 			glfwWindowHint(GLFW_SAMPLES, anti_aliasing_level);
 
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		int user_monitor_width = mode->width;
+		int user_monitor_height = mode->height;
 
 		window.SetNativeWindow(glfwCreateWindow(window.GetWidth(), window.GetHeight(), project_name.c_str(), NULL, NULL));
 
@@ -210,7 +213,8 @@ namespace Bonfire
 		glEnable(GL_CULL_FACE);
 		//glEnable(GL_STENCIL_TEST);
 
-		glViewport(window.GetXOffset(), window.GetYOffset(), window.GetWidth(), window.GetHeight());
+		glfwMaximizeWindow(window.GetNativeWindow());
+		glViewport(window.GetXOffset(), window.GetYOffset(), user_monitor_width, user_monitor_height);
 	}
 
 	void Project::TickDeltaTime()

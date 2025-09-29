@@ -44,9 +44,12 @@ namespace Bonfire
 		{
 			entity->LoadComponents();
 		}
-		
+
+		// Shader intialization
 		default_shader->Use();
 		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
+
+		current_entity = test_cube_entity;
 	}
 	void Renderer::OnDetach()
 	{
@@ -95,11 +98,30 @@ namespace Bonfire
 		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
 		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
 		ImGui::Begin("Hierarchy", nullptr);
+
+		for (auto entity : entities)
+		{
+			if (ImGui::Selectable(entity->name.c_str()))
+			{
+				current_entity = entity;
+			}
+		}
 		ImGui::End();
 		
 		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
 		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 4), ImGuiCond_Once);
-		ImGui::Begin("Properties", nullptr);
+		ImGui::Begin("Details", nullptr);
+
+		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
+
+		std::shared_ptr<Transform> current_entity_transform = current_entity->GetComponent<Transform>();
+		if (ImGui::CollapsingHeader("Transform"))
+		{
+			ImGui::DragFloat3("Position ", (float*)&current_entity_transform->position, drag_step, -1000, 1000);
+			ImGui::DragFloat3("Scale ", (float*)&current_entity_transform->scale, drag_step, 0, 1000);
+			ImGui::DragFloat3("Rotation ", (float*)&current_entity_transform->rotation, drag_step, 0, 360);
+		}
+		
 		ImGui::End();
 	}
 

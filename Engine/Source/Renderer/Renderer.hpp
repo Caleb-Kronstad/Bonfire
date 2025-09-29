@@ -39,6 +39,10 @@ namespace Bonfire
 		std::vector<Model> model_components;
 		std::vector<Textures> textures_components;
 
+		// interface
+		std::shared_ptr<Entity> current_entity;
+		float drag_step = 1.0f;
+
 		// -- TEST MEMBERS --
 		std::unique_ptr<Shader> default_shader;
 		std::shared_ptr<Texture> wood_floor_texture;
