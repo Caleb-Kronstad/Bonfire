@@ -97,6 +97,14 @@ namespace Bonfire
 		
 		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
 		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
+		ImGui::Begin("Project Settings", nullptr);
+
+		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
+		
+		ImGui::End();
+		
+		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 4), ImGuiCond_Once);
 		ImGui::Begin("Hierarchy", nullptr);
 
 		for (auto entity : entities)
@@ -109,12 +117,12 @@ namespace Bonfire
 		ImGui::End();
 		
 		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 4), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 2), ImGuiCond_Once);
 		ImGui::Begin("Details", nullptr);
-
-		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
-
+		
 		std::shared_ptr<Transform> current_entity_transform = current_entity->GetComponent<Transform>();
+		
+		ImGui::InputText(" ", &current_entity->name);
 		if (ImGui::CollapsingHeader("Transform"))
 		{
 			ImGui::DragFloat3("Position ", (float*)&current_entity_transform->position, drag_step, -1000, 1000);

@@ -18,8 +18,7 @@ namespace Bonfire
             model->Load(textures);
         }
     }
-
-
+    
     void Entity::Draw(Shader& shader, glm::mat4& matrix)
     {
         if (GetComponent<Transform>() == nullptr)
@@ -31,5 +30,16 @@ namespace Bonfire
         auto model = GetComponent<Model>();
         if (model)
             model->Draw(shader);
+    }
+
+    template<typename T>
+    std::shared_ptr<T> Entity::GetComponent()
+    {
+        COMPONENT_TYPE type = T::TYPE;
+    
+        if (components[type] != nullptr) {
+            return std::static_pointer_cast<T>(components[type]);
+        }
+        return nullptr;
     }
 }

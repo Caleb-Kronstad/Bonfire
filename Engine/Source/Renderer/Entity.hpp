@@ -38,22 +38,15 @@ namespace Bonfire
             Log::Warning("[FAILED] Entity does not contain this Component");
             return false;
         }
+        
         template<typename T>
-        std::shared_ptr<T> GetComponent()
-        {
-            COMPONENT_TYPE type = T::TYPE;
-    
-            if (components[type] != nullptr) {
-                return std::static_pointer_cast<T>(components[type]);
-            }
-            return nullptr;
-        }
+        std::shared_ptr<T> GetComponent();
 
     public:
-        std::string name;
         bool enabled;
+        std::string name;
 
+    private:
         std::array<std::shared_ptr<Component>, COMPONENT_TYPE::COUNT> components;
-
     };
 }
