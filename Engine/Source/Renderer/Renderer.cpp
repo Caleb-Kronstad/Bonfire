@@ -99,6 +99,10 @@ namespace Bonfire
 		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
 		ImGui::Begin("Project Settings", nullptr);
 
+		std::string frame_count = "Frame " + std::to_string(project.GetFrameCount());
+		std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
+		ImGui::Text(frame_count.c_str());
+		ImGui::Text(delta_time.c_str());
 		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
 		
 		ImGui::End();

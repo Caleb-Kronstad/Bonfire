@@ -64,6 +64,7 @@ namespace Bonfire
 		while (engine_running)
 		{
 			TickDeltaTime();
+			IncrementFrameCount();
 
 			// Update Project
 			static_renderer->OnUpdate();
@@ -222,5 +223,10 @@ namespace Bonfire
 		float currentFrameTime = static_cast<float>(glfwGetTime());
 		delta_time = currentFrameTime - last_frame_time;
 		last_frame_time = currentFrameTime;
+	}
+
+	void Project::IncrementFrameCount()
+	{
+		frame_count++;
 	}
 }
