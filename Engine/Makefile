@@ -34,7 +34,7 @@ INCLUDES += -IExternal/glad/include -IExternal/glfw/include -IExternal/imgui -IE
 FORCE_INCLUDE +=
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
 ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64
+ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -pthread
 LINKCMD = $(AR) -rcs "$@" $(OBJECTS)
 define PREBUILDCMDS
 endef
@@ -47,30 +47,30 @@ ifeq ($(config),debug)
 TARGETDIR = ../bin/linux-x86_64/Debug/Engine
 TARGET = $(TARGETDIR)/libEngine.a
 OBJDIR = ../bin-int/linux-x86_64/Debug/Engine
-DEFINES += -DDEBUG
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -std=c++20
-LIBS += ../bin/linux-x86_64/Debug/GLAD/libGLAD.a ../bin/linux-x86_64/Debug/GLFW/libGLFW.a ../bin/linux-x86_64/Debug/IMGUI/libIMGUI.a ../bin/linux-x86_64/Debug/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Debug/GLM/libGLM.a ../bin/linux-x86_64/Debug/IMGUIZMO/libIMGUIZMO.a -lopengl32.lib -lcomdlg32.lib
+DEFINES += -DBONFIRE_PLATFORM_LINUX -DDEBUG
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -fPIC -g -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -fPIC -g -std=c++20 -fPIC
+LIBS += ../bin/linux-x86_64/Debug/GLAD/libGLAD.a ../bin/linux-x86_64/Debug/GLFW/libGLFW.a ../bin/linux-x86_64/Debug/IMGUI/libIMGUI.a ../bin/linux-x86_64/Debug/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Debug/GLM/libGLM.a ../bin/linux-x86_64/Debug/IMGUIZMO/libIMGUIZMO.a -lGL -ldl -lpthread
 LDDEPS += ../bin/linux-x86_64/Debug/GLAD/libGLAD.a ../bin/linux-x86_64/Debug/GLFW/libGLFW.a ../bin/linux-x86_64/Debug/IMGUI/libIMGUI.a ../bin/linux-x86_64/Debug/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Debug/GLM/libGLM.a ../bin/linux-x86_64/Debug/IMGUIZMO/libIMGUIZMO.a
 
 else ifeq ($(config),release)
 TARGETDIR = ../bin/linux-x86_64/Release/Engine
 TARGET = $(TARGETDIR)/libEngine.a
 OBJDIR = ../bin-int/linux-x86_64/Release/Engine
-DEFINES += -DRELEASE
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -g -std=c++20
-LIBS += ../bin/linux-x86_64/Release/GLAD/libGLAD.a ../bin/linux-x86_64/Release/GLFW/libGLFW.a ../bin/linux-x86_64/Release/IMGUI/libIMGUI.a ../bin/linux-x86_64/Release/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Release/GLM/libGLM.a ../bin/linux-x86_64/Release/IMGUIZMO/libIMGUIZMO.a -lopengl32.lib -lcomdlg32.lib
+DEFINES += -DBONFIRE_PLATFORM_LINUX -DRELEASE
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g -std=c++20 -fPIC
+LIBS += ../bin/linux-x86_64/Release/GLAD/libGLAD.a ../bin/linux-x86_64/Release/GLFW/libGLFW.a ../bin/linux-x86_64/Release/IMGUI/libIMGUI.a ../bin/linux-x86_64/Release/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Release/GLM/libGLM.a ../bin/linux-x86_64/Release/IMGUIZMO/libIMGUIZMO.a -lGL -ldl -lpthread
 LDDEPS += ../bin/linux-x86_64/Release/GLAD/libGLAD.a ../bin/linux-x86_64/Release/GLFW/libGLFW.a ../bin/linux-x86_64/Release/IMGUI/libIMGUI.a ../bin/linux-x86_64/Release/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Release/GLM/libGLM.a ../bin/linux-x86_64/Release/IMGUIZMO/libIMGUIZMO.a
 
 else ifeq ($(config),dist)
 TARGETDIR = ../bin/linux-x86_64/Dist/Engine
 TARGET = $(TARGETDIR)/libEngine.a
 OBJDIR = ../bin-int/linux-x86_64/Dist/Engine
-DEFINES += -DDIST
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -std=c++20
-LIBS += ../bin/linux-x86_64/Dist/GLAD/libGLAD.a ../bin/linux-x86_64/Dist/GLFW/libGLFW.a ../bin/linux-x86_64/Dist/IMGUI/libIMGUI.a ../bin/linux-x86_64/Dist/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Dist/GLM/libGLM.a ../bin/linux-x86_64/Dist/IMGUIZMO/libIMGUIZMO.a -lopengl32.lib -lcomdlg32.lib
+DEFINES += -DBONFIRE_PLATFORM_LINUX -DDIST
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -std=c++20 -fPIC
+LIBS += ../bin/linux-x86_64/Dist/GLAD/libGLAD.a ../bin/linux-x86_64/Dist/GLFW/libGLFW.a ../bin/linux-x86_64/Dist/IMGUI/libIMGUI.a ../bin/linux-x86_64/Dist/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Dist/GLM/libGLM.a ../bin/linux-x86_64/Dist/IMGUIZMO/libIMGUIZMO.a -lGL -ldl -lpthread
 LDDEPS += ../bin/linux-x86_64/Dist/GLAD/libGLAD.a ../bin/linux-x86_64/Dist/GLFW/libGLFW.a ../bin/linux-x86_64/Dist/IMGUI/libIMGUI.a ../bin/linux-x86_64/Dist/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Dist/GLM/libGLM.a ../bin/linux-x86_64/Dist/IMGUIZMO/libIMGUIZMO.a
 
 endif

@@ -37,7 +37,13 @@ project "Project"
     }
 
     links {
-        "Engine"
+        "Engine",
+        "GLAD",
+        "GLFW",
+        "IMGUI",
+        "ASSIMP",
+        "GLM",
+        "IMGUIZMO"
     }
 
     targetdir ("../bin/" .. OutputDir .. "/%{prj.name}")
@@ -57,7 +63,16 @@ project "Project"
         links {
             "GL",
             "dl",
-            "pthread"
+            "pthread",
+            "X11",
+            "Xrandr",
+            "Xi",
+            "Xxf86vm",
+            "Xcursor",
+            "Xinerama"
+        }
+        postbuildcommands {
+            "{COPY} Resources %{cfg.buildtarget.directory}/Resources"
         }
 
     filter "configurations:Debug"

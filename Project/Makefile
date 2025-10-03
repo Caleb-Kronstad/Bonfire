@@ -31,44 +31,54 @@ INCLUDES += -ISource -IResources -I../Engine/Source -I../Engine/External/glad/in
 FORCE_INCLUDE +=
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
 ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64
+ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -pthread
 LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
 define PREBUILDCMDS
 endef
 define PRELINKCMDS
-endef
-define POSTBUILDCMDS
 endef
 
 ifeq ($(config),debug)
 TARGETDIR = ../bin/linux-x86_64/Debug/Project
 TARGET = $(TARGETDIR)/Project
 OBJDIR = ../bin-int/linux-x86_64/Debug/Project
-DEFINES += -DDEBUG
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -std=c++20
-LIBS += ../bin/linux-x86_64/Debug/Engine/libEngine.a
-LDDEPS += ../bin/linux-x86_64/Debug/Engine/libEngine.a
+DEFINES += -DBONFIRE_PLATFORM_LINUX -DDEBUG
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -std=c++20 -fPIC
+LIBS += ../bin/linux-x86_64/Debug/Engine/libEngine.a ../bin/linux-x86_64/Debug/GLAD/libGLAD.a ../bin/linux-x86_64/Debug/GLFW/libGLFW.a ../bin/linux-x86_64/Debug/IMGUI/libIMGUI.a ../bin/linux-x86_64/Debug/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Debug/GLM/libGLM.a ../bin/linux-x86_64/Debug/IMGUIZMO/libIMGUIZMO.a -lGL -ldl -lpthread -lX11 -lXrandr -lXi -lXxf86vm -lXcursor -lXinerama
+LDDEPS += ../bin/linux-x86_64/Debug/Engine/libEngine.a ../bin/linux-x86_64/Debug/GLAD/libGLAD.a ../bin/linux-x86_64/Debug/GLFW/libGLFW.a ../bin/linux-x86_64/Debug/IMGUI/libIMGUI.a ../bin/linux-x86_64/Debug/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Debug/GLM/libGLM.a ../bin/linux-x86_64/Debug/IMGUIZMO/libIMGUIZMO.a
+define POSTBUILDCMDS
+	@echo Running postbuild commands
+	cp -rf Resources ../bin/linux-x86_64/Debug/Project/Resources
+endef
 
 else ifeq ($(config),release)
 TARGETDIR = ../bin/linux-x86_64/Release/Project
 TARGET = $(TARGETDIR)/Project
 OBJDIR = ../bin-int/linux-x86_64/Release/Project
-DEFINES += -DRELEASE
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -g -std=c++20
-LIBS += ../bin/linux-x86_64/Release/Engine/libEngine.a
-LDDEPS += ../bin/linux-x86_64/Release/Engine/libEngine.a
+DEFINES += -DBONFIRE_PLATFORM_LINUX -DRELEASE
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -g -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -g -std=c++20 -fPIC
+LIBS += ../bin/linux-x86_64/Release/Engine/libEngine.a ../bin/linux-x86_64/Release/GLAD/libGLAD.a ../bin/linux-x86_64/Release/GLFW/libGLFW.a ../bin/linux-x86_64/Release/IMGUI/libIMGUI.a ../bin/linux-x86_64/Release/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Release/GLM/libGLM.a ../bin/linux-x86_64/Release/IMGUIZMO/libIMGUIZMO.a -lGL -ldl -lpthread -lX11 -lXrandr -lXi -lXxf86vm -lXcursor -lXinerama
+LDDEPS += ../bin/linux-x86_64/Release/Engine/libEngine.a ../bin/linux-x86_64/Release/GLAD/libGLAD.a ../bin/linux-x86_64/Release/GLFW/libGLFW.a ../bin/linux-x86_64/Release/IMGUI/libIMGUI.a ../bin/linux-x86_64/Release/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Release/GLM/libGLM.a ../bin/linux-x86_64/Release/IMGUIZMO/libIMGUIZMO.a
+define POSTBUILDCMDS
+	@echo Running postbuild commands
+	cp -rf Resources ../bin/linux-x86_64/Release/Project/Resources
+endef
 
 else ifeq ($(config),dist)
 TARGETDIR = ../bin/linux-x86_64/Dist/Project
 TARGET = $(TARGETDIR)/Project
 OBJDIR = ../bin-int/linux-x86_64/Dist/Project
-DEFINES += -DDIST
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -std=c++20
-LIBS += ../bin/linux-x86_64/Dist/Engine/libEngine.a
-LDDEPS += ../bin/linux-x86_64/Dist/Engine/libEngine.a
+DEFINES += -DBONFIRE_PLATFORM_LINUX -DDIST
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -std=c++20 -fPIC
+LIBS += ../bin/linux-x86_64/Dist/Engine/libEngine.a ../bin/linux-x86_64/Dist/GLAD/libGLAD.a ../bin/linux-x86_64/Dist/GLFW/libGLFW.a ../bin/linux-x86_64/Dist/IMGUI/libIMGUI.a ../bin/linux-x86_64/Dist/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Dist/GLM/libGLM.a ../bin/linux-x86_64/Dist/IMGUIZMO/libIMGUIZMO.a -lGL -ldl -lpthread -lX11 -lXrandr -lXi -lXxf86vm -lXcursor -lXinerama
+LDDEPS += ../bin/linux-x86_64/Dist/Engine/libEngine.a ../bin/linux-x86_64/Dist/GLAD/libGLAD.a ../bin/linux-x86_64/Dist/GLFW/libGLFW.a ../bin/linux-x86_64/Dist/IMGUI/libIMGUI.a ../bin/linux-x86_64/Dist/ASSIMP/libASSIMP.a ../bin/linux-x86_64/Dist/GLM/libGLM.a ../bin/linux-x86_64/Dist/IMGUIZMO/libIMGUIZMO.a
+define POSTBUILDCMDS
+	@echo Running postbuild commands
+	cp -rf Resources ../bin/linux-x86_64/Dist/Project/Resources
+endef
 
 endif
 

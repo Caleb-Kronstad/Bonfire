@@ -1,5 +1,11 @@
 #pragma once
 
+// --- Linux Specific ---
+#ifdef BONFIRE_PLATFORM_LINUX
+#include <cstdint>
+#endif
+// ------------------------------
+
 // --- Engine ------------------
 #include "BonfireEnums.hpp"
 #include "BonfireLog.hpp"

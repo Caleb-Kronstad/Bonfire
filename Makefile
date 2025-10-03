@@ -96,7 +96,7 @@ ifneq (,$(Engine_config))
 	@${MAKE} --no-print-directory -C Engine -f Makefile config=$(Engine_config)
 endif
 
-Project: Engine
+Project: Engine GLAD GLFW IMGUI ASSIMP GLM IMGUIZMO
 ifneq (,$(Project_config))
 	@echo "==== Building Project ($(Project_config)) ===="
 	@${MAKE} --no-print-directory -C Project -f Makefile config=$(Project_config)

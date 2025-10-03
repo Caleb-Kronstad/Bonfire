@@ -27,16 +27,13 @@ endif
 ifeq ($(origin AR), default)
   AR = ar
 endif
-DEFINES += -D_CRT_SECURE_NO_WARNINGS
 INCLUDES += -Iinclude
 FORCE_INCLUDE +=
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64
 ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
 LIBS +=
 LDDEPS +=
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64
+ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -pthread
 LINKCMD = $(AR) -rcs "$@" $(OBJECTS)
 define PREBUILDCMDS
 endef
@@ -49,16 +46,25 @@ ifeq ($(config),debug)
 TARGETDIR = ../../../bin/linux-x86_64/Debug/GLAD
 TARGET = $(TARGETDIR)/libGLAD.a
 OBJDIR = ../../../bin-int/linux-x86_64/Debug/GLAD
+DEFINES += -DDEBUG
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -fPIC -g -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -fPIC -g -fPIC
 
 else ifeq ($(config),release)
 TARGETDIR = ../../../bin/linux-x86_64/Release/GLAD
 TARGET = $(TARGETDIR)/libGLAD.a
 OBJDIR = ../../../bin-int/linux-x86_64/Release/GLAD
+DEFINES += -DRELEASE
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g -fPIC
 
 else ifeq ($(config),dist)
 TARGETDIR = ../../../bin/linux-x86_64/Dist/GLAD
 TARGET = $(TARGETDIR)/libGLAD.a
 OBJDIR = ../../../bin-int/linux-x86_64/Dist/GLAD
+DEFINES += -DDIST
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -fPIC
 
 endif
 
