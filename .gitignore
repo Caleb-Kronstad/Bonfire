@@ -12,3 +12,9 @@ bin-int/
 **.vcxproj.user
 **.vcxproj.filters
 **.vcxproj
+
+Makefile
+Engine/Makefile
+Project/Makefile
+
+**/Makefile
