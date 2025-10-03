@@ -48,6 +48,11 @@ project "Project"
 
     targetdir ("../bin/" .. OutputDir .. "/%{prj.name}")
     objdir ("../bin-int/" .. OutputDir .. "/%{prj.name}")
+    
+    postbuildcommands {
+        "{COPY} Resources %{cfg.buildtarget.directory}/Resources"
+    }
+
 
     filter "system:windows"
         systemversion "latest"
@@ -70,9 +75,6 @@ project "Project"
             "Xxf86vm",
             "Xcursor",
             "Xinerama"
-        }
-        postbuildcommands {
-            "{COPY} Resources %{cfg.buildtarget.directory}/Resources"
         }
 
     filter "configurations:Debug"
