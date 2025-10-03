@@ -10,11 +10,9 @@ project "Project"
         "Source/**.cpp",
         "Source/**.hpp",
         "Source/**.c",
-
         "Resources/**.vert",
         "Resources/**.frag",
         "Resources/**.geom",
-
         "Resources/**.obj",
         "Resources/**.mtl",
         "Resources/**.blend",
@@ -27,10 +25,8 @@ project "Project"
     includedirs {
         "Source",
         "Resources",
-
         -- Include Core
         "../Engine/Source",
-
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.IMGUI}",
@@ -49,25 +45,34 @@ project "Project"
 
     filter "system:windows"
         systemversion "latest"
-
         defines {
             "BONFIRE_PLATFORM_WINDOWS",
             "_CRT_SECURE_NO_WARNINGS"
         }
 
+    filter "system:linux"
+        defines {
+            "BONFIRE_PLATFORM_LINUX"
+        }
+        links {
+            "GL",
+            "dl",
+            "pthread"
+        }
+
     filter "configurations:Debug"
         defines { "DEBUG" }
         runtime "Debug"
-        symbols "on"
+        symbols "On"
 
     filter "configurations:Release"
         defines { "RELEASE" }
         runtime "Release"
         optimize "On"
-        symbols "on"
+        symbols "On"
 
     filter "configurations:Dist"
         defines { "DIST" }
         runtime "Release"
         optimize "On"
-        symbols "off"
+        symbols "Off"

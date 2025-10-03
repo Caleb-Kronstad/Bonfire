@@ -5,15 +5,11 @@ project "Engine"
     targetdir "bin/%{cfg.buildcfg}"
     staticruntime "on"
 
-    pchheader "bonfire_pch.hpp"
-    pchsource "Source/bonfire_pch.cpp"
-
     files {
         "Source/**.h",
         "Source/**.cpp",
         "Source/**.hpp",
         "Source/**.c",
-
         "%{IncludeDir.STB_IMAGE}/**.h",
         "%{IncludeDir.STB_IMAGE}/**.cpp"
     }
@@ -26,7 +22,6 @@ project "Engine"
         "%{IncludeDir.ASSIMP}",
         "%{IncludeDir.GLM}",
         "%{IncludeDir.IMGUIZMO}",
-
         "Source"
     }
 
@@ -36,9 +31,7 @@ project "Engine"
         "IMGUI",
         "ASSIMP",
         "GLM",
-        "IMGUIZMO",
-        "opengl32.lib",
-        "comdlg32.lib"
+        "IMGUIZMO"
     }
 
     targetdir ("../bin/" .. OutputDir .. "/%{prj.name}")
@@ -46,16 +39,33 @@ project "Engine"
 
     filter "system:windows"
         systemversion "latest"
-
+        pchheader "bonfire_pch.hpp"
+        pchsource "Source/bonfire_pch.cpp"
         defines {
             "BONFIRE_PLATFORM_WINDOWS",
             "BONFIRE_BUILD_DLL",
             "_CRT_SECURE_NO_WARNINGS"
         }
-
-        --postbuildcommands { -- build commands for dll
+        links {
+            "opengl32",
+            "comdlg32"
+        }
+        --postbuildcommands {
         --    ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. OutputDir .. "/Project")
         --}
+
+    filter "system:linux"
+        pchheader "Source/bonfire_pch.hpp"
+        pchsource "Source/bonfire_pch.cpp"
+        pic "On"
+        defines {
+            "BONFIRE_PLATFORM_LINUX"
+        }
+        links {
+            "GL",
+            "dl",
+            "pthread"
+        }
 
     filter "configurations:Debug"
         defines { "DEBUG" }

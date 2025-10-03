@@ -7,6 +7,13 @@ workspace "Bonfire"
    filter "system:windows"
       buildoptions { "/EHsc", "/Zc:preprocessor", "/Zc:__cplusplus" }
 
+   -- Workspace-wide build options for GCC/Clang on Linux
+   filter "system:linux"
+      buildoptions { "-fPIC" }
+      linkoptions { "-pthread" }
+
+   filter {}
+
 OutputDir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 
 IncludeDir = {}
