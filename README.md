@@ -25,7 +25,7 @@ Clone the repository with submodules
 
 ### Windows
 
-  1. Run ```Scripts/Windows-Setup.bat``` (generates Visual Studio solution using Premake5)
+  1. Run ```Scripts/Windows-Setup.bat``` to generate Visual Studio solution using Premake5
   2. Run ```Scripts/Windows-Build.bat``` to build selected configuration (change configuration in ```Scripts/Windows-Config.bat```)  
     - Note: The script uses MSBuild from Visual Studio 2022 Preview. If you have a different edition
   (Community/Professional/Enterprise), edit ```Scripts/Windows-Config.bat``` and update the MSBUILD path (line 5)  
@@ -35,8 +35,7 @@ Clone the repository with submodules
 
 ### Linux
 
-  1. Run ```Scripts/Linux-Setup.sh``` (generates makefiles using Premake5)  
-    - Note: By default, this uses clang. To use g++ instead, edit ```Scripts/Linux-Setup.sh``` and remove --cc=clang
+  1. Run ```Scripts/Linux-Setup.sh``` to generate makefiles using Premake5 (change compiler in ```Scripts/Linux-Config.sh```)  
   2. Run ```Scripts/Linux-Build.sh``` to build selected configuration (change configuration in ```Scripts/Linux-Config.sh```)  
   3. Run ```Scripts/Linux-Run.sh```  
     - Executable location: ```Build/Binaries/linux-x86_64/Debug/Project/Project```
