@@ -1,9 +1,8 @@
 project "Engine"
-    location "../Build"
+    location "../Build/Build-Files"
     kind "StaticLib"
     language "C++"
     cppdialect "C++20"
-    targetdir "bin/%{cfg.buildcfg}"
     staticruntime "on"
 
     files {
@@ -34,9 +33,9 @@ project "Engine"
         "GLM",
         "IMGUIZMO"
     }
-
-    targetdir ("../bin/" .. OutputDir .. "/%{prj.name}")
-    objdir ("../bin-int/" .. OutputDir .. "/%{prj.name}")
+    
+    targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")
+    objdir ("%{wks.location}/../Build/Binaries-Intermediate/" .. OutputDir .. "/%{prj.name}")
 
     filter "system:windows"
         systemversion "latest"

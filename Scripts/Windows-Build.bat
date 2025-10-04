@@ -1,14 +1,14 @@
 @echo off
 
+call Windows-Config.bat
+
 pushd ..
 
-set MSBUILD= "C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\MSBuild.exe"
-
 echo === Cleaning build ===
-%MSBUILD% Bonfire.sln /t:Clean /p:Configuration=Debug /v:minimal
+%MSBUILD% Build/Bonfire.sln /t:Clean /p:Configuration=%BUILD_CONFIG% /v:minimal
 
 echo === Building project (debug) ===
-%MSBUILD% Bonfire.sln /t:Build /p:Configuration=Debug /v:minimal
+%MSBUILD% Build/Bonfire.sln /t:Build /p:Configuration=%BUILD_CONFIG% /v:minimal
 
 echo === Build complete ===
 

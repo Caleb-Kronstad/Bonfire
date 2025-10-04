@@ -2,8 +2,7 @@
 # directories
 .vs/
 .idea/
-bin/
-bin-int/
+Build/
 
 # files
 *.sln

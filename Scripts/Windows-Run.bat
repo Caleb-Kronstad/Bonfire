@@ -1,6 +1,9 @@
 @echo off
 
-pushd ..\bin\windows-x86_64\Debug\Project
+call Windows-Config.bat
+
+echo === Running build ===
+pushd ..\Build\Binaries\windows-x86_64\%BUILD_CONFIG%\Project
 Project.exe
 popd
 pause

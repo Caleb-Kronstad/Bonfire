@@ -1,9 +1,8 @@
 project "Project"
-    location "../Build"
+    location "../../../Build/Build-Files"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++20"
-    targetdir "bin/%{cfg.buildcfg}"
     staticruntime "on"
 
     files {
@@ -47,13 +46,12 @@ project "Project"
         "IMGUIZMO"
     }
 
-    targetdir ("../bin/" .. OutputDir .. "/%{prj.name}")
-    objdir ("../bin-int/" .. OutputDir .. "/%{prj.name}")
+    targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")
+    objdir ("%{wks.location}/../Build/Binaries-Intermediate/" .. OutputDir .. "/%{prj.name}")
     
     postbuildcommands {
-        "{COPY} Resources %{cfg.buildtarget.directory}/Resources"
+        "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources"
     }
-
 
     filter "system:windows"
         systemversion "latest"
