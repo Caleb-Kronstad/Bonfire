@@ -14,25 +14,32 @@
   - X11 development libraries: libx11-dev libxrandr-dev libxi-dev libxxf86vm-dev libxcursor-dev libxinerama-dev
   - [Optional] CLion or similar IDE (install bear for better CLion integration)
 
-## Build Steps
+## Build Instructions
+
+Clone the repository with submodules  
+  ```bash
+  git clone --recursive https://github.com/Caleb-Kronstad/Bonfire Bonfire  
+  cd Bonfire  
+  ```
+  Note: The --recursive flag automatically downloads all dependencies (~200MB)
 
 ### Windows
 
-  1. Run Scripts/Windows-Setup.bat (generates Visual Studio solution using Premake5)
-  2. Run Scripts/Windows-Build.bat to build Debug configuration (change configuration in Windows-Config.bat)
+  1. Run ```Scripts/Windows-Setup.bat``` (generates Visual Studio solution using Premake5)
+  2. Run ```Scripts/Windows-Build.bat``` to build Debug configuration (change configuration in ```Scripts/Windows-Config.bat```)  
     - Note: The script uses MSBuild from Visual Studio 2022 Preview. If you have a different edition
-  (Community/Professional/Enterprise), edit Scripts/Windows-Config.bat and update the MSBUILD path (line 5)  
+  (Community/Professional/Enterprise), edit ```Scripts/Windows-Config.bat``` and update the MSBUILD path (line 5)  
     - Alternatively, open Bonfire.sln and build via your IDE
-  3. Run Scripts/Windows-Run.bat or run via IDE  
-    - Executable location: Build/Binaries/windows-x86_64/Debug/Project/Project.exe
+  3. Run ```Scripts/Windows-Run.bat``` or run via IDE  
+    - Executable location: ```Build/Binaries/windows-x86_64/Debug/Project/Project.exe```
 
 ### Linux
 
-  1. Run Scripts/Linux-Setup.sh (generates makefiles using Premake5)  
-    - Note: By default, this uses clang. To use g++ instead, edit Scripts/Linux-Setup.sh and remove --cc=clang
-  2. Run Scripts/Linux-Build.sh to build Debug configuration
-  3. Run Scripts/Linux-Run.sh  
-    - Executable location: Build/Binaries/linux-x86_64/Debug/Project/Project
+  1. Run ```Scripts/Linux-Setup.sh``` (generates makefiles using Premake5)  
+    - Note: By default, this uses clang. To use g++ instead, edit ```Scripts/Linux-Setup.sh``` and remove --cc=clang
+  2. Run ```Scripts/Linux-Build.sh``` to build Debug configuration
+  3. Run ```Scripts/Linux-Run.sh```  
+    - Executable location: ```Build/Binaries/linux-x86_64/Debug/Project/Project```
 
 ## Build System
 
