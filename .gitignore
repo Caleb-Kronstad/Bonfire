@@ -13,6 +13,9 @@ bin-int/
 **.vcxproj.filters
 **.vcxproj
 
+imgui.ini
+**/imgui.ini
+
 Makefile
 Engine/Makefile
 Project/Makefile
