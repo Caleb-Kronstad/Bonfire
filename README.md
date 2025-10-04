@@ -1,22 +1,22 @@
-#Bonfire Engine
+# Bonfire Engine
 
-##Build Prerequisites
+## Build Prerequisites
 
-###Windows
+### Windows
 
   - Visual Studio 2019+ or compatible C++ compiler
   - [Optional] Visual Studio, Rider, or similar IDE
 
-###Linux
+### Linux
 
   - clang++ (required by default setup) or g++
   - make
   - X11 development libraries: libx11-dev libxrandr-dev libxi-dev libxxf86vm-dev libxcursor-dev libxinerama-dev
   - [Optional] CLion or similar IDE (install bear for better CLion integration)
 
-##Build Steps
+## Build Steps
 
-###Windows
+### Windows
 
   1. Run Scripts/Windows-Setup.bat (generates Visual Studio 2022 solution using Premake5)
   2. Run Scripts/Windows-Build.bat to build Debug configuration
@@ -26,7 +26,7 @@
   3. Run Scripts/Windows-Run.bat or run via IDE
     - Executable location: bin/windows-x86_64/Debug/Project/Project.exe
 
-###Linux
+### Linux
 
   1. Run Scripts/Linux-Setup.sh (generates makefiles using Premake5)
     - Note: By default, this uses clang. To use g++ instead, edit Scripts/Linux-Setup.sh and remove --cc=clang
@@ -34,6 +34,6 @@
   3. Run Scripts/Linux-Run.sh
     - Executable location: bin/linux-x86_64/Debug/Project/Project
 
-##Build System
+## Build System
 
   This project uses Premake5 for cross-platform project generation. Build configurations are defined in Build.lua
