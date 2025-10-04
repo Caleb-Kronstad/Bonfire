@@ -39,5 +39,6 @@
   Bonfire uses Premake5 for cross-platform project generation.  
   Currently only the Debug config works properly
 
-
-![](Docs/bonfire-animation.gif)
+<p align="center">
+  <img src="Docs/bonfire-animation.gif" alt="Bonfire Engine Demo">
+</p>
