@@ -7,7 +7,7 @@ pushd ..
 echo === Cleaning build ===
 %MSBUILD% Build/Bonfire.sln /t:Clean /p:Configuration=%BUILD_CONFIG% /v:minimal
 
-echo === Building project (debug) ===
+echo === Building project (%BUILD_CONFIG%) ===
 %MSBUILD% Build/Bonfire.sln /t:Build /p:Configuration=%BUILD_CONFIG% /v:minimal
 
 echo === Build complete ===
