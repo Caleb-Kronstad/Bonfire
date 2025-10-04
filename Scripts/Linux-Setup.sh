@@ -1,5 +1,15 @@
 #!/bin/bash
 
+source "$(dirname "$0")/Linux-Config.sh"
+
 pushd ..
-Premake/Linux/premake5 --cc=clang --file=Build.lua gmake2
+
+if [ "$COMPILER" = "clang" ]; then
+    CC_FLAG="--cc=clang"
+else
+    CC_FLAG=""
+fi
+
+Premake/Linux/premake5 $CC_FLAG --file=Build.lua gmake2
+
 popd
