@@ -2,6 +2,7 @@ workspace "Bonfire"
    architecture "x64"
    configurations { "Debug", "Release", "Dist" }
    startproject "Project"
+   location "Build"
 
    -- Workspace-wide build options for MSVC
    filter "system:windows"

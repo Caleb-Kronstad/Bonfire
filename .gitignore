@@ -16,6 +16,8 @@ bin-int/
 imgui.ini
 **/imgui.ini
 
+compile_commands.json
+
 Makefile
 Engine/Makefile
 Project/Makefile

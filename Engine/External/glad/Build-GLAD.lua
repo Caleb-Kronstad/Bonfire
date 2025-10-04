@@ -1,4 +1,5 @@
 project "GLAD"
+    location "../../../Build"
     kind "StaticLib"
     language "C++"
 
