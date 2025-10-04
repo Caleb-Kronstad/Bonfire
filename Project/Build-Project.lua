@@ -1,5 +1,5 @@
 project "Project"
-    location "../../../Build/Build-Files"
+    location "../Build/Build-Files"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++20"
