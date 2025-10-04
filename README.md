@@ -36,5 +36,5 @@
 
 ## Build System
 
-  Bonfire uses Premake5 for cross-platform project generation.
+  Bonfire uses Premake5 for cross-platform project generation.  
   Currently only the Debug build works properly -- Release and Dist will be implemented at a later date
