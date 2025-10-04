@@ -9,7 +9,7 @@
 
 ### Linux
 
-  - clang++ (required by default setup) or g++
+  - clang++ or g++
   - make
   - X11 development libraries: libx11-dev libxrandr-dev libxi-dev libxxf86vm-dev libxcursor-dev libxinerama-dev
   - [Optional] CLion or similar IDE (install bear for better CLion integration)
@@ -18,7 +18,7 @@
 
 ### Windows
 
-  1. Run Scripts/Windows-Setup.bat (generates Visual Studio 2022 solution using Premake5)
+  1. Run Scripts/Windows-Setup.bat (generates Visual Studio solution using Premake5)
   2. Run Scripts/Windows-Build.bat to build Debug configuration
     - Note: The script uses MSBuild from Visual Studio 2022 Preview. If you have a different edition
   (Community/Professional/Enterprise), edit Scripts/Windows-Build.bat and update the MSBUILD path (line 5)
@@ -36,4 +36,5 @@
 
 ## Build System
 
-  This project uses Premake5 for cross-platform project generation. Build configurations are defined in Build.lua
+  Bonfire uses Premake5 for cross-platform project generation
+  Currently only the Debug build works properly -- Release and Dist will be implemented at a later date
