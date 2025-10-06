@@ -49,15 +49,16 @@ project "Project"
     targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")
     objdir ("%{wks.location}/../Build/Binaries-Intermediate/" .. OutputDir .. "/%{prj.name}")
     
-    postbuildcommands {
-        "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources"
-    }
 
     filter "system:windows"
         systemversion "latest"
         defines {
             "BONFIRE_PLATFORM_WINDOWS",
             "_CRT_SECURE_NO_WARNINGS"
+        }
+        postbuildcommands {
+            "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources",
+            "{COPY} %{wks.location}/../Project/Resources %{wks.location}/Build-Files/Resources"
         }
 
     filter "system:linux"
@@ -74,6 +75,9 @@ project "Project"
             "Xxf86vm",
             "Xcursor",
             "Xinerama"
+        }
+        postbuildcommands {
+            "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources",
         }
 
     filter "configurations:Debug"

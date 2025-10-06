@@ -1,4 +1,4 @@
-# Bonfire Engine
+# Bonfire
 
   A cross-platform 3D game engine built with modern C++ and OpenGL, featuring an entity-component system,
   ImGui-based editor interface, and support for 3D model rendering with shaders, textures, and camera controls.
