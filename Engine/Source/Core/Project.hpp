@@ -26,6 +26,7 @@ namespace Bonfire
 		// Getters
 		static Project& GetInstance() { return *static_project_instance; }
 		static Renderer& GetRenderer() { return *static_renderer; }
+		static Interface& GetInterface() { return *static_interface; }
 		bool& GetProjectRunState() { return project_running; }
 		bool& GetEngineRunState() { return engine_running; }
 		std::string GetProjectName() const { return project_name; }

@@ -11,7 +11,7 @@ namespace Bonfire
 	}
 	Renderer::~Renderer()
 	{
-
+		
 	}
 
 	void Renderer::OnAttach()
@@ -20,7 +20,13 @@ namespace Bonfire
 		engine_camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
 		engine_camera_can_rotate = false;
 
+		background_color = RgbToGlmVec4(22, 22, 22, 1.0f);
 		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
+		console_capture = std::make_unique<ConsoleCapture>();
+		console_capture->StartCapture();
+		std::stringstream path_stream;
+		path_stream << "Project Path: " << std::filesystem::current_path();
+		Log::Info(path_stream.str());
 
 		// --- FOR TESTING - REMOVE AFTER ADDING SUPPORT IN ENGINE ---
 		default_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
@@ -56,6 +62,7 @@ namespace Bonfire
 	}
 	void Renderer::OnDetach()
 	{
+		console_capture->StopCapture();
 	}
 
 	void Renderer::OnUpdate()
@@ -80,7 +87,7 @@ namespace Bonfire
 
 		viewport_framebuffer->Bind();
 		
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glm::mat4 projection = engine_camera->GetProjectionMatrix(viewport_size.x, viewport_size.y);
@@ -98,18 +105,29 @@ namespace Bonfire
 		viewport_framebuffer->Unbind();
 		glViewport(0, 0, window.GetWidth(), window.GetHeight());
 
-		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void Renderer::OnInterfaceUpdate()
 	{
 		Project& project = Project::GetInstance();
-		Window& window = project.GetWindow();
-
+		Interface& project_interface = project.GetInterface();
+		Window& project_window = project.GetWindow();
+		ImVec4& highlight_color = project_interface.highlight_primary;
+		
 		// -- VIEWPORT --
 		ImGui::Begin("Viewport");
+		DrawActiveTitleLine(highlight_color);
+		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		{
+			ImGui::SetWindowFocus();
+			engine_camera_can_rotate = true;
+			glfwSetInputMode(project_window.GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		viewport_focused = ImGui::IsWindowFocused();
 		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
+		
 		if (viewport_panel_size.x != viewport_size.x || viewport_panel_size.y != viewport_size.y)
 		{
 			if (viewport_panel_size.x > 0 && viewport_panel_size.y > 0)
@@ -124,15 +142,27 @@ namespace Bonfire
 
 		// -- PROJECT SETTINGS --
 		ImGui::Begin("Project Settings", nullptr);
+		DrawActiveTitleLine(highlight_color);
+		ImGui::Indent(8.0f); // Add left padding for content
+		ImGui::Spacing(); // Add top spacing
 		std::string frame_count = "Frame " + std::to_string(project.GetFrameCount());
 		std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
+		
 		ImGui::Text(frame_count.c_str());
 		ImGui::Text(delta_time.c_str());
+		ImGui::PushItemWidth(100.0f);
 		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
+		ImGui::PopItemWidth();
+		
+		ImGui::Unindent(8.0f);
 		ImGui::End();
 
 		// -- HIERARCHY --
 		ImGui::Begin("Hierarchy", nullptr);
+		DrawActiveTitleLine(highlight_color);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+		
 		for (auto entity : entities)
 		{
 			if (ImGui::Selectable(entity->name.c_str()))
@@ -140,18 +170,46 @@ namespace Bonfire
 				current_entity = entity;
 			}
 		}
+		
+		ImGui::Unindent(8.0f);
 		ImGui::End();
 
 		// -- DETAILS --
 		ImGui::Begin("Details", nullptr);
+		DrawActiveTitleLine(highlight_color);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+		
 		std::shared_ptr<Transform> current_entity_transform = current_entity->GetComponent<Transform>();
+		
+		ImGui::SetNextItemWidth(-1.0f);
 		ImGui::InputText(" ", &current_entity->name);
+		
 		if (ImGui::CollapsingHeader("Transform"))
 		{
+			ImGui::PushItemWidth(200.0f);
 			ImGui::DragFloat3("Position ", (float*)&current_entity_transform->position, drag_step, -1000, 1000);
 			ImGui::DragFloat3("Scale ", (float*)&current_entity_transform->scale, drag_step, 0, 1000);
 			ImGui::DragFloat3("Rotation ", (float*)&current_entity_transform->rotation, drag_step, 0, 360);
+			ImGui::PopItemWidth();
 		}
+		ImGui::Unindent(8.0f);
+		ImGui::End();
+
+		// -- CONSOLE --
+		ImGui::Begin("Console", nullptr);
+		DrawActiveTitleLine(highlight_color);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+
+		std::vector<std::string> lines = console_capture->GetLines();
+		for (const std::string& line : lines)
+		{
+			auto [color, text] = ParseAnsiLine(line);
+			ImGui::TextColored(color, "%s", text.c_str());
+		}
+
+		ImGui::Unindent(8.0f);
 		ImGui::End();
 	}
 
@@ -160,7 +218,7 @@ namespace Bonfire
 	{
 		Project& project = Project::GetInstance();
 		Window& window = project.GetWindow();
-		GLFWwindow* glfwWindow = window.GetNativeWindow();
+		GLFWwindow* glfw_window = window.GetNativeWindow();
 
 		switch (input.GetInputType())
 		{
@@ -203,8 +261,11 @@ namespace Bonfire
 				// enable engine camera rotation
 				if (mouseInput.GetMouseButton() == InputCode::Button1)
 				{
-					engine_camera_can_rotate = true;
-					glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+					if (viewport_focused)
+					{
+						engine_camera_can_rotate = true;
+						glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+					}
 				}
 				
 				break;
@@ -219,7 +280,7 @@ namespace Bonfire
 				if (mouseInput.GetMouseButton() == InputCode::Button1)
 				{
 					engine_camera_can_rotate = false;
-					glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+					glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 				}
 				
 				break;
@@ -263,5 +324,25 @@ namespace Bonfire
 		case InputType::None:
 				break;
 		}
+	}
+	
+	void Renderer::DrawActiveTitleLine(const ImVec4& color, float thickness)
+	{
+		if (!ImGui::IsWindowFocused())
+			return;
+    
+		ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+		ImVec2 window_pos = ImGui::GetWindowPos();
+    
+		const char* title = ImGui::GetCurrentWindow()->Name;
+		ImVec2 text_size = ImGui::CalcTextSize(title);
+		float title_padding = ImGui::GetStyle().FramePadding.x;
+		float title_x = window_pos.x + title_padding * 3.5f;
+    
+		draw_list->AddRectFilled(
+			ImVec2(window_pos.x + title_padding * 1.25f, window_pos.y),
+			ImVec2(title_x + text_size.x, window_pos.y + thickness),
+			ImGui::ColorConvertFloat4ToU32(color)
+		);
 	}
 }

@@ -23,6 +23,7 @@
 #include <utility>
 #include <algorithm>
 #include <functional>
+#include <mutex>
 
 #include <string>
 #include <vector>

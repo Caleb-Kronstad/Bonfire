@@ -1,7 +1,9 @@
 #pragma once
 
-#include "Framebuffer.hpp"
 #include "Core/Layer.hpp"
+
+#include "Interface/ConsoleCapture.hpp"
+#include "Framebuffer.hpp"
 
 #include "Renderer/Camera.hpp"
 #include "Renderer/Mesh.hpp"
@@ -25,6 +27,8 @@ namespace Bonfire
 		void OnInterfaceUpdate() override;
 		void OnInput(Input& input) override;
 
+		void DrawActiveTitleLine(const ImVec4& color, float thickness = 3.0f);
+
 	private:
 		std::string project_path;
 		glm::mat4 manipulation_matrix;
@@ -41,12 +45,14 @@ namespace Bonfire
 		std::vector<Textures> textures_components;
 
 		// interface
-		std::shared_ptr<Entity> current_entity;
-		float drag_step = 1.0f;
-
-		// viewport framebuffer
+		std::unique_ptr<ConsoleCapture> console_capture;
 		std::unique_ptr<Framebuffer> viewport_framebuffer;
 		glm::vec2 viewport_size = { 1280, 720 };
+		std::shared_ptr<Entity> current_entity;
+		float drag_step = 1.0f;
+		bool viewport_focused = false;
+
+		// viewport framebuffer
 
 		// -- TEST MEMBERS --
 		std::unique_ptr<Shader> default_shader;
@@ -54,6 +60,7 @@ namespace Bonfire
 		std::shared_ptr<Texture> checkered_texture;
 		std::shared_ptr<Textures> cube_textures;
 		std::shared_ptr<Textures> sphere_textures;
+		glm::vec4 background_color;
 		// --
 	};
 }

@@ -5,6 +5,35 @@
 
 namespace Bonfire
 {
+	std::pair<ImVec4, std::string> ParseAnsiLine(const std::string& line)
+	{
+		ImVec4 color = ImVec4(1, 1, 1, 1);
+    
+		if (line.find("\x1b[31m") != std::string::npos)
+			color = ImVec4(1, 0, 0, 1); // red (ERROR)
+		else if (line.find("\x1b[33m") != std::string::npos)
+			color = ImVec4(1, 1, 0, 1); // yellow (WARNING)
+		else if (line.find("\x1b[37m") != std::string::npos)
+			color = ImVec4(1, 1, 1, 1); // white (INFO)
+    
+		std::string clean_text = line;
+		size_t pos = 0;
+		while ((pos = clean_text.find("\x1b[", pos)) != std::string::npos)
+		{
+			size_t end = clean_text.find('m', pos);
+			if (end != std::string::npos)
+			{
+				clean_text.erase(pos, end - pos + 1);
+			}
+			else
+			{
+				break;
+			}
+		}
+    
+		return {color, clean_text};
+	}
+	
 	bool ContainsCharacter(const std::string& str, const char& chr)
 	{
 		for (unsigned int i = 0; i < str.length(); ++i)
@@ -20,6 +49,26 @@ namespace Bonfire
 			if (str[i] != chr) clean_str += str[i];
 		}
 		str = std::string(clean_str);
+	}
+
+	ImVec4 HexToImVec4(unsigned int hex_value, float alpha)
+	{
+		float r = ((hex_value >> 16) & 0xFF) / 255.0f;
+		float g = ((hex_value >> 8) & 0xFF) / 255.0f;
+		float b = ((hex_value) & 0xFF) / 255.0f;
+		return ImVec4(r, g, b, alpha);
+	}
+	ImVec4 RgbToImVec4(unsigned int r, unsigned int g, unsigned int b, float alpha) {
+		return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, alpha);
+	}
+	glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha) {
+		float r = ((hex_value >> 16) & 0xFF) / 255.0f;
+		float g = ((hex_value >> 8) & 0xFF) / 255.0f;
+		float b = ((hex_value) & 0xFF) / 255.0f;
+		return glm::vec4(r, g, b, alpha);
+	}
+	glm::vec4 RgbToGlmVec4(unsigned int r, unsigned int g, unsigned int b, float alpha) {
+		return glm::vec4(r / 255.0f, g / 255.0f, b / 255.0f, alpha);
 	}
 
 	std::vector<std::filesystem::path> GetFilesInDirectory(const std::string& path)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Layer.hpp"
+#include "Core/Utility.hpp"
 
 namespace Bonfire
 {
@@ -17,10 +18,15 @@ namespace Bonfire
 		void OnUpdate() override;
 		void OnInput(Input& input) override;
 
-		void SetCustomStyle();
-		void SetClearStyle();
+		void SetMainStyle();
 
 	public:
+		ImVec4 text_primary;
+		ImVec4 background_primary;
+		ImVec4 background_secondary;
+		ImVec4 background_tertiary;
+		ImVec4 highlight_primary;
+		ImVec4 highlight_secondary;
 
 	private:
 		bool block_inputs = false;

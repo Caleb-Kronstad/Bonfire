@@ -14,6 +14,7 @@
 #include "Core/Project.hpp"
 
 // Interface
+#include "Interface/ConsoleCapture.hpp"
 #include "Interface/Interface.hpp"
 
 // Physics
