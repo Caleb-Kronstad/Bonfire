@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Framebuffer.hpp"
 #include "Core/Layer.hpp"
 
 #include "Renderer/Camera.hpp"
@@ -42,6 +43,10 @@ namespace Bonfire
 		// interface
 		std::shared_ptr<Entity> current_entity;
 		float drag_step = 1.0f;
+
+		// viewport framebuffer
+		std::unique_ptr<Framebuffer> viewport_framebuffer;
+		glm::vec2 viewport_size = { 1280, 720 };
 
 		// -- TEST MEMBERS --
 		std::unique_ptr<Shader> default_shader;

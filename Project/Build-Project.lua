@@ -57,8 +57,8 @@ project "Project"
             "_CRT_SECURE_NO_WARNINGS"
         }
         postbuildcommands {
-            "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources",
-            "{COPY} %{wks.location}/../Project/Resources %{wks.location}/Build-Files/Resources"
+            -- "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources", -- UNCOMMENT THIS LINE IF USING Windows-Build.bat TO BUILD INSTEAD OF AN IDE
+            "{COPY} %{wks.location}/../Project/Resources %{wks.location}/Build-Files/Resources" -- Comment this line out if you are not building via IDE
         }
 
     filter "system:linux"

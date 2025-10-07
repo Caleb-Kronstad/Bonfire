@@ -19,7 +19,10 @@ namespace Bonfire
 		manipulation_matrix = glm::mat4(1.0f);
 		engine_camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
 		engine_camera_can_rotate = false;
-		
+
+		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
+
+		// --- FOR TESTING - REMOVE AFTER ADDING SUPPORT IN ENGINE ---
 		default_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
 
 		wood_floor_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", DIFFUSE);
@@ -39,17 +42,17 @@ namespace Bonfire
 		
 		entities.push_back(test_cube_entity);
 		entities.push_back(test_sphere_entity);
+		
+		default_shader->Use();
+		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
+
+		current_entity = test_cube_entity;
+		// -------
 
 		for (auto entity : entities)
 		{
 			entity->LoadComponents();
 		}
-
-		// Shader intialization
-		default_shader->Use();
-		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
-
-		current_entity = test_cube_entity;
 	}
 	void Renderer::OnDetach()
 	{
@@ -62,9 +65,9 @@ namespace Bonfire
 		GLFWwindow* glfwWindow = window.GetNativeWindow();
 		const float deltaTime = project.GetDeltaTime();
 
+		// --- TESTING - IMPROVE IMPLEMENTATION AT LATER TIME ---
 		if (window.GetWidth() <= 0 || window.GetHeight() <= 0)
 			return;
-
 		if (glfwGetKey(glfwWindow, InputCode::W) == GLFW_PRESS)
 			engine_camera->ProcessKeyboard(FORWARD, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::S) == GLFW_PRESS)
@@ -73,11 +76,14 @@ namespace Bonfire
 			engine_camera->ProcessKeyboard(LEFT, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::D) == GLFW_PRESS)
 			engine_camera->ProcessKeyboard(RIGHT, deltaTime);
+		// ---
+
+		viewport_framebuffer->Bind();
 		
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glm::mat4 projection = engine_camera->GetProjectionMatrix(window.GetWidth(), window.GetHeight());
+		glm::mat4 projection = engine_camera->GetProjectionMatrix(viewport_size.x, viewport_size.y);
 		glm::mat4 view = engine_camera->GetViewMatrix();
 
 		default_shader->Use();
@@ -88,29 +94,45 @@ namespace Bonfire
 		{
 			entity->Draw(*default_shader, manipulation_matrix);
 		}
+
+		viewport_framebuffer->Unbind();
+		glViewport(0, 0, window.GetWidth(), window.GetHeight());
+
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void Renderer::OnInterfaceUpdate()
 	{
 		Project& project = Project::GetInstance();
 		Window& window = project.GetWindow();
-		
-		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
-		ImGui::Begin("Project Settings", nullptr);
 
+		// -- VIEWPORT --
+		ImGui::Begin("Viewport");
+		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
+		if (viewport_panel_size.x != viewport_size.x || viewport_panel_size.y != viewport_size.y)
+		{
+			if (viewport_panel_size.x > 0 && viewport_panel_size.y > 0)
+			{
+				viewport_size = {viewport_panel_size.x, viewport_panel_size.y};
+				viewport_framebuffer->Resize(viewport_size.x, viewport_size.y);
+			}
+		}
+
+		ImGui::Image((void*)(intptr_t)viewport_framebuffer->GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
+		ImGui::End();
+
+		// -- PROJECT SETTINGS --
+		ImGui::Begin("Project Settings", nullptr);
 		std::string frame_count = "Frame " + std::to_string(project.GetFrameCount());
 		std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
 		ImGui::Text(frame_count.c_str());
 		ImGui::Text(delta_time.c_str());
 		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
-		
 		ImGui::End();
-		
-		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 4), ImGuiCond_Once);
-		ImGui::Begin("Hierarchy", nullptr);
 
+		// -- HIERARCHY --
+		ImGui::Begin("Hierarchy", nullptr);
 		for (auto entity : entities)
 		{
 			if (ImGui::Selectable(entity->name.c_str()))
@@ -119,13 +141,10 @@ namespace Bonfire
 			}
 		}
 		ImGui::End();
-		
-		ImGui::SetNextWindowSize(ImVec2(window.GetWidth() / 4, window.GetHeight() / 4), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImVec2(0, window.GetHeight() / 2), ImGuiCond_Once);
+
+		// -- DETAILS --
 		ImGui::Begin("Details", nullptr);
-		
 		std::shared_ptr<Transform> current_entity_transform = current_entity->GetComponent<Transform>();
-		
 		ImGui::InputText(" ", &current_entity->name);
 		if (ImGui::CollapsingHeader("Transform"))
 		{
@@ -133,7 +152,6 @@ namespace Bonfire
 			ImGui::DragFloat3("Scale ", (float*)&current_entity_transform->scale, drag_step, 0, 1000);
 			ImGui::DragFloat3("Rotation ", (float*)&current_entity_transform->rotation, drag_step, 0, 360);
 		}
-		
 		ImGui::End();
 	}
 

@@ -18,6 +18,10 @@ namespace Bonfire
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
+
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		
 		Project& project = Project::GetInstance();
 		GLFWwindow* glfw_window = project.GetWindow().GetNativeWindow();
@@ -38,12 +42,40 @@ namespace Bonfire
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
+
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->WorkPos);
+		ImGui::SetNextWindowSize(viewport->WorkSize);
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+		ImGui::Begin("DockSpace", nullptr, window_flags);
+		ImGui::PopStyleVar(2);
+
+		ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+		ImGui::End();
 	}
 	void Interface::End()
 	{
 		ImGui::Render();
-		ImGui::EndFrame();
+		// ImGui::EndFrame();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
 	}
 
 	void Interface::OnUpdate()

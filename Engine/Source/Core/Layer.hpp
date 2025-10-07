@@ -9,18 +9,19 @@ namespace Bonfire
 	class Layer
 	{
 	public:
-		Layer(std::string debug_name = "Layer");
+		Layer(std::string name = "Layer")
+		: name(std::move(name)) {}
 		virtual ~Layer() = default;
 
-		virtual void OnAttach();
-		virtual void OnDetach();
-		virtual void OnUpdate();
-		virtual void OnInterfaceUpdate();
-		virtual void OnInput(Input& input);
+		virtual void OnAttach() {}
+		virtual void OnDetach() {}
+		virtual void OnUpdate() {}
+		virtual void OnInterfaceUpdate() {}
+		virtual void OnInput(Input& input) {}
 
-		std::string GetName() const { return debug_name; }
+		std::string GetName() const { return name; }
 		
 	protected:
-		std::string debug_name;
+		std::string name;
 	};
 }

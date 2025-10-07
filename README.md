@@ -31,9 +31,11 @@ Clone the repository with submodules
   1. Run ```Scripts/Windows-Setup.bat``` to generate Visual Studio solution using Premake5
   2. Run ```Scripts/Windows-Build.bat``` to build selected configuration (change configuration in ```Scripts/Windows-Config.bat```)  
     - Note: The script uses MSBuild from Visual Studio 2022 Preview. If you have a different edition
-  (Community/Professional/Enterprise), edit ```Scripts/Windows-Config.bat``` and update the MSBUILD path (line 5)  
-    - Alternatively, open Bonfire.sln and build via your IDE
-  3. Run ```Scripts/Windows-Run.bat``` or run via IDE  
+  (Community/Professional/Enterprise), edit ```Scripts/Windows-Config.bat``` and update the MSBUILD path. 
+  You will also need to uncomment the line in postbuildcommands in ```Project/Build-Project.lua```  
+    - Alternatively, open Bonfire.sln and build via your IDE (RECOMMENDED)
+  3. Run ```Scripts/Windows-Run.bat```  
+    - Alternatively, run via your IDE (RECOMMENDED)  
     - Executable location: ```Build/Binaries/windows-x86_64/Debug/Project/Project.exe```
 
 ### Linux
