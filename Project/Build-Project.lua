@@ -58,7 +58,9 @@ project "Project"
         }
         postbuildcommands {
             -- "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources", -- UNCOMMENT THIS LINE IF USING Windows-Build.bat TO BUILD INSTEAD OF AN IDE
-            "{COPY} %{wks.location}/../Project/Resources %{wks.location}/Build-Files/Resources" -- Comment this line out if you are not building via IDE
+            -- "{COPY} %{wks.location}/../Project/imgui.ini %{cfg.buildtarget.directory}/", -- UNCOMMENT THIS LINE IF USING Windows-Build.bat TO BUILD INSTEAD OF AN IDE
+            "{COPY} %{wks.location}/../Project/Resources %{wks.location}/Build-Files/Resources", -- Comment this line out if you are not building via IDE
+            "{COPY} %{wks.location}/../Project/imgui.ini %{wks.location}/Build-Files/", -- Comment this line out if you are not building via IDE
         }
 
     filter "system:linux"
@@ -78,6 +80,7 @@ project "Project"
         }
         postbuildcommands {
             "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources",
+            "{COPY} %{wks.location}/../Project/imgui.ini %{cfg.buildtarget.directory}/",
         }
 
     filter "configurations:Debug"
