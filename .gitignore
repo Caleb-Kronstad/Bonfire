@@ -12,9 +12,6 @@ Build/
 **.vcxproj.filters
 **.vcxproj
 
-imgui.ini
-**/imgui.ini
-
 compile_commands.json
 
 Makefile
