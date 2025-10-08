@@ -28,6 +28,7 @@ namespace Bonfire
 		void OnInput(Input& input) override;
 
 		void DrawActiveTitleLine(const ImVec4& color, float thickness = 3.0f);
+		void DisplayChildrenFromParent(std::shared_ptr<Entity> parent);
 
 	private:
 		std::string project_path;

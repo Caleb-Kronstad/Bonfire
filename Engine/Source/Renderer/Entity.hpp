@@ -21,7 +21,7 @@ namespace Bonfire
             COMPONENT_TYPE type = T::TYPE;
 
             if (components[type] != nullptr) {
-                Log::Warning("[FAILED] Component already added to Entity");
+                Log::Warning("FAILED::Component already added to Entity");
                 return false;
             }
 
@@ -35,16 +35,20 @@ namespace Bonfire
                 return true;
             }
     
-            Log::Warning("[FAILED] Entity does not contain this Component");
+            Log::Warning("FAILED::Entity does not contain this Component");
             return false;
         }
         
         template<typename T>
         std::shared_ptr<T> GetComponent();
+        std::vector<std::shared_ptr<Entity>> GetChildren();
+        std::shared_ptr<Entity> GetParent();
 
     public:
         bool enabled;
         std::string name;
+        std::vector<std::shared_ptr<Entity>> children;
+        std::shared_ptr<Entity> parent;
 
     private:
         std::array<std::shared_ptr<Component>, COMPONENT_TYPE::COUNT> components;

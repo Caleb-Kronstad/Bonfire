@@ -34,20 +34,38 @@ namespace Bonfire
 		wood_floor_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", DIFFUSE);
 		checkered_texture = std::make_shared<Texture>("Resources/Textures/checkered.png", DIFFUSE);
 
+		std::shared_ptr<Entity> test_sphere_entity2 = std::make_shared<Entity>("Test Sphere Entity");
+		test_sphere_entity2->AddComponent<Transform>();
+		test_sphere_entity2->AddComponent<Model>("Resources/Models/Sphere.obj");
+		test_sphere_entity2->AddComponent<Textures>();
+		test_sphere_entity2->GetComponent<Textures>()->AddTexture(checkered_texture);
+
 		std::shared_ptr<Entity> test_cube_entity = std::make_shared<Entity>("Test Cube Entity");
 		test_cube_entity->AddComponent<Transform>(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(5.0f, 0.25f, 5.0f));
 		test_cube_entity->AddComponent<Model>("Resources/Models/Cube.obj");
 		test_cube_entity->AddComponent<Textures>();
 		test_cube_entity->GetComponent<Textures>()->AddTexture(wood_floor_texture);
+		test_cube_entity->children.push_back(test_sphere_entity2);
+		test_cube_entity->children[0]->parent = test_cube_entity;
 
 		std::shared_ptr<Entity> test_sphere_entity = std::make_shared<Entity>("Test Sphere Entity");
 		test_sphere_entity->AddComponent<Transform>();
 		test_sphere_entity->AddComponent<Model>("Resources/Models/Sphere.obj");
 		test_sphere_entity->AddComponent<Textures>();
 		test_sphere_entity->GetComponent<Textures>()->AddTexture(checkered_texture);
+		test_sphere_entity->children.push_back(test_cube_entity);
+		test_sphere_entity->children[0]->parent = test_sphere_entity;
+		
+		std::shared_ptr<Entity> test_cube_entity2 = std::make_shared<Entity>("Test Cube Entity");
+		test_cube_entity2->AddComponent<Transform>(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(5.0f, 0.25f, 5.0f));
+		test_cube_entity2->AddComponent<Model>("Resources/Models/Cube.obj");
+		test_cube_entity2->AddComponent<Textures>();
+		test_cube_entity2->GetComponent<Textures>()->AddTexture(wood_floor_texture);
 		
 		entities.push_back(test_cube_entity);
 		entities.push_back(test_sphere_entity);
+		entities.push_back(test_sphere_entity2);
+		entities.push_back(test_cube_entity2);
 		
 		default_shader->Use();
 		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
@@ -162,14 +180,35 @@ namespace Bonfire
 		DrawActiveTitleLine(highlight_color);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
-		
+
+		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
 		for (auto entity : entities)
 		{
-			if (ImGui::Selectable(entity->name.c_str()))
+			if (entity->parent == nullptr)
 			{
-				current_entity = entity;
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+				ImGuiTreeNodeFlags child_flags = flags | ImGuiTreeNodeFlags_Leaf;
+
+				if (entity->children.empty())
+					flags = child_flags;
+					
+				if (entity == current_entity)
+					flags |= ImGuiTreeNodeFlags_Selected;
+					
+    
+				bool node_open = ImGui::TreeNodeEx(entity->name.c_str(), flags);
+    
+				if (ImGui::IsItemClicked())
+					current_entity = entity;
+    
+				if (node_open)
+				{
+					DisplayChildrenFromParent(entity);
+					ImGui::TreePop();
+				}
 			}
 		}
+		ImGui::PopStyleColor();
 		
 		ImGui::Unindent(8.0f);
 		ImGui::End();
@@ -325,6 +364,32 @@ namespace Bonfire
 				break;
 		}
 	}
+
+	void Renderer::DisplayChildrenFromParent(std::shared_ptr<Entity> parent)
+	{
+		for (auto child : parent->children)
+		{
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        
+			if (child->children.empty())
+				flags |= ImGuiTreeNodeFlags_Leaf;
+            
+			if (child == current_entity)
+				flags |= ImGuiTreeNodeFlags_Selected;
+        
+			bool node_open = ImGui::TreeNodeEx(child->name.c_str(), flags);
+        
+			if (ImGui::IsItemClicked())
+				current_entity = child;
+
+			if (node_open)
+			{
+				DisplayChildrenFromParent(child);
+				ImGui::TreePop();
+			}
+		}
+	}
+
 	
 	void Renderer::DrawActiveTitleLine(const ImVec4& color, float thickness)
 	{

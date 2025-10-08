@@ -7,6 +7,8 @@ namespace Bonfire
         : name(name)
     {
         enabled = true;
+        parent = nullptr;
+        children = {};
     }
 
     void Entity::LoadComponents()
