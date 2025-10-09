@@ -47,7 +47,7 @@ Clone the repository with submodules
 
 ## Build System
 
-  Bonfire uses Premake5 for cross-platform project generation.  
+  Bonfire uses Premake5 for cross-platform project generation
   Currently only the Debug config works properly
 
 <p align="center">
