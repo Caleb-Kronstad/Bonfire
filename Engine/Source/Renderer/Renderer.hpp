@@ -53,7 +53,9 @@ namespace Bonfire
 		float drag_step = 1.0f;
 		bool viewport_focused = false;
 
-		// viewport framebuffer
+		// fonts
+		ImFont* font_title;
+		ImFont* font_body;
 
 		// -- TEST MEMBERS --
 		std::unique_ptr<Shader> default_shader;

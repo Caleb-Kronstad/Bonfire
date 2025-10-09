@@ -28,6 +28,11 @@ namespace Bonfire
 		path_stream << "Project Path: " << std::filesystem::current_path();
 		Log::Info(path_stream.str());
 
+		// LOAD FONTS
+		ImGuiIO& io = ImGui::GetIO();
+		font_title = io.Fonts->AddFontFromFileTTF("Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 20.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+		font_body = io.Fonts->AddFontFromFileTTF("Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+
 		// --- FOR TESTING - REMOVE AFTER ADDING SUPPORT IN ENGINE ---
 		default_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
 
@@ -135,6 +140,7 @@ namespace Bonfire
 		ImVec4& highlight_color = project_interface.highlight_primary;
 		
 		// -- VIEWPORT --
+		ImGui::PushFont(font_title);
 		ImGui::Begin("Viewport");
 		DrawActiveTitleLine(highlight_color);
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
@@ -155,32 +161,42 @@ namespace Bonfire
 			}
 		}
 
+		ImGui::PopFont();
+
 		ImGui::Image((void*)(intptr_t)viewport_framebuffer->GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
 		ImGui::End();
 
 		// -- PROJECT SETTINGS --
+		ImGui::PushFont(font_title);
 		ImGui::Begin("Project Settings", nullptr);
 		DrawActiveTitleLine(highlight_color);
 		ImGui::Indent(8.0f); // Add left padding for content
 		ImGui::Spacing(); // Add top spacing
+		ImGui::PopFont();
+
 		std::string frame_count = "Frame " + std::to_string(project.GetFrameCount());
 		std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
 		
+		ImGui::PushFont(font_body);
 		ImGui::Text(frame_count.c_str());
 		ImGui::Text(delta_time.c_str());
 		ImGui::PushItemWidth(100.0f);
 		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
 		ImGui::PopItemWidth();
+		ImGui::PopFont();
 		
 		ImGui::Unindent(8.0f);
 		ImGui::End();
 
 		// -- HIERARCHY --
+		ImGui::PushFont(font_title);
 		ImGui::Begin("Hierarchy", nullptr);
 		DrawActiveTitleLine(highlight_color);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
+		ImGui::PopFont();
 
+		ImGui::PushFont(font_body);
 		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
 		for (auto entity : entities)
 		{
@@ -209,18 +225,22 @@ namespace Bonfire
 			}
 		}
 		ImGui::PopStyleColor();
+		ImGui::PopFont();
 		
 		ImGui::Unindent(8.0f);
 		ImGui::End();
 
 		// -- DETAILS --
+		ImGui::PushFont(font_title);
 		ImGui::Begin("Details", nullptr);
 		DrawActiveTitleLine(highlight_color);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
+		ImGui::PopFont();
 		
 		std::shared_ptr<Transform> current_entity_transform = current_entity->GetComponent<Transform>();
 		
+		ImGui::PushFont(font_body);
 		ImGui::SetNextItemWidth(-1.0f);
 		ImGui::InputText(" ", &current_entity->name);
 		
@@ -232,21 +252,27 @@ namespace Bonfire
 			ImGui::DragFloat3("Rotation ", (float*)&current_entity_transform->rotation, drag_step, 0, 360);
 			ImGui::PopItemWidth();
 		}
+		ImGui::PopFont();
+
 		ImGui::Unindent(8.0f);
 		ImGui::End();
 
 		// -- CONSOLE --
+		ImGui::PushFont(font_title);
 		ImGui::Begin("Console", nullptr);
 		DrawActiveTitleLine(highlight_color);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
+		ImGui::PopFont();
 
+		ImGui::PushFont(font_body);
 		std::vector<std::string> lines = console_capture->GetLines();
 		for (const std::string& line : lines)
 		{
 			auto [color, text] = ParseAnsiLine(line);
 			ImGui::TextColored(color, "%s", text.c_str());
 		}
+		ImGui::PopFont();
 
 		ImGui::Unindent(8.0f);
 		ImGui::End();
