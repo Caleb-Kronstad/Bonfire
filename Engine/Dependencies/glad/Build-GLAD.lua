@@ -3,8 +3,8 @@ project "GLAD"
     kind "StaticLib"
     language "C++"
 
-    targetdir ("../../../Build/Binaries/" .. OutputDir .. "/%{prj.name}")
-    objdir ("../../../Build/Binaries-Intermediate/" .. OutputDir .. "/%{prj.name}")
+    targetdir ("../../../Build/Binaries/" .. OutputDir .. "/Project/Dependencies/%{prj.name}")
+    objdir ("../../../Build/Binaries-Intermediate/" .. OutputDir .. "/Project/Dependencies/%{prj.name}")
 
     files {
         "include/glad/glad.h",

@@ -34,8 +34,8 @@ project "Engine"
         "IMGUIZMO"
     }
     
-    targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")
-    objdir ("%{wks.location}/../Build/Binaries-Intermediate/" .. OutputDir .. "/%{prj.name}")
+    targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/Project/%{prj.name}")
+    objdir ("%{wks.location}/../Build/Binaries-Intermediate/" .. OutputDir .. "/Project/%{prj.name}")
 
     filter "system:windows"
         systemversion "latest"

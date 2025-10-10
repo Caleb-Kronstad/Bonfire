@@ -18,21 +18,21 @@ workspace "Bonfire"
 OutputDir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 
 IncludeDir = {}
-IncludeDir["GLAD"] = os.realpath("Engine/External/glad/include")
-IncludeDir["GLFW"] = os.realpath("Engine/External/glfw/include")
-IncludeDir["IMGUI"] = os.realpath("Engine/External/imgui")
-IncludeDir["STB_IMAGE"] = os.realpath("Engine/External/stb_image")
-IncludeDir["ASSIMP"] = os.realpath("Engine/External/assimp/include")
-IncludeDir["GLM"] = os.realpath("Engine/External/glm/glm")
-IncludeDir["IMGUIZMO"] = os.realpath("Engine/External/imguizmo")
+IncludeDir["GLAD"] = os.realpath("Engine/Dependencies/glad/include")
+IncludeDir["GLFW"] = os.realpath("Engine/Dependencies/glfw/include")
+IncludeDir["IMGUI"] = os.realpath("Engine/Dependencies/imgui")
+IncludeDir["STB_IMAGE"] = os.realpath("Engine/Dependencies/stb_image")
+IncludeDir["ASSIMP"] = os.realpath("Engine/Dependencies/assimp/include")
+IncludeDir["GLM"] = os.realpath("Engine/Dependencies/glm/glm")
+IncludeDir["IMGUIZMO"] = os.realpath("Engine/Dependencies/imguizmo")
 
-group "_External"
-   include "Engine/External/glad/Build-GLAD.lua"
-   include "Engine/External/glfw/Build-GLFW.lua"
-   include "Engine/External/imgui/Build-IMGUI.lua"
-   include "Engine/External/assimp/Build-ASSIMP.lua"
-   include "Engine/External/glm/Build-GLM.lua"
-   include "Engine/External/imguizmo/Build-IMGUIZMO.lua"
+group "Dependencies"
+   include "Engine/Dependencies/glad/Build-GLAD.lua"
+   include "Engine/Dependencies/glfw/Build-GLFW.lua"
+   include "Engine/Dependencies/imgui/Build-IMGUI.lua"
+   include "Engine/Dependencies/assimp/Build-ASSIMP.lua"
+   include "Engine/Dependencies/glm/Build-GLM.lua"
+   include "Engine/Dependencies/imguizmo/Build-IMGUIZMO.lua"
 group ""
 
 group "Engine"
