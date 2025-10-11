@@ -1,0 +1,8 @@
+{
+    "1000" {
+        "path": "Resources/Textuers/wood.png"
+    }
+    "1001" {
+        "path": "Resources/Textuers/checkered.png"
+    }
+}

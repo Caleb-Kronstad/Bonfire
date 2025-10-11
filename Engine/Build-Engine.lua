@@ -11,7 +11,8 @@ project "Engine"
         "Source/**.hpp",
         "Source/**.c",
         "%{IncludeDir.STB_IMAGE}/**.h",
-        "%{IncludeDir.STB_IMAGE}/**.cpp"
+        "%{IncludeDir.STB_IMAGE}/**.cpp",
+        "%{IncludeDir.JSON}/**.hpp"
     }
 
     includedirs {
@@ -22,6 +23,7 @@ project "Engine"
         "%{IncludeDir.ASSIMP}",
         "%{IncludeDir.GLM}",
         "%{IncludeDir.IMGUIZMO}",
+        "%{IncludeDir.JSON}",
         "Source"
     }
 

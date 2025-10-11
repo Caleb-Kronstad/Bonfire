@@ -3,45 +3,21 @@
 
 namespace Bonfire
 {
-    Entity::Entity(std::string name)
-        : name(name)
+
+    Entity(const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+        : name(name), position(position), rotation(rotation), scale(scale)
     {
         enabled = true;
-        parent = nullptr;
-        children = {};
     }
 
-    void Entity::LoadComponents()
+    glm::quat Entity::GetTransformOrientation()
     {
-        auto model = GetComponent<Model>();
-        auto textures = GetComponent<Textures>();
-        if (model)
-        {
-            model->Load(textures);
-        }
+        return glm::quat(rotation / 180.0f * glm::pi<float>());
     }
-    
-    void Entity::Draw(Shader& shader, glm::mat4& matrix)
+    glm::mat4 Entity::GetTransformMatrix()
     {
-        if (GetComponent<Transform>() == nullptr)
-            return;
-
-        matrix = GetComponent<Transform>()->GetTransformMatrix();
-        shader.SetMat4("model", matrix);
-        
-        auto model = GetComponent<Model>();
-        if (model)
-            model->Draw(shader);
-    }
-
-    template<typename T>
-    std::shared_ptr<T> Entity::GetComponent()
-    {
-        COMPONENT_TYPE type = T::TYPE;
-    
-        if (components[type] != nullptr) {
-            return std::static_pointer_cast<T>(components[type]);
-        }
-        return nullptr;
+        return glm::translate(glm::mat4(1.0f), position)
+        * glm::toMat4(GetOrientation())
+        * glm::scale(glm::mat4(1.0f), scale);
     }
 }

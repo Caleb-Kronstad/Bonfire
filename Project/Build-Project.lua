@@ -14,12 +14,15 @@ project "Project"
         "Resources/**.frag",
         "Resources/**.geom",
         "Resources/**.obj",
+        "Resources/**.fbx",
         "Resources/**.mtl",
         "Resources/**.blend",
         "Resources/**.blend1",
         "Resources/**.png",
         "Resources/**.jpg",
-        "Resources/**.ttf"
+        "Resources/**.ttf",
+        "Params/**.bonfireparams",
+        "Scenes/**.bonfirescene"
     }
 
     includedirs {

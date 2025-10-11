@@ -25,6 +25,7 @@ IncludeDir["STB_IMAGE"] = os.realpath("Engine/Dependencies/stb_image")
 IncludeDir["ASSIMP"] = os.realpath("Engine/Dependencies/assimp/include")
 IncludeDir["GLM"] = os.realpath("Engine/Dependencies/glm/glm")
 IncludeDir["IMGUIZMO"] = os.realpath("Engine/Dependencies/imguizmo")
+IncludeDir["JSON"] = os.realpath("Engine/Dependencies/json")
 
 group "Dependencies"
    include "Engine/Dependencies/glad/Build-GLAD.lua"

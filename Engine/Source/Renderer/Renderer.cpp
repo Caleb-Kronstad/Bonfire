@@ -36,8 +36,8 @@ namespace Bonfire
 		// --- FOR TESTING - REMOVE AFTER ADDING SUPPORT IN ENGINE ---
 		default_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
 
-		wood_floor_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", DIFFUSE);
-		checkered_texture = std::make_shared<Texture>("Resources/Textures/checkered.png", DIFFUSE);
+		wood_floor_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", TEXTURE_TYPE::DIFFUSE);
+		checkered_texture = std::make_shared<Texture>("Resources/Textures/checkered.png", TEXTURE_TYPE::DIFFUSE);
 
 		std::shared_ptr<Entity> test_sphere_entity2 = std::make_shared<Entity>("Test Sphere Entity");
 		test_sphere_entity2->AddComponent<Transform>();
@@ -99,13 +99,13 @@ namespace Bonfire
 		if (window.GetWidth() <= 0 || window.GetHeight() <= 0)
 			return;
 		if (glfwGetKey(glfwWindow, InputCode::W) == GLFW_PRESS)
-			engine_camera->ProcessKeyboard(FORWARD, deltaTime);
+			engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::FORWARD, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::S) == GLFW_PRESS)
-			engine_camera->ProcessKeyboard(BACKWARD, deltaTime);
+			engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::BACKWARD, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::A) == GLFW_PRESS)
-			engine_camera->ProcessKeyboard(LEFT, deltaTime);
+			engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::LEFT, deltaTime);
 		if (glfwGetKey(glfwWindow, InputCode::D) == GLFW_PRESS)
-			engine_camera->ProcessKeyboard(RIGHT, deltaTime);
+			engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::	RIGHT, deltaTime);
 		// ---
 
 		viewport_framebuffer->Bind();

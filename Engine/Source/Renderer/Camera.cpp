@@ -27,13 +27,13 @@ namespace Bonfire
     void Camera::ProcessKeyboard(MOVEMENT_DIRECTION direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
-        if (direction == FORWARD)
+        if (direction == MOVEMENT_DIRECTION::FORWARD)
             Position += Front * velocity;
-        if (direction == BACKWARD)
+        if (direction == MOVEMENT_DIRECTION::BACKWARD)
             Position -= Front * velocity;
-        if (direction == LEFT)
+        if (direction == MOVEMENT_DIRECTION::LEFT)
             Position -= Right * velocity;
-        if (direction == RIGHT)
+        if (direction == MOVEMENT_DIRECTION::RIGHT)
             Position += Right * velocity;
     }
     
