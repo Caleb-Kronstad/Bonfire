@@ -7,6 +7,7 @@
 
 #include "Renderer/Camera.hpp"
 #include "Renderer/Mesh.hpp"
+#include "Renderer/Model.hpp"
 #include "Renderer/Entity.hpp"
 
 #include "Input/Input.hpp"
@@ -28,30 +29,38 @@ namespace Bonfire
 		void OnInput(Input& input) override;
 
 		void DrawActiveTitleLine(const ImVec4& color, float thickness = 3.0f);
-		void DisplayChildrenFromParent(std::shared_ptr<Entity> parent);
+		
+		void DrawModel(ParamReference ref);
+		void DrawEntity(EntityID id);
+		glm::quat GetTransformOrientation(EntityID id);
+		glm::mat4 GetTransformMatrix(EntityID id);
 
 	private:
 		std::string project_path;
 		glm::mat4 manipulation_matrix;
 
-		// engine camera
+		// camera
 		std::unique_ptr<Camera> engine_camera;
 		bool engine_camera_can_rotate;
 
-		std::vector<std::shared_ptr<Entity>> entities;
+		// entities
+		std::unique_ptr<ParamDatabase> param_database;
+		std::vector<EntityID> entities;
+		std::unordered_map<EntityID, EntityData> entities_data;
+		EntityID test_entity_id = EntityID(0);
+		EntityData test_entity_data = EntityData(false, "", glm::vec3(0), glm::vec3(0), glm::vec3(0));
+		Model test_model = Model("");
 
-		// component vector pools
-		std::vector<Transform> transform_components;
-		std::vector<Model> model_components;
-		std::vector<Textures> textures_components;
+		// models
+		
 
 		// interface
 		std::unique_ptr<ConsoleCapture> console_capture;
 		std::unique_ptr<Framebuffer> viewport_framebuffer;
 		glm::vec2 viewport_size = { 1280, 720 };
-		std::shared_ptr<Entity> current_entity;
 		float drag_step = 1.0f;
 		bool viewport_focused = false;
+		EntityID current_entity_id = EntityID(0);
 
 		// fonts
 		ImFont* font_title;

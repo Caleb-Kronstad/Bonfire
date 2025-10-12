@@ -1,0 +1,12 @@
+{
+    "1000": {
+        "type": 0,
+        "flip": false,
+        "path": "Resources/Textures/wood.png"
+    },
+    "1001": {
+        "type": 0,
+        "flip": false,
+        "path": "Resources/Textures/checkered.png"
+    }
+}

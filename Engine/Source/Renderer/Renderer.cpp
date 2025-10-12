@@ -20,10 +20,16 @@ namespace Bonfire
 		engine_camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
 		engine_camera_can_rotate = false;
 
+		param_database = std::make_unique<ParamDatabase>();
+		param_database->LoadModelParams("Params/modelparams.bonfireparams");
+		param_database->LoadTextureParams("Params/textureparams.bonfireparams");
+
 		background_color = RgbToGlmVec4(22, 22, 22, 1.0f);
 		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
+		
 		console_capture = std::make_unique<ConsoleCapture>();
 		console_capture->StartCapture();
+		
 		std::stringstream path_stream;
 		path_stream << "Project Path: " << std::filesystem::current_path();
 		Log::Info(path_stream.str());
@@ -34,54 +40,28 @@ namespace Bonfire
 		font_body = io.Fonts->AddFontFromFileTTF("Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesDefault());
 
 		// --- FOR TESTING - REMOVE AFTER ADDING SUPPORT IN ENGINE ---
+		test_entity_id = EntityID(1000001);
+		bool test_entity_enabled = false;
+		std::string test_entity_name = "Floor";
+		glm::vec3 test_entity_position = glm::vec3(0.0f, -1.0f, 0.0f);
+		glm::vec3 test_entity_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+		glm::vec3 test_entity_scale = glm::vec3(5.0f, 0.25f, 5.0f);
+		ParamReference model_param_ref = ParamReference(1001);
+		ParamReference texture_param_ref = ParamReference(1000);
+		test_entity_data = EntityData(test_entity_enabled, test_entity_name, test_entity_position, test_entity_rotation, test_entity_scale);
+		test_entity_data.AddParam(PARAM_TYPE::MODEL, model_param_ref);
+		test_entity_data.AddParam(PARAM_TYPE::TEXTURE, texture_param_ref);
+
+		test_model = Model("Resources/Models/Cube.obj");
+		test_model.Load();
+		
 		default_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
-
-		wood_floor_texture = std::make_shared<Texture>("Resources/Textures/wood_floor.png", TEXTURE_TYPE::DIFFUSE);
-		checkered_texture = std::make_shared<Texture>("Resources/Textures/checkered.png", TEXTURE_TYPE::DIFFUSE);
-
-		std::shared_ptr<Entity> test_sphere_entity2 = std::make_shared<Entity>("Test Sphere Entity");
-		test_sphere_entity2->AddComponent<Transform>();
-		test_sphere_entity2->AddComponent<Model>("Resources/Models/Sphere.obj");
-		test_sphere_entity2->AddComponent<Textures>();
-		test_sphere_entity2->GetComponent<Textures>()->AddTexture(checkered_texture);
-
-		std::shared_ptr<Entity> test_cube_entity = std::make_shared<Entity>("Test Cube Entity");
-		test_cube_entity->AddComponent<Transform>(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(5.0f, 0.25f, 5.0f));
-		test_cube_entity->AddComponent<Model>("Resources/Models/Cube.obj");
-		test_cube_entity->AddComponent<Textures>();
-		test_cube_entity->GetComponent<Textures>()->AddTexture(wood_floor_texture);
-		test_cube_entity->children.push_back(test_sphere_entity2);
-		test_cube_entity->children[0]->parent = test_cube_entity;
-
-		std::shared_ptr<Entity> test_sphere_entity = std::make_shared<Entity>("Test Sphere Entity");
-		test_sphere_entity->AddComponent<Transform>();
-		test_sphere_entity->AddComponent<Model>("Resources/Models/Sphere.obj");
-		test_sphere_entity->AddComponent<Textures>();
-		test_sphere_entity->GetComponent<Textures>()->AddTexture(checkered_texture);
-		test_sphere_entity->children.push_back(test_cube_entity);
-		test_sphere_entity->children[0]->parent = test_sphere_entity;
-		
-		std::shared_ptr<Entity> test_cube_entity2 = std::make_shared<Entity>("Test Cube Entity");
-		test_cube_entity2->AddComponent<Transform>(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(5.0f, 0.25f, 5.0f));
-		test_cube_entity2->AddComponent<Model>("Resources/Models/Cube.obj");
-		test_cube_entity2->AddComponent<Textures>();
-		test_cube_entity2->GetComponent<Textures>()->AddTexture(wood_floor_texture);
-		
-		entities.push_back(test_cube_entity);
-		entities.push_back(test_sphere_entity);
-		entities.push_back(test_sphere_entity2);
-		entities.push_back(test_cube_entity2);
 		
 		default_shader->Use();
 		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
 
-		current_entity = test_cube_entity;
+		current_entity_id = test_entity_id;
 		// -------
-
-		for (auto entity : entities)
-		{
-			entity->LoadComponents();
-		}
 	}
 	void Renderer::OnDetach()
 	{
@@ -120,10 +100,7 @@ namespace Bonfire
 		default_shader->SetMat4("projection", projection);
 		default_shader->SetMat4("view", view);
 
-		for (const std::shared_ptr<Entity>& entity : entities)
-		{
-			entity->Draw(*default_shader, manipulation_matrix);
-		}
+		DrawEntity(test_entity_id);
 
 		viewport_framebuffer->Unbind();
 		glViewport(0, 0, window.GetWidth(), window.GetHeight());
@@ -200,29 +177,7 @@ namespace Bonfire
 		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
 		for (auto entity : entities)
 		{
-			if (entity->parent == nullptr)
-			{
-				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-				ImGuiTreeNodeFlags child_flags = flags | ImGuiTreeNodeFlags_Leaf;
-
-				if (entity->children.empty())
-					flags = child_flags;
-					
-				if (entity == current_entity)
-					flags |= ImGuiTreeNodeFlags_Selected;
-					
-    
-				bool node_open = ImGui::TreeNodeEx(entity->name.c_str(), flags);
-    
-				if (ImGui::IsItemClicked())
-					current_entity = entity;
-    
-				if (node_open)
-				{
-					DisplayChildrenFromParent(entity);
-					ImGui::TreePop();
-				}
-			}
+			// do entity ui shit
 		}
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
@@ -237,19 +192,19 @@ namespace Bonfire
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
-		
-		std::shared_ptr<Transform> current_entity_transform = current_entity->GetComponent<Transform>();
+
+		EntityData current_entity_data = entities_data.at(current_entity_id);
 		
 		ImGui::PushFont(font_body);
 		ImGui::SetNextItemWidth(-1.0f);
-		ImGui::InputText(" ", &current_entity->name);
+		ImGui::InputText(" ", &current_entity_data.name);
 		
 		if (ImGui::CollapsingHeader("Transform"))
 		{
 			ImGui::PushItemWidth(200.0f);
-			ImGui::DragFloat3("Position ", (float*)&current_entity_transform->position, drag_step, -1000, 1000);
-			ImGui::DragFloat3("Scale ", (float*)&current_entity_transform->scale, drag_step, 0, 1000);
-			ImGui::DragFloat3("Rotation ", (float*)&current_entity_transform->rotation, drag_step, 0, 360);
+			ImGui::DragFloat3("Position ", (float*)&current_entity_data.position, drag_step, -1000, 1000);
+			ImGui::DragFloat3("Scale ", (float*)&current_entity_data.scale, drag_step, 0, 1000);
+			ImGui::DragFloat3("Rotation ", (float*)&current_entity_data.rotation, drag_step, 0, 360);
 			ImGui::PopItemWidth();
 		}
 		ImGui::PopFont();
@@ -391,29 +346,26 @@ namespace Bonfire
 		}
 	}
 
-	void Renderer::DisplayChildrenFromParent(std::shared_ptr<Entity> parent)
+	void Renderer::DrawModel(ParamReference ref)
 	{
-		for (auto child : parent->children)
-		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-        
-			if (child->children.empty())
-				flags |= ImGuiTreeNodeFlags_Leaf;
-            
-			if (child == current_entity)
-				flags |= ImGuiTreeNodeFlags_Selected;
-        
-			bool node_open = ImGui::TreeNodeEx(child->name.c_str(), flags);
-        
-			if (ImGui::IsItemClicked())
-				current_entity = child;
-
-			if (node_open)
-			{
-				DisplayChildrenFromParent(child);
-				ImGui::TreePop();
-			}
-		}
+		
+	}
+	void Renderer::DrawEntity(EntityID id)
+	{
+		EntityData data = entities_data.at(id);
+		DrawModel(data.params.at(PARAM_TYPE::MODEL));
+	}
+	glm::quat Renderer::GetTransformOrientation(EntityID id)
+	{
+		EntityData data = entities_data.at(id);
+		return glm::quat(data.rotation / 180.0f * glm::pi<float>());
+	}
+	glm::mat4 Renderer::GetTransformMatrix(EntityID id)
+	{
+		EntityData data = entities_data.at(id);
+		return glm::translate(glm::mat4(1.0f), data.position)
+		* glm::toMat4(GetTransformOrientation())
+		* glm::scale(glm::mat4(1.0f), data.scale);
 	}
 
 	

@@ -1,10 +1,79 @@
 #include "bonfire_pch.hpp"
-#include "ResourcePool.hpp"
+#include "ParamDatabase.hpp"
 
 namespace Bonfire
 {
     void ParamDatabase::LoadModelParams(const std::string& filepath)
     {
+        std::ifstream file(filepath);
+        if (!file.is_open())
+        {
+            Log::Error("Failed to open model params file: " + filepath);
+            return;
+        }
 
+        nlohmann::json json;
+        try
+        {
+            file >> json;
+        } catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to parse model params JSON: " + std::string(e.what()));
+            return;
+        }
+
+        for (auto& [key, value] : json.items())
+        {
+            uint32_t id = std::stoul(key);
+            ParamReference ref(id);
+
+            std::string name = value["name"].get<std::string>();
+            std::string path = value["path"].get<std::string>();
+
+            auto rot_arr = value["rotationMultiplier"].get<std::vector<float>>();
+            auto scale_arr = value["scaleMultiplier"].get<std::vector<float>>();
+
+            glm::vec3 rotation_multiplier(rot_arr[0], rot_arr[1], rot_arr[2]);
+            glm::vec3 scale_multiplier(scale_arr[0], scale_arr[1], scale_arr[2]);
+
+            model_params[ref] = ModelParamData(name, path, rotation_multiplier, scale_multiplier);
+        }
+        Log::Info("Loaded " + std::to_string(model_params.size()) + " model params from " + filepath);
+    }
+    void ParamDatabase::LoadTextureParams(const std::string& filepath)
+    {
+        std::ifstream file(filepath);
+        if (!file.is_open())
+        {
+            Log::Error("Failed to open texture params file: " + filepath);
+            return;
+        }
+
+        nlohmann::json json;
+        try
+        {
+            file >> json;
+        } catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to parse texture params JSON: " + std::string(e.what()));
+            return;
+        }
+
+        for (auto& [key,value] : json.items())
+        {
+            uint32_t id = std::stoul(key);
+            ParamReference ref(id);
+
+            TEXTURE_TYPE type = value["type"].get<TEXTURE_TYPE>();
+            bool flip = value["flip"].get<bool>();
+            std::string path = value["path"].get<std::string>();
+            texture_params[ref] = TextureParamData(type, flip, path);
+        }
+
+        Log::Info("Loaded " + std::to_string(texture_params.size()) + " texture params from " + filepath);
+    }
+    void ParamDatabase::LoadAIParams(const std::string& filepath)
+    {
+        Log::Warning("LoadAIParams not yet implemented");
     }
 }

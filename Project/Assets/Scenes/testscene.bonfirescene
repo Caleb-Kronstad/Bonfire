@@ -1,0 +1,22 @@
+{
+    "entities": [
+        {
+            "id": 1000001,
+            "enabled": false,
+            "name": "Floor",
+            "position": [0.0, -1.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [5.0, 0.25, 5.0],
+            "params": {"model": 1001, "textures": 1000 }
+        },
+        {
+            "id": 1000002,
+            "enabled": false,
+            "name": "Sphere Object",
+            "position": [0.0, 0.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0],
+            "params": {"model": 1000, "textures": 1001 }
+        }
+    ]
+}

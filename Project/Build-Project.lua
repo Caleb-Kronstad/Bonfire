@@ -6,28 +6,11 @@ project "Project"
     staticruntime "on"
 
     files {
-        "Source/**.h",
-        "Source/**.cpp",
-        "Source/**.hpp",
-        "Source/**.c",
-        "Resources/**.vert",
-        "Resources/**.frag",
-        "Resources/**.geom",
-        "Resources/**.obj",
-        "Resources/**.fbx",
-        "Resources/**.mtl",
-        "Resources/**.blend",
-        "Resources/**.blend1",
-        "Resources/**.png",
-        "Resources/**.jpg",
-        "Resources/**.ttf",
-        "Params/**.bonfireparams",
-        "Scenes/**.bonfirescene"
+        "Assets/**"
     }
 
     includedirs {
-        "Source",
-        "Resources",
+        "Assets",
         -- Include Core
         "../Engine/Source",
         "%{IncludeDir.GLAD}",
@@ -60,9 +43,9 @@ project "Project"
             "_CRT_SECURE_NO_WARNINGS"
         }
         postbuildcommands {
-            -- "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources", -- UNCOMMENT THIS LINE IF USING Windows-Build.bat TO BUILD INSTEAD OF AN IDE
+            -- "{COPY} %{wks.location}/../Project/Assets %{cfg.buildtarget.directory}/Assets", -- UNCOMMENT THIS LINE IF USING Windows-Build.bat TO BUILD INSTEAD OF AN IDE
             -- "{COPY} %{wks.location}/../Project/imgui.ini %{cfg.buildtarget.directory}/", -- UNCOMMENT THIS LINE IF USING Windows-Build.bat TO BUILD INSTEAD OF AN IDE
-            "{COPY} %{wks.location}/../Project/Resources %{wks.location}/Build-Files/Resources", -- Comment this line out if you are not building via IDE
+            "{COPY} %{wks.location}/../Project/Assets %{wks.location}/Build-Files/Assets", -- Comment this line out if you are not building via IDE
             "{COPY} %{wks.location}/../Project/imgui.ini %{wks.location}/Build-Files/", -- Comment this line out if you are not building via IDE
         }
 
@@ -82,7 +65,7 @@ project "Project"
             "Xinerama"
         }
         postbuildcommands {
-            "{COPY} %{wks.location}/../Project/Resources %{cfg.buildtarget.directory}/Resources",
+            "{COPY} %{wks.location}/../Project/Assets %{cfg.buildtarget.directory}/Assets",
             "{COPY} %{wks.location}/../Project/imgui.ini %{cfg.buildtarget.directory}/",
         }
 

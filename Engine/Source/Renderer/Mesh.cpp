@@ -3,7 +3,7 @@
 
 namespace Bonfire
 {
-    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<std::shared_ptr<Texture>> textures)
+    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures)
 	    : vertices(vertices), indices(indices), textures(textures)
     {
         SetupMesh();
@@ -16,24 +16,24 @@ namespace Bonfire
 		    glActiveTexture(GL_TEXTURE0+i);
 
 			std::string texture_type_name = "diffuse";
-			switch (textures[i]->type)
+			switch (textures[i].type)
 			{
-			case DIFFUSE:
+			case TEXTURE_TYPE::DIFFUSE:
 				{
 					texture_type_name = "diffuse";
 					break;
 				}
-			case SPECULAR:
+			case TEXTURE_TYPE::SPECULAR:
 				{
 					texture_type_name = "specular";
 					break;
 				}
-			case NORMAL:
+			case TEXTURE_TYPE::NORMAL:
 				{
 					texture_type_name = "normal";
 					break;
 				}
-			case HEIGHT:
+			case TEXTURE_TYPE::HEIGHT:
 				{
 					texture_type_name = "height";
 					break;
@@ -42,7 +42,7 @@ namespace Bonfire
 				break;
 			}
 			shader.SetInt("material."+texture_type_name, static_cast<int>(i));
-			glBindTexture(GL_TEXTURE_2D, textures[i]->gl_id);
+			glBindTexture(GL_TEXTURE_2D, textures[i].gl_id);
 		}
         
         // bind and draw mesh

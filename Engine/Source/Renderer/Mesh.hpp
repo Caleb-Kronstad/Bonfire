@@ -15,7 +15,7 @@ namespace Bonfire
     class Mesh
     {
     public:
-        Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<std::shared_ptr<Texture>> textures);
+        Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
         void Draw(Shader& shader);
 
     private:
@@ -26,7 +26,7 @@ namespace Bonfire
 
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
-        std::vector<std::shared_ptr<Texture>> textures;
+        std::vector<Texture> textures;
         
     };
 
