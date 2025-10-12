@@ -48,8 +48,11 @@ namespace Bonfire
         std::vector<GLuint> indices;
         std::vector<Texture> textures;
 
-        Texture test_texture = Texture("Resources/Textures/wood.png", TEXTURE_TYPE::DIFFUSE, false);
+        Texture test_texture = Texture("Assets/Resources/Textures/wood.png", TEXTURE_TYPE::DIFFUSE, true);
+        test_texture.Load();
         textures.push_back(test_texture);
+
+        Log::Warning(test_texture.path);
 
         // process vertices
         for (unsigned int i = 0; i < ai_mesh->mNumVertices; i++)

@@ -5,6 +5,7 @@ namespace Bonfire
     struct ParamReference {
         uint32_t value;
 
+        ParamReference() : value(0) {}
         explicit ParamReference(uint32_t v) : value(v) {}
 
         bool operator==(const ParamReference& other) const { return value == other.value; }
@@ -14,6 +15,7 @@ namespace Bonfire
 
 namespace std
 {
+    
     template<>
     struct hash<Bonfire::ParamReference>
     {
@@ -34,6 +36,7 @@ namespace Bonfire
         glm::vec3 rotation_multiplier;
         glm::vec3 scale_multiplier;
 
+        ModelParamData() { name = ""; path = ""; rotation_multiplier = glm::vec3(1.0f); glm::vec3 scale_multiplier = glm::vec3(1.0f); }
         ModelParamData(const std::string& name, const std::string& path, const glm::vec3& rotation_multiplier, const glm::vec3& scale_multiplier) : name(name), path(path), rotation_multiplier(rotation_multiplier), scale_multiplier(scale_multiplier) {}
     };
     struct TextureParamData
@@ -42,11 +45,12 @@ namespace Bonfire
         bool flip;
         std::string path;
 
+        TextureParamData() { type = TEXTURE_TYPE::DIFFUSE; flip = false; path = ""; }
         TextureParamData(const TEXTURE_TYPE& type, const bool& flip, const std::string& path) : type(type), flip(flip), path(path) {}
     };
     struct AIParamData
     {
-        
+        AIParamData() {}
     };
 
     class ParamDatabase

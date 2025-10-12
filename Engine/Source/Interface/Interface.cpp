@@ -129,8 +129,9 @@ namespace Bonfire
 			input.Handled |= io.WantCaptureKeyboard;
 		}
 	}
-
-	void Interface::SetMainStyle() // hard coded style for the time being, will update for customization later
+	
+	// hard coded style for the time being, will update for customization later
+	void Interface::SetMainStyle() 
 	{
 		ImGuiStyle* style = &ImGui::GetStyle();
 		ImVec4* colors = style->Colors;

@@ -25,6 +25,6 @@
 #include "Renderer/Camera.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/Mesh.hpp"
-#include "Renderer/Components.hpp"
+#include "Renderer/ParamDatabase.hpp"
 #include "Renderer/Entity.hpp"
 #include "Renderer/Renderer.hpp"

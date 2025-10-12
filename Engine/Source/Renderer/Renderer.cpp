@@ -21,12 +21,12 @@ namespace Bonfire
 		engine_camera_can_rotate = false;
 
 		param_database = std::make_unique<ParamDatabase>();
-		param_database->LoadModelParams("Params/modelparams.bonfireparams");
-		param_database->LoadTextureParams("Params/textureparams.bonfireparams");
+		param_database->LoadModelParams("Assets/Params/modelparams.bonfireparams");
+		param_database->LoadTextureParams("Assets/Params/textureparams.bonfireparams");
 
 		background_color = RgbToGlmVec4(22, 22, 22, 1.0f);
 		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
-		
+
 		console_capture = std::make_unique<ConsoleCapture>();
 		console_capture->StartCapture();
 		
@@ -36,12 +36,12 @@ namespace Bonfire
 
 		// LOAD FONTS
 		ImGuiIO& io = ImGui::GetIO();
-		font_title = io.Fonts->AddFontFromFileTTF("Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 20.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-		font_body = io.Fonts->AddFontFromFileTTF("Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+		font_title = io.Fonts->AddFontFromFileTTF("Assets/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+		font_body = io.Fonts->AddFontFromFileTTF("Assets/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
 
 		// --- FOR TESTING - REMOVE AFTER ADDING SUPPORT IN ENGINE ---
 		test_entity_id = EntityID(1000001);
-		bool test_entity_enabled = false;
+		bool test_entity_enabled = true;
 		std::string test_entity_name = "Floor";
 		glm::vec3 test_entity_position = glm::vec3(0.0f, -1.0f, 0.0f);
 		glm::vec3 test_entity_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -52,10 +52,15 @@ namespace Bonfire
 		test_entity_data.AddParam(PARAM_TYPE::MODEL, model_param_ref);
 		test_entity_data.AddParam(PARAM_TYPE::TEXTURE, texture_param_ref);
 
-		test_model = Model("Resources/Models/Cube.obj");
+		entities.push_back(test_entity_id);
+		entities_data.insert_or_assign(test_entity_id, test_entity_data);
+
+		test_model = Model("Assets/Resources/Models/Cube.obj");
 		test_model.Load();
+
+		models.insert_or_assign(model_param_ref, test_model);
 		
-		default_shader = std::make_unique<Shader>("Default", "Resources/Shaders/default.vert", "Resources/Shaders/default.frag", "None");
+		default_shader = std::make_unique<Shader>("Default", "Assets/Resources/Shaders/default.vert", "Assets/Resources/Shaders/default.frag", "None");
 		
 		default_shader->Use();
 		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
@@ -100,7 +105,10 @@ namespace Bonfire
 		default_shader->SetMat4("projection", projection);
 		default_shader->SetMat4("view", view);
 
-		DrawEntity(test_entity_id);
+		for (auto entity_id : entities)
+		{
+			DrawEntity(entity_id);
+		}
 
 		viewport_framebuffer->Unbind();
 		glViewport(0, 0, window.GetWidth(), window.GetHeight());
@@ -193,7 +201,7 @@ namespace Bonfire
 		ImGui::Spacing();
 		ImGui::PopFont();
 
-		EntityData current_entity_data = entities_data.at(current_entity_id);
+		EntityData& current_entity_data = entities_data.at(current_entity_id);
 		
 		ImGui::PushFont(font_body);
 		ImGui::SetNextItemWidth(-1.0f);
@@ -348,11 +356,13 @@ namespace Bonfire
 
 	void Renderer::DrawModel(ParamReference ref)
 	{
-		
+		models.at(ref).Draw(*default_shader);
 	}
 	void Renderer::DrawEntity(EntityID id)
 	{
 		EntityData data = entities_data.at(id);
+		manipulation_matrix = GetTransformMatrix(id);
+		default_shader->SetMat4("model", manipulation_matrix);
 		DrawModel(data.params.at(PARAM_TYPE::MODEL));
 	}
 	glm::quat Renderer::GetTransformOrientation(EntityID id)
@@ -364,7 +374,7 @@ namespace Bonfire
 	{
 		EntityData data = entities_data.at(id);
 		return glm::translate(glm::mat4(1.0f), data.position)
-		* glm::toMat4(GetTransformOrientation())
+		* glm::toMat4(GetTransformOrientation(id))
 		* glm::scale(glm::mat4(1.0f), data.scale);
 	}
 

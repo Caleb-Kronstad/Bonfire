@@ -6,6 +6,7 @@ project "Project"
     staticruntime "on"
 
     files {
+        "Source/**",
         "Assets/**"
     }
 
@@ -19,7 +20,8 @@ project "Project"
         "%{IncludeDir.STB_IMAGE}",
         "%{IncludeDir.ASSIMP}",
         "%{IncludeDir.GLM}",
-        "%{IncludeDir.IMGUIZMO}"
+        "%{IncludeDir.IMGUIZMO}",
+        "%{IncludeDir.JSON}"
     }
 
     links {

@@ -4,17 +4,17 @@
 
 namespace Bonfire
 {
-	extern std::pair<ImVec4, std::string> ParseAnsiLine(const std::string& line);
-	extern bool ContainsCharacter(const std::string& str, const char& chr);
-	extern void RemoveCharacter(std::string& str, const char& chr);
-	extern ImVec4 HexToImVec4(unsigned int hex_value, float alpha = 1.0f);
-	extern ImVec4 RgbToImVec4(unsigned int r, unsigned int g, unsigned int b, float alpha = 1.0f);
-	extern glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha = 1.0f);
-	extern glm::vec4 RgbToGlmVec4(unsigned int r, unsigned int g, unsigned int b, float alpha = 1.0f);
-	extern std::vector<std::filesystem::path> GetFilesInDirectory(const std::string& path);
+	std::pair<ImVec4, std::string> ParseAnsiLine(const std::string& line);
+	bool ContainsCharacter(const std::string& str, const char& chr);
+	void RemoveCharacter(std::string& str, const char& chr);
+	ImVec4 HexToImVec4(unsigned int hex_value, float alpha = 1.0f);
+	ImVec4 RgbToImVec4(unsigned int r, unsigned int g, unsigned int b, float alpha = 1.0f);
+	glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha = 1.0f);
+	glm::vec4 RgbToGlmVec4(unsigned int r, unsigned int g, unsigned int b, float alpha = 1.0f);
+	std::vector<std::filesystem::path> GetFilesInDirectory(const std::string& path);
 
 	// yoinked from charno https://github.com/TheCherno/Hazel/blob/master/Hazel/src/Hazel/Math/Math.cpp
-	extern bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
+	bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 
 	class AssimpGLMHelpers
 	{

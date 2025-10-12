@@ -31,9 +31,9 @@ namespace Bonfire
         size_t GetLineCount();
 
     private:
-        ConsoleBuffer buffer;
         std::vector<std::string> lines;
         std::mutex mutex;
+        ConsoleBuffer buffer;
         std::streambuf* old_cout_buffer;
         std::streambuf* old_cerr_buffer;
     };

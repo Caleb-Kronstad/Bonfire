@@ -51,8 +51,9 @@ namespace Bonfire
 		EntityData test_entity_data = EntityData(false, "", glm::vec3(0), glm::vec3(0), glm::vec3(0));
 		Model test_model = Model("");
 
-		// models
-		
+		// param maps
+		std::unordered_map<ParamReference, Model> models;
+		std::unordered_map<ParamReference, Texture> textures;
 
 		// interface
 		std::unique_ptr<ConsoleCapture> console_capture;
@@ -70,8 +71,6 @@ namespace Bonfire
 		std::unique_ptr<Shader> default_shader;
 		std::shared_ptr<Texture> wood_floor_texture;
 		std::shared_ptr<Texture> checkered_texture;
-		std::shared_ptr<Textures> cube_textures;
-		std::shared_ptr<Textures> sphere_textures;
 		glm::vec4 background_color;
 		// --
 	};
