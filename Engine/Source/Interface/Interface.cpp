@@ -40,65 +40,76 @@ namespace Bonfire
 
 	void Interface::Begin()
 	{
+		Project& project = Project::GetInstance();
+		Renderer& renderer = project.GetRenderer();
+		
 		ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-    ImGuizmo::BeginFrame();
+	    ImGui_ImplGlfw_NewFrame();
+	    ImGui::NewFrame();
+	    ImGuizmo::BeginFrame();
 
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar; // Add MenuBar flag
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
-    ImGui::SetNextWindowViewport(viewport->ID);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-    window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+	    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar; // Add MenuBar flag
+	    ImGuiViewport* viewport = ImGui::GetMainViewport();
+	    ImGui::SetNextWindowPos(viewport->WorkPos);
+	    ImGui::SetNextWindowSize(viewport->WorkSize);
+	    ImGui::SetNextWindowViewport(viewport->ID);
+	    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+	    window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+	    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-    ImGui::Begin("DockSpace", nullptr, window_flags);
-    ImGui::PopStyleVar(2);
+	    ImGui::Begin("DockSpace", nullptr, window_flags);
+	    ImGui::PopStyleVar(2);
 
-    // Menu Bar
-    if (ImGui::BeginMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-        	if (ImGui::MenuItem("New", "Ctrl+N")) { Log::Info("New File"); }
-            if (ImGui::MenuItem("Open", "Ctrl+O")) { Log::Info("Open File"); }
-            if (ImGui::MenuItem("Save", "Ctrl+Shift+S")) { Log::Info("Save"); }
-            if (ImGui::MenuItem("Save As", "Ctrl+S")) { Log::Info("Save As"); }
-            ImGui::Separator();
-            if (ImGui::MenuItem("Exit", "Alt+F4")) { Log::Info("Exit"); }
-            ImGui::EndMenu();
-        }
-        
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Undo", "Ctrl+Z")) { Log::Info("Undo"); }
-            if (ImGui::MenuItem("Redo", "Ctrl+Y")) { Log::Info("Redo"); }
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "Ctrl+X")) { Log::Info("Cut"); }
-            if (ImGui::MenuItem("Copy", "Ctrl+C")) { Log::Info("Copy"); }
-            if (ImGui::MenuItem("Paste", "Ctrl+V")) { Log::Info("Paste"); }
-            ImGui::EndMenu();
-        }
-        
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("Documentation")) { /* Handle Documentation */ }
-            if (ImGui::MenuItem("About")) { /* Handle About */ }
-            ImGui::EndMenu();
-        }
-        
-        ImGui::EndMenuBar();
-    }
+	    // Menu Bar
+	    if (ImGui::BeginMenuBar())
+	    {
+	        if (ImGui::BeginMenu("File"))
+	        {
+        		if (ImGui::MenuItem("New", "Ctrl+N")) { Log::Info("New File"); }
+	            if (ImGui::MenuItem("Open", "Ctrl+O")) { Log::Info("Open File"); }
+	            if (ImGui::MenuItem("Save", "Ctrl+Shift+S")) { Log::Info("Save"); }
+	            if (ImGui::MenuItem("Save As", "Ctrl+S")) { Log::Info("Save As"); }
+	            ImGui::Separator();
+	            if (ImGui::MenuItem("Exit", "Alt+F4")) { project.SetEngineRunState(false); }
+	            ImGui::EndMenu();
+	        }
+	        
+	        if (ImGui::BeginMenu("Edit"))
+	        {
+	            if (ImGui::MenuItem("Undo", "Ctrl+Z")) { Log::Info("Undo"); }
+	            if (ImGui::MenuItem("Redo", "Ctrl+Y")) { Log::Info("Redo"); }
+	            ImGui::Separator();
+	            if (ImGui::MenuItem("Cut", "Ctrl+X")) { Log::Info("Cut"); }
+	            if (ImGui::MenuItem("Copy", "Ctrl+C")) { Log::Info("Copy"); }
+	            if (ImGui::MenuItem("Paste", "Ctrl+V")) { Log::Info("Paste"); }
+	            ImGui::EndMenu();
+	        }
 
-    ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+	    	if (ImGui::BeginMenu("Scene"))
+	    	{
+	    		if (ImGui::MenuItem("Load")) { renderer.LoadScene(); }
+	    		if (ImGui::MenuItem("Save")) { renderer.SaveScene(); }
+	            ImGui::EndMenu();
+	    	}
+	        
+	        if (ImGui::BeginMenu("Help"))
+	        {
+	            if (ImGui::MenuItem("Documentation")) { Log::Info("Documentation"); }
+	            if (ImGui::MenuItem("About")) { Log::Info("Find more information at https://bonfireengine.com"); }
+	            ImGui::EndMenu();
+	        }
+	        
+	        ImGui::EndMenuBar();
+	    }
 
-    ImGui::End();
+	    ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+	    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+	    ImGui::End();
 	}
+	
 	void Interface::End()
 	{
 		ImGui::Render();

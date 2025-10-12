@@ -3,20 +3,20 @@
 
 namespace Bonfire
 {
-    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures)
-	    : vertices(vertices), indices(indices), textures(textures)
+    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices)
+	    : vertices(vertices), indices(indices)
     {
         SetupMesh();
     }
 
-    void Mesh::Draw(Shader& shader)
+    void Mesh::Draw(Shader& shader, const std::vector<std::shared_ptr<Texture>>& textures)
     {
 		for (unsigned int i = 0; i < textures.size(); i++)
 		{
 		    glActiveTexture(GL_TEXTURE0+i);
 
 			std::string texture_type_name = "diffuse";
-			switch (textures[i].type)
+			switch (textures[i]->type)
 			{
 			case TEXTURE_TYPE::DIFFUSE:
 				{
@@ -42,7 +42,7 @@ namespace Bonfire
 				break;
 			}
 			shader.SetInt("material."+texture_type_name, static_cast<int>(i));
-			glBindTexture(GL_TEXTURE_2D, textures[i].gl_id);
+			glBindTexture(GL_TEXTURE_2D, textures[i]->gl_id);
 		}
         
         // bind and draw mesh

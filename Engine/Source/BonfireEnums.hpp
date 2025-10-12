@@ -6,12 +6,12 @@ namespace Bonfire
 {
     enum class PARAM_TYPE : std::uint8_t
     {
+        UNKNOWN,
         MODEL,
         TEXTURE,
         AI,
         PHYSICS,
-        ANIMATION,
-        LOOT
+        ANIMATION
     };
 
     enum class MOVEMENT_DIRECTION : std::uint8_t

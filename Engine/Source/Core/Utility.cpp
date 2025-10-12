@@ -33,6 +33,29 @@ namespace Bonfire
     
 		return {color, clean_text};
 	}
+
+	PARAM_TYPE StringToParamType(const std::string& str)
+	{
+		if (str == "model") return PARAM_TYPE::MODEL;
+		if (str == "texture") return PARAM_TYPE::TEXTURE;
+		if (str == "ai") return PARAM_TYPE::AI;
+		if (str == "physics") return PARAM_TYPE::PHYSICS;
+		if (str == "animation") return PARAM_TYPE::ANIMATION;
+
+		Log::Warning("Unknown PARAM_TYPE string: " + str);
+		return PARAM_TYPE::UNKNOWN; // fallback
+	}
+	std::string ParamTypeToString(const PARAM_TYPE& type)
+	{
+		if (type == PARAM_TYPE::MODEL) return "model";
+		if (type == PARAM_TYPE::TEXTURE) return "texture";
+		if (type == PARAM_TYPE::AI) return "ai";
+		if (type == PARAM_TYPE::PHYSICS) return "physics";
+		if (type == PARAM_TYPE::ANIMATION) return "animation";
+
+		Log::Warning("Unknown PARAM_TYPE: " + std::to_string(static_cast<int>(type)));
+		return "unknown";
+	}
 	
 	bool ContainsCharacter(const std::string& str, const char& chr)
 	{

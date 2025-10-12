@@ -40,7 +40,7 @@ namespace Bonfire {
         glm::vec3 scale;
         std::unordered_map<PARAM_TYPE, ParamReference> params;
 
-        EntityData(bool enabled, std::string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+        EntityData(bool enabled = true, std::string name = "Entity", glm::vec3 position = glm::vec3(0.0f), glm::vec3 rotation = glm::vec3(0.0f), glm::vec3 scale = glm::vec3(1.0f))
             : enabled(enabled), name(name), position(position), rotation(rotation), scale(scale)
         {
         }

@@ -11,7 +11,7 @@ namespace Bonfire
         Model(std::string path);
         
         void Load();
-        void Draw(Shader& shader);
+        void Draw(Shader& shader, const std::vector<std::shared_ptr<Texture>>& textures);
         void ProcessNode(aiNode* node, const aiScene* scene);
         Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
 

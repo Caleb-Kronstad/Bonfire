@@ -16,6 +16,10 @@ namespace Bonfire
 
 	void Renderer::OnAttach()
 	{
+		console_capture = std::make_unique<ConsoleCapture>();
+		console_capture->StartCapture();
+		//console_capture->StopCapture(); // uncomment if editor console is not running properly
+		
 		manipulation_matrix = glm::mat4(1.0f);
 		engine_camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
 		engine_camera_can_rotate = false;
@@ -26,9 +30,6 @@ namespace Bonfire
 
 		background_color = RgbToGlmVec4(22, 22, 22, 1.0f);
 		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
-
-		console_capture = std::make_unique<ConsoleCapture>();
-		console_capture->StartCapture();
 		
 		std::stringstream path_stream;
 		path_stream << "Project Path: " << std::filesystem::current_path();
@@ -39,33 +40,18 @@ namespace Bonfire
 		font_title = io.Fonts->AddFontFromFileTTF("Assets/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
 		font_body = io.Fonts->AddFontFromFileTTF("Assets/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
 
-		// --- FOR TESTING - REMOVE AFTER ADDING SUPPORT IN ENGINE ---
-		test_entity_id = EntityID(1000001);
-		bool test_entity_enabled = true;
-		std::string test_entity_name = "Floor";
-		glm::vec3 test_entity_position = glm::vec3(0.0f, -1.0f, 0.0f);
-		glm::vec3 test_entity_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-		glm::vec3 test_entity_scale = glm::vec3(5.0f, 0.25f, 5.0f);
-		ParamReference model_param_ref = ParamReference(1001);
-		ParamReference texture_param_ref = ParamReference(1000);
-		test_entity_data = EntityData(test_entity_enabled, test_entity_name, test_entity_position, test_entity_rotation, test_entity_scale);
-		test_entity_data.AddParam(PARAM_TYPE::MODEL, model_param_ref);
-		test_entity_data.AddParam(PARAM_TYPE::TEXTURE, texture_param_ref);
-
-		entities.push_back(test_entity_id);
-		entities_data.insert_or_assign(test_entity_id, test_entity_data);
-
-		test_model = Model("Assets/Resources/Models/Cube.obj");
-		test_model.Load();
-
-		models.insert_or_assign(model_param_ref, test_model);
+		// SCENE LOADING
+		scene = std::make_unique<Scene>("Assets/Scenes/testscene.bonfirescene");
+		LoadScene();
+		if (!entities.empty())
+			current_entity_id = entities[0];
+		
+		// --- TESTING ---
 		
 		default_shader = std::make_unique<Shader>("Default", "Assets/Resources/Shaders/default.vert", "Assets/Resources/Shaders/default.frag", "None");
 		
 		default_shader->Use();
 		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
-
-		current_entity_id = test_entity_id;
 		// -------
 	}
 	void Renderer::OnDetach()
@@ -183,9 +169,13 @@ namespace Bonfire
 
 		ImGui::PushFont(font_body);
 		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
-		for (auto entity : entities)
+		for (auto entity_id : entities)
 		{
-			// do entity ui shit
+			EntityData entity_data = entities_data.at(entity_id);
+			if (ImGui::Selectable(entity_data.name.c_str()))
+			{
+				current_entity_id = entity_id;
+			}
 		}
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
@@ -354,16 +344,21 @@ namespace Bonfire
 		}
 	}
 
-	void Renderer::DrawModel(ParamReference ref)
+	void Renderer::DrawModel(ParamReference model_ref, ParamReference texture_ref)
 	{
-		models.at(ref).Draw(*default_shader);
+		Model& model = models.at(model_ref);
+		Texture& texture = textures.at(texture_ref);
+		std::vector<std::shared_ptr<Texture>> textures;
+		textures.push_back(std::make_shared<Texture>(texture));
+		model.Draw(*default_shader, textures);
 	}
 	void Renderer::DrawEntity(EntityID id)
 	{
 		EntityData data = entities_data.at(id);
+		if (!data.enabled) return;
 		manipulation_matrix = GetTransformMatrix(id);
 		default_shader->SetMat4("model", manipulation_matrix);
-		DrawModel(data.params.at(PARAM_TYPE::MODEL));
+		DrawModel(data.params.at(PARAM_TYPE::MODEL), data.params.at(PARAM_TYPE::TEXTURE));
 	}
 	glm::quat Renderer::GetTransformOrientation(EntityID id)
 	{
@@ -378,6 +373,65 @@ namespace Bonfire
 		* glm::scale(glm::mat4(1.0f), data.scale);
 	}
 
+	bool Renderer::LoadScene()
+	{
+		bool loaded = scene->Load();
+		entities = scene->GetEntities();
+		entities_data = scene->GetEntitiesData();
+
+		for (const auto& entity_id : entities)
+		{
+			EntityData& entity_data = entities_data.at(entity_id);
+
+			if (entity_data.params.contains(PARAM_TYPE::MODEL))
+			{
+				ParamReference model_ref = entity_data.params.at(PARAM_TYPE::MODEL);
+				if (!models.contains(model_ref))
+				{
+					ModelParamData model_param = param_database->GetModelParam(model_ref);
+					Model model(model_param.path);
+					model.Load();
+					models.insert_or_assign(model_ref, model);
+				}
+			}
+
+			if (entity_data.params.contains(PARAM_TYPE::TEXTURE))
+			{
+				ParamReference texture_ref = entity_data.params.at(PARAM_TYPE::TEXTURE);
+				if (!textures.contains(texture_ref))
+				{
+					TextureParamData texture_param = param_database->GetTextureParam(texture_ref);
+					Texture texture(texture_param.path, texture_param.type, texture_param.flip);
+					texture.Load();
+					textures.insert_or_assign(texture_ref, texture);
+				}
+			}
+
+			if (entity_data.params.contains(PARAM_TYPE::AI))
+			{
+				// load ai param
+			}
+
+			if (entity_data.params.contains(PARAM_TYPE::PHYSICS))
+			{
+				// load physics param
+			}
+
+			if (entity_data.params.contains(PARAM_TYPE::ANIMATION))
+			{
+				// load animation param
+			}
+		}
+
+		return loaded;
+	}
+	bool Renderer::SaveScene()
+	{
+		scene->GetEntities() = entities;
+		scene->GetEntitiesData() = entities_data;
+		bool saved = scene->Save();
+		return saved;
+	}
 	
 	void Renderer::DrawActiveTitleLine(const ImVec4& color, float thickness)
 	{

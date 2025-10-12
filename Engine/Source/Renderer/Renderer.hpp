@@ -9,6 +9,7 @@
 #include "Renderer/Mesh.hpp"
 #include "Renderer/Model.hpp"
 #include "Renderer/Entity.hpp"
+#include "Renderer/Scene.hpp"
 
 #include "Input/Input.hpp"
 #include "Input/InputCodes.hpp"
@@ -28,9 +29,12 @@ namespace Bonfire
 		void OnInterfaceUpdate() override;
 		void OnInput(Input& input) override;
 
+		bool LoadScene();
+		bool SaveScene();
+
 		void DrawActiveTitleLine(const ImVec4& color, float thickness = 3.0f);
 		
-		void DrawModel(ParamReference ref);
+		void DrawModel(ParamReference model_ref, ParamReference texture_ref);
 		void DrawEntity(EntityID id);
 		glm::quat GetTransformOrientation(EntityID id);
 		glm::mat4 GetTransformMatrix(EntityID id);
@@ -43,13 +47,13 @@ namespace Bonfire
 		std::unique_ptr<Camera> engine_camera;
 		bool engine_camera_can_rotate;
 
+		// scenes
+		std::unique_ptr<Scene> scene;
+
 		// entities
 		std::unique_ptr<ParamDatabase> param_database;
 		std::vector<EntityID> entities;
 		std::unordered_map<EntityID, EntityData> entities_data;
-		EntityID test_entity_id = EntityID(0);
-		EntityData test_entity_data = EntityData(false, "", glm::vec3(0), glm::vec3(0), glm::vec3(0));
-		Model test_model = Model("");
 
 		// param maps
 		std::unordered_map<ParamReference, Model> models;

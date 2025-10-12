@@ -27,4 +27,5 @@
 #include "Renderer/Mesh.hpp"
 #include "Renderer/ParamDatabase.hpp"
 #include "Renderer/Entity.hpp"
+#include "Renderer/Scene.hpp"
 #include "Renderer/Renderer.hpp"

@@ -2,11 +2,11 @@
     "1000": {
         "type": 0,
         "flip": false,
-        "path": "Resources/Textures/wood.png"
+        "path": "Assets/Resources/Textures/wood.png"
     },
     "1001": {
         "type": 0,
         "flip": false,
-        "path": "Resources/Textures/checkered.png"
+        "path": "Assets/Resources/Textures/checkered.png"
     }
 }

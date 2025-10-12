@@ -27,12 +27,15 @@ namespace Bonfire
 		static Project& GetInstance() { return *static_project_instance; }
 		static Renderer& GetRenderer() { return *static_renderer; }
 		static Interface& GetInterface() { return *static_interface; }
-		bool& GetProjectRunState() { return project_running; }
-		bool& GetEngineRunState() { return engine_running; }
-		std::string GetProjectName() const { return project_name; }
-		float GetDeltaTime() const { return delta_time; }
-		unsigned int GetFrameCount() const { return frame_count; }
+		const bool& GetProjectRunState() const { return project_running; }
+		const bool& GetEngineRunState() const { return engine_running; }
+		const std::string& GetProjectName() const { return project_name; }
+		const float& GetDeltaTime() const { return delta_time; }
+		const unsigned int& GetFrameCount() const { return frame_count; }
 		Window& GetWindow() { return window; }
+
+		void SetProjectRunState(bool state) { project_running = state; }
+		void SetEngineRunState(bool state) { engine_running = state; }
 
 		// Callback functions
 		void keycallback(GLFWwindow* window, int key, int scancode, int action, int mods);
