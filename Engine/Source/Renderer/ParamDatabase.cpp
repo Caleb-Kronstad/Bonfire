@@ -62,10 +62,11 @@ namespace Bonfire
             uint32_t id = std::stoul(key);
             ParamReference ref(id);
 
+            std::string name = value["name"].get<std::string>();
             TEXTURE_TYPE type = value["type"].get<TEXTURE_TYPE>();
             bool flip = value["flip"].get<bool>();
             std::string path = value["path"].get<std::string>();
-            texture_params[ref] = TextureParamData(type, flip, path);
+            texture_params[ref] = TextureParamData(name, type, flip, path);
         }
 
         Log::Info("Loaded " + std::to_string(texture_params.size()) + " texture params from " + texture_path);
@@ -112,6 +113,7 @@ namespace Bonfire
         {
             std::string key = std::to_string(ref.value);
             texture_json[key] = {
+                {"name", data.name},
                 {"type", data.type},
                 {"flip", data.flip},
                 {"path", data.path}
@@ -124,7 +126,6 @@ namespace Bonfire
             Log::Error("Failed to open texture params file for writing: " + texture_path);
             return;
         }
-
         try
         {
             texture_file << texture_json.dump(4); // 4 spaces for indentation

@@ -41,12 +41,13 @@ namespace Bonfire
     };
     struct TextureParamData
     {
+        std::string name;
         TEXTURE_TYPE type;
         bool flip;
         std::string path;
 
-        TextureParamData() { type = TEXTURE_TYPE::DIFFUSE; flip = false; path = ""; }
-        TextureParamData(const TEXTURE_TYPE& type, const bool& flip, const std::string& path) : type(type), flip(flip), path(path) {}
+        TextureParamData() { name = ""; type = TEXTURE_TYPE::DIFFUSE; flip = false; path = ""; }
+        TextureParamData(const std::string& name, const TEXTURE_TYPE& type, const bool& flip, const std::string& path) : name(name), type(type), flip(flip), path(path) {}
     };
     struct AIParamData
     {
@@ -68,12 +69,14 @@ namespace Bonfire
         TextureParamData GetTextureParam(ParamReference ref) { return texture_params.at(ref); }
         AIParamData GetAIParam(ParamReference ref) { return ai_params.at(ref); }
 
+    public:
+        std::unordered_map<ParamReference, ModelParamData> model_params;
+        std::unordered_map<ParamReference, TextureParamData> texture_params;
+        std::unordered_map<ParamReference, AIParamData> ai_params;
+
     private:
         std::string model_path;
         std::string texture_path;
         std::string ai_path;
-        std::unordered_map<ParamReference, ModelParamData> model_params;
-        std::unordered_map<ParamReference, TextureParamData> texture_params;
-        std::unordered_map<ParamReference, AIParamData> ai_params;
     };
 }

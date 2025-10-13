@@ -70,14 +70,17 @@ namespace Bonfire
 		// --- TESTING - IMPROVE IMPLEMENTATION AT LATER TIME ---
 		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)
 			return;
-		if (glfwGetKey(glfw_window, InputCode::W) == GLFW_PRESS)
-			engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::FORWARD, deltaTime);
-		if (glfwGetKey(glfw_window, InputCode::S) == GLFW_PRESS)
-			engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::BACKWARD, deltaTime);
-		if (glfwGetKey(glfw_window, InputCode::A) == GLFW_PRESS)
-			engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::LEFT, deltaTime);
-		if (glfwGetKey(glfw_window, InputCode::D) == GLFW_PRESS)
-			engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::	RIGHT, deltaTime);
+		if (viewport_focused)
+		{
+			if (glfwGetKey(glfw_window, InputCode::W) == GLFW_PRESS)
+				engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::FORWARD, deltaTime);
+			if (glfwGetKey(glfw_window, InputCode::S) == GLFW_PRESS)
+				engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::BACKWARD, deltaTime);
+			if (glfwGetKey(glfw_window, InputCode::A) == GLFW_PRESS)
+				engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::LEFT, deltaTime);
+			if (glfwGetKey(glfw_window, InputCode::D) == GLFW_PRESS)
+				engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::	RIGHT, deltaTime);
+		}
 		// ---
 
 		viewport_framebuffer->Bind();
@@ -248,15 +251,82 @@ namespace Bonfire
 			ImGui::PushStyleColor(ImGuiCol_Tab, project_interface.background_tertiary);
 			ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive, project_interface.highlight_primary);
 			if (ImGui::BeginTabItem("Model Params"))
-			{
-				ImGui::Text("model");
-				ImGui::EndTabItem();
-			}
-			if (ImGui::BeginTabItem("Texture Params"))
-			{
-				ImGui::Text("texture");
-				ImGui::EndTabItem();
-			}
+		    {
+		        for (auto& [model_ref, model_data] : param_database->model_params)
+		        {
+		            if (ImGui::CollapsingHeader(model_data.name.c_str()))
+		            {
+		                ImGui::PushID(&model_data);
+		                
+		                ImGui::SetNextItemWidth(-1.0f);
+		                if (ImGui::InputText(" ", &model_data.name))
+		                {
+		                    ReloadParams(model_ref, PARAM_TYPE::MODEL);
+		                }
+		                
+		                ImGui::Text(model_data.path.c_str());
+		                
+		                if (ImGui::DragFloat3("Rotation Multiplier ", (float*)&model_data.rotation_multiplier, drag_step, 0, 100))
+		                {
+		                    ReloadParams(model_ref, PARAM_TYPE::MODEL);
+		                }
+		                
+		                if (ImGui::DragFloat3("Scale Multiplier", (float*)&model_data.scale_multiplier, drag_step, 0, 100))
+		                {
+		                    ReloadParams(model_ref, PARAM_TYPE::MODEL);
+		                }
+		                
+		                ImGui::PopID();
+		            }
+		        }
+		        ImGui::EndTabItem();
+		    }
+		    
+		    if (ImGui::BeginTabItem("Texture Params"))
+		    {
+		        const char* texture_type_names[] = { "Diffuse", "Specular", "Normal", "Height" };
+		        for (auto& [texture_ref, texture_data] : param_database->texture_params)
+		        {
+		            if (ImGui::CollapsingHeader(texture_data.name.c_str()))
+		            {
+		                ImGui::PushID(&texture_data);
+		                
+		                ImGui::SetNextItemWidth(-1.0f);
+		                if (ImGui::InputText(" ", &texture_data.name))
+		                {
+		                    ReloadParams(texture_ref, PARAM_TYPE::TEXTURE);
+		                }
+		                
+		                ImGui::Text(texture_data.path.c_str());
+		                
+		                if (ImGui::Checkbox("Flip", &texture_data.flip))
+		                {
+		                    ReloadParams(texture_ref, PARAM_TYPE::TEXTURE);
+		                }
+		                
+		                int current_index = static_cast<int>(texture_data.type);
+		                if (ImGui::BeginCombo("Type", texture_type_names[current_index]))
+		                {
+		                    for (int n = 0; n < IM_ARRAYSIZE(texture_type_names); n++)
+		                    {
+		                        bool is_selected = (current_index == n);
+		                        if (ImGui::Selectable(texture_type_names[n], is_selected))
+		                        {
+		                            texture_data.type = static_cast<TEXTURE_TYPE>(n);
+		                            ReloadParams(texture_ref, PARAM_TYPE::TEXTURE);
+		                        }
+		                        
+		                        if (is_selected)
+		                            ImGui::SetItemDefaultFocus();
+		                    }
+		                    ImGui::EndCombo();
+		                }
+		                
+		                ImGui::PopID();
+		            }
+		        }
+		        ImGui::EndTabItem();
+		    }
 			ImGui::EndTabBar();
 			ImGui::PopStyleColor(4);
 		}
@@ -476,6 +546,23 @@ namespace Bonfire
 		param_database->SaveParams();
 		
 		return saved;
+	}
+	void Renderer::ReloadParams(ParamReference ref, PARAM_TYPE type)
+	{
+		if (type == PARAM_TYPE::MODEL)
+		{
+			ModelParamData model_param = param_database->GetModelParam(ref);
+			Model model(model_param.path);
+			model.Load();
+			models.insert_or_assign(ref, model);
+		}
+		else if (type == PARAM_TYPE::TEXTURE)
+		{
+			TextureParamData texture_param = param_database->GetTextureParam(ref);
+			Texture texture(texture_param.path, texture_param.type, texture_param.flip);
+			texture.Load();
+			textures.insert_or_assign(ref, texture);
+		}
 	}
 	
 	void Renderer::DrawActiveTitleLine(const ImVec4& color, float thickness)

@@ -31,6 +31,7 @@ namespace Bonfire
 
 		bool Load();
 		bool Save();
+		void ReloadParams(ParamReference ref, PARAM_TYPE type);
 
 		void DrawActiveTitleLine(const ImVec4& color, float thickness = 3.0f);
 		
