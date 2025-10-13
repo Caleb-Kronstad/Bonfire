@@ -67,10 +67,8 @@ namespace Bonfire
 	    {
 	        if (ImGui::BeginMenu("File"))
 	        {
-        		if (ImGui::MenuItem("New", "Ctrl+N")) { Log::Info("New File"); }
-	            if (ImGui::MenuItem("Open", "Ctrl+O")) { Log::Info("Open File"); }
-	            if (ImGui::MenuItem("Save", "Ctrl+Shift+S")) { Log::Info("Save"); }
-	            if (ImGui::MenuItem("Save As", "Ctrl+S")) { Log::Info("Save As"); }
+	            if (ImGui::MenuItem("Reload", "Ctrl+L")) { renderer.Load(); }
+	            if (ImGui::MenuItem("Save", "Ctrl+S")) { renderer.Save(); }
 	            ImGui::Separator();
 	            if (ImGui::MenuItem("Exit", "Alt+F4")) { project.SetEngineRunState(false); }
 	            ImGui::EndMenu();
@@ -86,13 +84,6 @@ namespace Bonfire
 	            if (ImGui::MenuItem("Paste", "Ctrl+V")) { Log::Info("Paste"); }
 	            ImGui::EndMenu();
 	        }
-
-	    	if (ImGui::BeginMenu("Scene"))
-	    	{
-	    		if (ImGui::MenuItem("Load")) { renderer.LoadScene(); }
-	    		if (ImGui::MenuItem("Save")) { renderer.SaveScene(); }
-	            ImGui::EndMenu();
-	    	}
 	        
 	        if (ImGui::BeginMenu("Help"))
 	        {

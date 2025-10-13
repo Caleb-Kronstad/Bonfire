@@ -29,8 +29,8 @@ namespace Bonfire
 		void OnInterfaceUpdate() override;
 		void OnInput(Input& input) override;
 
-		bool LoadScene();
-		bool SaveScene();
+		bool Load();
+		bool Save();
 
 		void DrawActiveTitleLine(const ImVec4& color, float thickness = 3.0f);
 		
@@ -73,8 +73,6 @@ namespace Bonfire
 
 		// -- TEST MEMBERS --
 		std::unique_ptr<Shader> default_shader;
-		std::shared_ptr<Texture> wood_floor_texture;
-		std::shared_ptr<Texture> checkered_texture;
 		glm::vec4 background_color;
 		// --
 	};

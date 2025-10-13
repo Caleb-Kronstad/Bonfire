@@ -5,7 +5,7 @@
 
 namespace Bonfire
 {
-    bool Scene::Load()
+    bool Scene::LoadScene()
     {
         entities.clear();
         entities_data.clear();
@@ -26,6 +26,27 @@ namespace Bonfire
         {
             Log::Error("Failed to parse scene JSON: " + std::string(e.what()));
             return false;
+        }
+
+        // Load camera
+        if (!json.contains("cameras"))
+        {
+            Log::Warning("Scene file has no camera");
+            return false;
+        }
+        for (const auto& camera_json : json["cameras"])
+        {
+            uint32_t id = camera_json["id"];
+            float yaw = camera_json["yaw"];
+            float pitch = camera_json["pitch"];
+            
+            auto position_array = camera_json["position"].get<std::vector<float>>();
+            auto up_array = camera_json["up"].get<std::vector<float>>();
+            
+            glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+            glm::vec3 up(up_array[0], up_array[1], up_array[2]);
+
+            camera = std::make_unique<Camera>(id, position, up, yaw, pitch);
         }
 
         // Load entities
@@ -69,10 +90,19 @@ namespace Bonfire
         return true;
     }
 
-    bool Scene::Save()
+    bool Scene::SaveScene()
     {
         nlohmann::json json;
+        nlohmann::json camera_array = nlohmann::json::array();
         nlohmann::json entities_array = nlohmann::json::array();
+
+        nlohmann::json camera_json;
+        camera_json["id"] = camera->id;
+        camera_json["yaw"] = camera->Yaw;
+        camera_json["pitch"] = camera->Pitch;
+        camera_json["position"] = {camera->Position.x, camera->Position.y, camera->Position.z};
+        camera_json["up"] = {camera->WorldUp.x, camera->WorldUp.y, camera->WorldUp.z};
+        camera_array.push_back(camera_json);
 
         for (const auto& entity_id : entities)
         {
@@ -101,6 +131,7 @@ namespace Bonfire
             entities_array.push_back(entity_json);
         }
 
+        json["cameras"] = camera_array;
         json["entities"] = entities_array;
 
         std::ofstream file(path);

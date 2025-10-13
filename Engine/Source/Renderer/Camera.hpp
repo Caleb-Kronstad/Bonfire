@@ -6,8 +6,7 @@ namespace Bonfire
     class Camera
     {
     public:
-        Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f);
-        Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
+        Camera(unsigned int id = 0, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f);
 
         glm::mat4 GetViewMatrix() const { return glm::lookAt(Position, Position + Front, Up); }
         glm::mat4 GetProjectionMatrix(const float& width, const float& height) const { return glm::perspective(glm::radians(Zoom), width / height, 0.1f, 250.0f); }
@@ -20,6 +19,7 @@ namespace Bonfire
         void UpdateCameraVectors();
         
     public:
+        unsigned int id;
         bool isOrthographic = false;
         bool mouseLocked = false;
 
@@ -27,8 +27,6 @@ namespace Bonfire
         bool firstMouse = false;
         float lastX = 0.0f;
         float lastY = 0.0f;
-        bool flying = false;
-        bool sprinting = false;
         // --
         
         glm::vec3 Position;

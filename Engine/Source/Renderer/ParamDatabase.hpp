@@ -56,15 +56,22 @@ namespace Bonfire
     class ParamDatabase
     {
     public:
-        void LoadModelParams(const std::string& filepath);
-        void LoadTextureParams(const std::string& filepath);
-        void LoadAIParams(const std::string& filepath);
+        ParamDatabase(const std::string& model_path = "", const std::string& texture_path = "", const std::string& ai_path = "")
+            : model_path(model_path), texture_path(texture_path), ai_path(ai_path)
+        {
+        }
+        
+        void LoadParams();
+        void SaveParams();
 
         ModelParamData GetModelParam(ParamReference ref) { return model_params.at(ref); }
         TextureParamData GetTextureParam(ParamReference ref) { return texture_params.at(ref); }
         AIParamData GetAIParam(ParamReference ref) { return ai_params.at(ref); }
 
     private:
+        std::string model_path;
+        std::string texture_path;
+        std::string ai_path;
         std::unordered_map<ParamReference, ModelParamData> model_params;
         std::unordered_map<ParamReference, TextureParamData> texture_params;
         std::unordered_map<ParamReference, AIParamData> ai_params;

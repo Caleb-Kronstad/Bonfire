@@ -3,26 +3,26 @@
 
 namespace Bonfire
 {
-    void ParamDatabase::LoadModelParams(const std::string& filepath)
+    void ParamDatabase::LoadParams()
     {
-        std::ifstream file(filepath);
-        if (!file.is_open())
+        std::ifstream model_file(model_path);
+        if (!model_file.is_open())
         {
-            Log::Error("Failed to open model params file: " + filepath);
+            Log::Error("Failed to open model params file: " + model_path);
             return;
         }
 
-        nlohmann::json json;
+        nlohmann::json model_json;
         try
         {
-            file >> json;
+            model_file >> model_json;
         } catch (const nlohmann::json::exception& e)
         {
             Log::Error("Failed to parse model params JSON: " + std::string(e.what()));
             return;
         }
 
-        for (auto& [key, value] : json.items())
+        for (auto& [key, value] : model_json.items())
         {
             uint32_t id = std::stoul(key);
             ParamReference ref(id);
@@ -38,28 +38,26 @@ namespace Bonfire
 
             model_params[ref] = ModelParamData(name, path, rotation_multiplier, scale_multiplier);
         }
-        Log::Info("Loaded " + std::to_string(model_params.size()) + " model params from " + filepath);
-    }
-    void ParamDatabase::LoadTextureParams(const std::string& filepath)
-    {
-        std::ifstream file(filepath);
-        if (!file.is_open())
+        Log::Info("Loaded " + std::to_string(model_params.size()) + " model params from " + model_path);
+
+        std::ifstream texture_file(texture_path);
+        if (!texture_file.is_open())
         {
-            Log::Error("Failed to open texture params file: " + filepath);
+            Log::Error("Failed to open texture params file: " + texture_path);
             return;
         }
 
-        nlohmann::json json;
+        nlohmann::json texture_json;
         try
         {
-            file >> json;
+            texture_file >> texture_json;
         } catch (const nlohmann::json::exception& e)
         {
             Log::Error("Failed to parse texture params JSON: " + std::string(e.what()));
             return;
         }
 
-        for (auto& [key,value] : json.items())
+        for (auto& [key,value] : texture_json.items())
         {
             uint32_t id = std::stoul(key);
             ParamReference ref(id);
@@ -70,10 +68,75 @@ namespace Bonfire
             texture_params[ref] = TextureParamData(type, flip, path);
         }
 
-        Log::Info("Loaded " + std::to_string(texture_params.size()) + " texture params from " + filepath);
+        Log::Info("Loaded " + std::to_string(texture_params.size()) + " texture params from " + texture_path);
+
+        // load other param types
     }
-    void ParamDatabase::LoadAIParams(const std::string& filepath)
+
+    void ParamDatabase::SaveParams()
     {
-        Log::Warning("LoadAIParams not yet implemented");
+        nlohmann::json model_json;
+
+        for (const auto& [ref, data] : model_params)
+        {
+            std::string key = std::to_string(ref.value);
+            model_json[key] = {
+                {"name", data.name},
+                {"path", data.path},
+                {"rotationMultiplier", {data.rotation_multiplier.x, data.rotation_multiplier.y, data.rotation_multiplier.z}},
+                {"scaleMultiplier", {data.scale_multiplier.x, data.scale_multiplier.y, data.scale_multiplier.z}}
+            };
+        }
+
+        std::ofstream model_file(model_path);
+        if (!model_file.is_open())
+        {
+            Log::Error("Failed to open model params file for writing: " + model_path);
+            return;
+        }
+        try
+        {
+            model_file << model_json.dump(4); // 4 spaces for indentation
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to write model params JSON: " + std::string(e.what()));
+            return;
+        }
+
+        Log::Info("Saved " + std::to_string(model_params.size()) + " model params to " + model_path);
+
+        nlohmann::json texture_json;
+
+        for (const auto& [ref, data] : texture_params)
+        {
+            std::string key = std::to_string(ref.value);
+            texture_json[key] = {
+                {"type", data.type},
+                {"flip", data.flip},
+                {"path", data.path}
+            };
+        }
+
+        std::ofstream texture_file(texture_path);
+        if (!texture_file.is_open())
+        {
+            Log::Error("Failed to open texture params file for writing: " + texture_path);
+            return;
+        }
+
+        try
+        {
+            texture_file << texture_json.dump(4); // 4 spaces for indentation
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to write texture params JSON: " + std::string(e.what()));
+            return;
+        }
+
+        Log::Info("Saved " + std::to_string(texture_params.size()) + " texture params to " + texture_path);
+
+        // save other param types
     }
 }
