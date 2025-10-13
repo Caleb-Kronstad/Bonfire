@@ -22,7 +22,7 @@ namespace Bonfire
 		
 		console_capture = std::make_unique<ConsoleCapture>();
 		console_capture->StartCapture();
-		console_capture->StopCapture(); // uncomment if editor console is not running properly
+		//console_capture->StopCapture(); // uncomment if editor console is not running properly
 		
 		manipulation_matrix = glm::mat4(1.0f);
 		engine_camera = std::make_unique<Camera>();
@@ -259,22 +259,10 @@ namespace Bonfire
 		                ImGui::PushID(&model_data);
 		                
 		                ImGui::SetNextItemWidth(-1.0f);
-		                if (ImGui::InputText(" ", &model_data.name))
-		                {
-		                    ReloadParams(model_ref, PARAM_TYPE::MODEL);
-		                }
-		                
+		                ImGui::InputText(" ", &model_data.name);
 		                ImGui::Text(model_data.path.c_str());
-		                
-		                if (ImGui::DragFloat3("Rotation Multiplier ", (float*)&model_data.rotation_multiplier, drag_step, 0, 100))
-		                {
-		                    ReloadParams(model_ref, PARAM_TYPE::MODEL);
-		                }
-		                
-		                if (ImGui::DragFloat3("Scale Multiplier", (float*)&model_data.scale_multiplier, drag_step, 0, 100))
-		                {
-		                    ReloadParams(model_ref, PARAM_TYPE::MODEL);
-		                }
+		                ImGui::DragFloat3("Rotation Multiplier ", (float*)&model_data.rotation_multiplier, drag_step, 0, 100);
+		                ImGui::DragFloat3("Scale Multiplier", (float*)&model_data.scale_multiplier, drag_step, 0, 100);
 		                
 		                ImGui::PopID();
 		            }
@@ -292,17 +280,11 @@ namespace Bonfire
 		                ImGui::PushID(&texture_data);
 		                
 		                ImGui::SetNextItemWidth(-1.0f);
-		                if (ImGui::InputText(" ", &texture_data.name))
-		                {
-		                    ReloadParams(texture_ref, PARAM_TYPE::TEXTURE);
-		                }
+		                ImGui::InputText(" ", &texture_data.name);
 		                
 		                ImGui::Text(texture_data.path.c_str());
 		                
-		                if (ImGui::Checkbox("Flip", &texture_data.flip))
-		                {
-		                    ReloadParams(texture_ref, PARAM_TYPE::TEXTURE);
-		                }
+		                ImGui::Checkbox("Flip", &texture_data.flip);
 		                
 		                int current_index = static_cast<int>(texture_data.type);
 		                if (ImGui::BeginCombo("Type", texture_type_names[current_index]))
@@ -313,7 +295,6 @@ namespace Bonfire
 		                        if (ImGui::Selectable(texture_type_names[n], is_selected))
 		                        {
 		                            texture_data.type = static_cast<TEXTURE_TYPE>(n);
-		                            ReloadParams(texture_ref, PARAM_TYPE::TEXTURE);
 		                        }
 		                        
 		                        if (is_selected)
