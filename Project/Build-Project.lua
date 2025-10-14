@@ -45,10 +45,10 @@ project "Project"
             "_CRT_SECURE_NO_WARNINGS"
         }
         postbuildcommands {
-            -- "{COPY} %{wks.location}/../Project/Assets %{cfg.buildtarget.directory}/Assets", -- UNCOMMENT THIS LINE IF USING Windows-Build.bat TO BUILD INSTEAD OF AN IDE
-            -- "{COPY} %{wks.location}/../Project/imgui.ini %{cfg.buildtarget.directory}/", -- UNCOMMENT THIS LINE IF USING Windows-Build.bat TO BUILD INSTEAD OF AN IDE
-            "{COPY} %{wks.location}/../Project/Assets %{wks.location}/Build-Files/Assets", -- Comment this line out if you are not building via IDE
-            "{COPY} %{wks.location}/../Project/imgui.ini %{wks.location}/Build-Files/", -- Comment this line out if you are not building via IDE
+            "{COPY} %{wks.location}/../Project/Assets %{cfg.buildtarget.directory}/Assets", -- uncomment if building via build script "Windows-Build.bat"
+            "{COPY} %{wks.location}/../Project/imgui.ini %{cfg.buildtarget.directory}/", -- uncomment if building via build script "Windows-Build.bat"
+            -- "{COPY} %{wks.location}/../Project/Assets %{wks.location}/Build-Files/Assets", -- uncomment if building via IDE
+            -- "{COPY} %{wks.location}/../Project/imgui.ini %{wks.location}/Build-Files/", -- uncomment if building via IDE
         }
 
     filter "system:linux"
