@@ -13,8 +13,6 @@ workspace "Bonfire"
       buildoptions { "-fPIC" }
       linkoptions { "-pthread" }
 
-   filter {}
-
 OutputDir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 
 IncludeDir = {}
