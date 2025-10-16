@@ -130,6 +130,8 @@ namespace Bonfire
                 glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
 
                 std::shared_ptr<Entity> entity = std::make_shared<Entity>(id, enabled, name, position, rotation, scale);
+                if (entity_json.contains("parent"))
+                    entity->parent = entity_json["parent"].get<uint32_t>();
                 
                 const auto& entity_components = entity_json["components"];
                 if (entity_components.contains("model_component"))
@@ -144,6 +146,14 @@ namespace Bonfire
                 }
 
                 entities.insert_or_assign(id, entity);
+            }
+
+            for (auto& [id, entity] : entities)
+            {
+                if (entity->parent != 0 && entities.contains(entity->parent))
+                {
+                    entities.at(entity->parent)->AddChild(id);
+                }
             }
         }
 
@@ -206,6 +216,8 @@ namespace Bonfire
             entity_json["position"] = {entity->position.x, entity->position.y, entity->position.z};
             entity_json["rotation"] = {entity->rotation.x, entity->rotation.y, entity->rotation.z};
             entity_json["scale"] = {entity->scale.x, entity->scale.y, entity->scale.z};
+
+            entity_json["parent"] = entity->parent;
         
             // Save entity components
             nlohmann::json entity_components_json;

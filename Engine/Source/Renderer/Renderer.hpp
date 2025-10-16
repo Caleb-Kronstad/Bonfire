@@ -33,6 +33,7 @@ namespace Bonfire
 		bool Save();
 
 		void DrawActiveTitleLine(const ImVec4& color, float thickness = 3.0f);
+		void RenderEntityTree(std::shared_ptr<Entity> entity);
 
 	private:
 		std::string project_path;

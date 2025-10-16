@@ -31,7 +31,6 @@ namespace Bonfire
 		const bool& GetEngineRunState() const { return engine_running; }
 		const std::string& GetProjectName() const { return project_name; }
 		const float& GetDeltaTime() const { return delta_time; }
-		const unsigned int& GetFrameCount() const { return frame_count; }
 		Window& GetWindow() { return window; }
 
 		void SetProjectRunState(bool state) { project_running = state; }
@@ -73,12 +72,10 @@ namespace Bonfire
 	private:
 		void InitializeOpenGL();
 		void TickDeltaTime();
-		void IncrementFrameCount();
 
 	private:
 		float delta_time = 0.0f;
 		float last_frame_time = 0.0f;
-		unsigned int frame_count = 0;
 
 	private:
 		Window window;

@@ -97,7 +97,7 @@ namespace Bonfire
 
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			entity->Draw(default_shader, manipulation_matrix);
+			entity->Draw(default_shader, manipulation_matrix, scene->GetEntities());
 		}
 
 		viewport_framebuffer->Unbind();
@@ -150,63 +150,12 @@ namespace Bonfire
 		ImGui::PopFont();
 		ImGui::PushFont(font_body);
 
-		std::string frame_count = "Frame " + std::to_string(project.GetFrameCount());
 		std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
-		
-		ImGui::Text(frame_count.c_str());
 		ImGui::Text(delta_time.c_str());
 		
 		ImGui::PushItemWidth(100.0f);
 		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
 		ImGui::PopItemWidth();
-		
-		ImGui::PopFont();
-		ImGui::Unindent(8.0f);
-		ImGui::End();
-
-		// -- HIERARCHY --
-		ImGui::PushFont(font_title);
-		ImGui::Begin("Hierarchy", nullptr);
-		DrawActiveTitleLine(highlight_color);
-		ImGui::Indent(8.0f);
-		ImGui::Spacing();
-		ImGui::PopFont();
-		ImGui::PushFont(font_body);
-		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
-		
-		for (auto& [entity_id, entity] : scene->GetEntities())
-		{
-			if (ImGui::Selectable(entity->name.c_str()))
-			{
-				selected_entity = entity;
-			}
-		}
-		
-		ImGui::PopStyleColor();
-		ImGui::PopFont();
-		ImGui::Unindent(8.0f);
-		ImGui::End();
-
-		// -- DETAILS --
-		ImGui::PushFont(font_title);
-		ImGui::Begin("Details", nullptr);
-		DrawActiveTitleLine(highlight_color);
-		ImGui::Indent(8.0f);
-		ImGui::Spacing();
-		ImGui::PopFont();
-		ImGui::PushFont(font_body);
-		
-		ImGui::SetNextItemWidth(-1.0f);
-		ImGui::InputText(" ", &selected_entity->name);
-		
-		if (ImGui::CollapsingHeader("Transform"))
-		{
-			ImGui::PushItemWidth(200.0f);
-			ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000);
-			ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000);
-			ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360);
-			ImGui::PopItemWidth();
-		}
 		
 		ImGui::PopFont();
 		ImGui::Unindent(8.0f);
@@ -232,6 +181,246 @@ namespace Bonfire
 		ImGui::Unindent(8.0f);
 		ImGui::End();
 
+		// -- HIERARCHY --
+		ImGui::PushFont(font_title);
+		ImGui::Begin("Hierarchy", nullptr);
+		DrawActiveTitleLine(highlight_color);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+		ImGui::PopFont();
+		ImGui::PushFont(font_body);
+		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
+		
+		for (auto& [entity_id, entity] : scene->GetEntities())
+		{
+			if (entity->IsRoot())
+				RenderEntityTree(entity);
+		}
+
+		if (ImGui::Button("+"))
+		{
+			uint32_t next_id = 1000001;
+			if (!scene->GetEntities().empty())
+			{
+				auto max_it = std::max_element(
+					scene->GetEntities().begin(),
+					scene->GetEntities().end(),
+					[](const auto& a, const auto& b) { return a.first < b.first; }
+					);
+				next_id = max_it->first+1;
+			}
+
+			std::shared_ptr<Entity> new_entity = std::make_shared<Entity>(next_id, true, "New Entity");
+			scene->GetEntities().insert_or_assign(next_id, new_entity);
+			selected_entity = new_entity;
+		}
+		
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+		ImGui::Unindent(8.0f);
+		ImGui::End();
+
+		// -- DETAILS --
+		ImGui::PushFont(font_title);
+		ImGui::Begin("Details", nullptr);
+		DrawActiveTitleLine(highlight_color);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+		ImGui::PopFont();
+		ImGui::PushFont(font_body);
+		
+		ImGui::SetNextItemWidth(-1.0f);
+		ImGui::InputText(" ", &selected_entity->name);
+		
+		ImGui::Separator();
+		ImGui::Text("Transform");
+		ImGui::Spacing();
+		
+		ImGui::PushItemWidth(200.0f);
+		ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000);
+		ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000);
+		ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360);
+		ImGui::PopItemWidth();
+
+		// MODEL COMPONENT
+		if (selected_entity->HasComponent<ModelComponent>())
+		{
+			ImGui::Separator();
+			ImGui::Text("Model Component");
+			ImGui::Spacing();
+			
+			ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+
+			const char* preview_value = model_component.model->name.c_str();
+			if (ImGui::BeginCombo("Model", preview_value))
+			{
+				for (auto& [model_id, scene_model] : scene->GetModels())
+				{
+					bool is_selected = (model_component.model->param_id == model_id);
+
+					if (ImGui::Selectable(scene_model->name.c_str(), is_selected))
+					{
+						model_component.model = scene_model;
+					}
+
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+			ImGui::Spacing();
+		}
+
+		// TEXTURE COMPONENT
+		if (selected_entity->HasComponent<TextureComponent>())
+		{
+			ImGui::Separator();
+			ImGui::Text("Texture Component");
+			ImGui::Spacing();
+			
+			TextureComponent& texture_component = selected_entity->GetComponent<TextureComponent>();
+			for (int i = texture_component.textures.size() - 1; i >= 0; i--)
+			{
+				auto& texture = texture_component.textures[i];
+				ImGui::PushID(i);  // Use index as ID
+
+				const char* preview_value = texture->name.c_str();
+				if (ImGui::BeginCombo(" ", preview_value))
+				{
+					for (auto& [texture_id, scene_texture] : scene->GetTextures())
+					{
+						bool is_selected = (texture == scene_texture);
+
+						if (ImGui::Selectable(scene_texture->name.c_str(), is_selected))
+						{
+							texture = scene_texture;
+						}
+
+						if (is_selected)
+							ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("-"))
+				{
+					texture_component.RemoveTexture(texture);
+				}
+
+				ImGui::PopID();
+			}
+
+			ImGui::Spacing();
+
+			if (ImGui::Button("+"))
+			{
+				texture_component.AddTexture(scene->GetTextures().begin()->second);
+			}
+			
+			ImGui::Spacing();
+		}
+
+		// PHYSICS COMPONENT
+		if (selected_entity->HasComponent<PhysicsComponent>())
+		{
+			
+		}
+
+		// ANIMATION COMPONENT
+		if (selected_entity->HasComponent<PhysicsComponent>())
+		{
+			
+		}
+
+		ImGui::Separator();
+
+		// ADD COMPONENT
+		ImGui::PushID("##NEWCOMPONENT");
+		ImGui::PushStyleColor(ImGuiCol_Button, project_interface.background_secondary);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, project_interface.highlight_secondary);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, project_interface.highlight_primary);
+		if (ImGui::BeginCombo(" ", "Add Component"))
+		{
+			if (ImGui::Button("Model Component"))
+			{
+				if (!selected_entity->HasComponent<ModelComponent>())
+				{
+					uint32_t next_id = 1;
+					if (!scene->GetModelComponents().empty())
+					{
+						auto max_it = std::max_element(
+							scene->GetModelComponents().begin(),
+							scene->GetModelComponents().end(),
+							[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+						next_id = max_it->first + 1;
+					}
+
+					if (!scene->GetModels().empty())
+					{
+						std::shared_ptr<Model> default_model = scene->GetModels().begin()->second;
+						std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model);
+
+						scene->GetModelComponents().insert_or_assign(next_id, new_component);
+						selected_entity->AddComponent(COMPONENT_TYPE::MODEL, new_component);
+					}
+					else
+						Log::Warning("No models available");
+				}
+				else
+					Log::Warning("Entity already has a Model Component");
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (ImGui::Button("Texture Component"))
+			{
+				if (!selected_entity->HasComponent<TextureComponent>())
+				{
+					uint32_t next_id = 1;
+					if (!scene->GetTextureComponents().empty())
+					{
+						auto max_it = std::max_element(
+							scene->GetTextureComponents().begin(),
+							scene->GetTextureComponents().end(),
+							[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+						next_id = max_it->first + 1;
+					}
+
+					std::shared_ptr<TextureComponent> new_component = std::make_shared<TextureComponent>(next_id, true, std::vector<std::shared_ptr<Texture>>());
+
+					scene->GetTextureComponents().insert_or_assign(next_id, new_component);
+					selected_entity->AddComponent(COMPONENT_TYPE::TEXTURE, new_component);
+				}
+				else
+					Log::Warning("Entity already has a Texture Component");
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (ImGui::Button("Physics Component"))
+			{
+				Log::Warning("Physics component not yet implemented");
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (ImGui::Button("Animation Component"))
+			{
+				Log::Warning("Physics component not yet implemented");
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndCombo();
+		}
+		ImGui::PopStyleColor(3);
+		ImGui::PopID();
+		
+		ImGui::PopFont();
+		ImGui::Unindent(8.0f);
+		ImGui::End();
+
 		// -- PARAM EDITOR --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Param Editor", nullptr);
@@ -241,7 +430,7 @@ namespace Bonfire
 		ImGui::PopFont();
 		ImGui::PushFont(font_body);
 
-		/*if (ImGui::BeginTabBar("ParamEditorTabs"))
+		if (ImGui::BeginTabBar("ParamEditorTabs"))
 		{
 			ImGui::PushStyleColor(ImGuiCol_TabActive, project_interface.highlight_primary);
 			ImGui::PushStyleColor(ImGuiCol_TabHovered, project_interface.highlight_secondary);
@@ -249,18 +438,16 @@ namespace Bonfire
 			ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive, project_interface.highlight_primary);
 			if (ImGui::BeginTabItem("Model Params"))
 		    {
-		        for (auto& [model_ref, model_data] : param_database->model_params)
+		        for (auto& [model_id, model_data] : param_database->model_params)
 		        {
-		            if (ImGui::CollapsingHeader(model_data.name.c_str()))
+		        	ImGui::PushID(&model_data);
+		            if (ImGui::CollapsingHeader(std::to_string(model_id).c_str()))
 		            {
-		                ImGui::PushID(&model_data);
-		                
-		                ImGui::SetNextItemWidth(-1.0f);
-		                ImGui::InputText(" ", &model_data.name);
-		                ImGui::Text(model_data.path.c_str());
-		                
-		                ImGui::PopID();
+		            	ImGui::Text(model_data.path.c_str());
+		                ImGui::SetNextItemWidth(200.0f);
+		            	ImGui::InputText("Name", &model_data.name);
 		            }
+		        	ImGui::PopID();
 		        }
 		        ImGui::EndTabItem();
 		    }
@@ -268,16 +455,14 @@ namespace Bonfire
 		    if (ImGui::BeginTabItem("Texture Params"))
 		    {
 		        const char* texture_type_names[] = { "Diffuse", "Specular", "Normal", "Height" };
-		        for (auto& [texture_ref, texture_data] : param_database->texture_params)
+		        for (auto& [texture_id, texture_data] : param_database->texture_params)
 		        {
-		            if (ImGui::CollapsingHeader(texture_data.name.c_str()))
+		        	ImGui::PushID(&texture_data);
+		            if (ImGui::CollapsingHeader(std::to_string(texture_id).c_str()))
 		            {
-		                ImGui::PushID(&texture_data);
-		                
-		                ImGui::SetNextItemWidth(-1.0f);
-		                ImGui::InputText(" ", &texture_data.name);
-		                
 		                ImGui::Text(texture_data.path.c_str());
+		                ImGui::SetNextItemWidth(200.0f);
+		                ImGui::InputText("Name", &texture_data.name);
 		                
 		                ImGui::Checkbox("Flip", &texture_data.flip);
 		                
@@ -297,15 +482,14 @@ namespace Bonfire
 		                    }
 		                    ImGui::EndCombo();
 		                }
-		                
-		                ImGui::PopID();
 		            }
+		        	ImGui::PopID();
 		        }
 		        ImGui::EndTabItem();
 		    }
 			ImGui::EndTabBar();
 			ImGui::PopStyleColor(4);
-		}*/
+		}
 		
 		ImGui::PopFont();
 		ImGui::Unindent(8.0f);
@@ -422,6 +606,47 @@ namespace Bonfire
 			}
 		case InputType::None:
 				break;
+		}
+	}
+
+	void Renderer::RenderEntityTree(std::shared_ptr<Entity> entity)
+	{
+		Project& project = Project::GetInstance();
+		Interface& project_interface = project.GetInterface();
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+		bool is_selected = (entity == selected_entity);
+
+		if (is_selected)
+			flags |= ImGuiTreeNodeFlags_Selected;
+
+		if (entity->children.empty())
+			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+		if (is_selected)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Header, project_interface.highlight_primary);
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, project_interface.highlight_secondary);
+			ImGui::PushStyleColor(ImGuiCol_HeaderActive, project_interface.highlight_primary);
+		}
+
+		bool node_open = ImGui::TreeNodeEx(entity->name.c_str(), flags);
+
+		if (is_selected)
+			ImGui::PopStyleColor(3);
+
+		if (ImGui::IsItemClicked())
+			selected_entity = entity;
+
+		if (node_open && !entity->children.empty())
+		{
+			for (uint32_t child_id : entity->children)
+			{
+				if (scene->GetEntities().contains(child_id))
+					RenderEntityTree(scene->GetEntities()[child_id]);
+			}
+			ImGui::TreePop();
 		}
 	}
 

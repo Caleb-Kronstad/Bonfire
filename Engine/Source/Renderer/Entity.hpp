@@ -25,16 +25,21 @@ namespace Bonfire {
         {
         }
 
-        void Draw(Shader& shader, glm::mat4& manipulation_matrix);
+        void Draw(Shader& shader, glm::mat4& manipulation_matrix, std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities);
         
-        void AddComponent(COMPONENT_TYPE type, std::shared_ptr<Component> component);
-        void RemoveComponent(COMPONENT_TYPE type);
+        bool AddComponent(COMPONENT_TYPE type, std::shared_ptr<Component> component);
+        bool RemoveComponent(COMPONENT_TYPE type);
         template<typename T> T& GetComponent() { return *std::static_pointer_cast<T>(components.at(GetComponentType<T>())); }
         template<typename T> bool HasComponent() const { return components.contains(GetComponentType<T>()); }
+
+        bool AddChild(uint32_t child_id);
+        bool RemoveChild(uint32_t child_id);
+        bool IsRoot() const { return parent == 0; }
 
     private:
         glm::quat GetTransformOrientation();
         glm::mat4 GetTransformMatrix();
+        glm::mat4 GetWorldTransformMatrix(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities);
 
     public:
         uint32_t id;
@@ -43,6 +48,9 @@ namespace Bonfire {
         glm::vec3 position;
         glm::vec3 rotation;
         glm::vec3 scale;
+
+        uint32_t parent = 0;
+        std::vector<uint32_t> children;
 
     private:
         std::unordered_map<COMPONENT_TYPE, std::shared_ptr<Component>> components;

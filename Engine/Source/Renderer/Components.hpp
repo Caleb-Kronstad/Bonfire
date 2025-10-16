@@ -25,17 +25,10 @@ namespace Bonfire
     {
         std::vector<std::shared_ptr<Texture>> textures;
 
-        bool AddTexture(std::shared_ptr<Texture> texture)
+        void AddTexture(std::shared_ptr<Texture> texture)
         {
-            auto it = std::find(textures.begin(), textures.end(), texture);
-            if (it == textures.end())
-            {
-                textures.push_back(texture);
-                texture->Load();
-                return true;
-            }
-            Log::Warning("[FAILED] Texture already added to Model");
-            return false;
+            textures.push_back(texture);
+            texture->Load();
         }
         bool RemoveTexture(std::shared_ptr<Texture> texture)
         {
@@ -45,7 +38,7 @@ namespace Bonfire
                 textures.erase(it);
                 return true;
             }
-            Log::Warning("[FAILED] Model does not contain this Texture");
+            Log::Warning("[FAILED] Texture does not contain this Texture");
             return false;
         }
 

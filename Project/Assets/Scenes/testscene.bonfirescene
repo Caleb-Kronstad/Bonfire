@@ -2,18 +2,18 @@
     "cameras": [
         {
             "id": 1100001,
-            "pitch": -10.500003814697266,
+            "pitch": -24.10000991821289,
             "position": [
-                8.099099159240723,
-                1.588937520980835,
-                7.644369125366211
+                8.807865142822266,
+                3.9092984199523926,
+                6.778829574584961
             ],
             "up": [
                 0.0,
                 1.0,
                 0.0
             ],
-            "yaw": -137.2999267578125
+            "yaw": -143.3998260498047
         }
     ],
     "components": {
@@ -23,6 +23,10 @@
                 "param-id": 1001
             },
             "100002": {
+                "enabled": true,
+                "param-id": 1000
+            },
+            "100003": {
                 "enabled": true,
                 "param-id": 1000
             }
@@ -39,6 +43,12 @@
                 "param-ids": [
                     1001
                 ]
+            },
+            "200003": {
+                "enabled": true,
+                "param-ids": [
+                    1000
+                ]
             }
         }
     },
@@ -51,6 +61,7 @@
             "enabled": true,
             "id": 1000001,
             "name": "Floor",
+            "parent": 0,
             "position": [
                 0.0,
                 -1.0,
@@ -75,9 +86,35 @@
             "enabled": true,
             "id": 1000002,
             "name": "Sphere Object",
+            "parent": 1000001,
             "position": [
                 0.0,
+                7.0,
+                0.0
+            ],
+            "rotation": [
                 0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.25,
+                5.0,
+                0.25
+            ]
+        },
+        {
+            "components": {
+                "model_component": 100003,
+                "texture_component": 200003
+            },
+            "enabled": true,
+            "id": 1000003,
+            "name": "Sphere 2",
+            "parent": 0,
+            "position": [
+                0.0,
+                3.0,
                 0.0
             ],
             "rotation": [
