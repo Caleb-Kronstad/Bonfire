@@ -1,0 +1,10 @@
+{
+    "1000": {
+        "name": "Sphere",
+        "path": "Assets/Resources/Models/Sphere.obj"
+    },
+    "1001": {
+        "name": "Cube",
+        "path": "Assets/Resources/Models/Cube.obj"
+    }
+}

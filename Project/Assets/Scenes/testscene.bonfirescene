@@ -2,29 +2,55 @@
     "cameras": [
         {
             "id": 1100001,
-            "pitch": -38.69998550415039,
+            "pitch": -10.500003814697266,
             "position": [
-                12.37626838684082,
-                2.680342674255371,
-                4.590620994567871
+                8.099099159240723,
+                1.588937520980835,
+                7.644369125366211
             ],
             "up": [
                 0.0,
                 1.0,
                 0.0
             ],
-            "yaw": -557.79931640625
+            "yaw": -137.2999267578125
         }
     ],
+    "components": {
+        "models": {
+            "100001": {
+                "enabled": true,
+                "param-id": 1001
+            },
+            "100002": {
+                "enabled": true,
+                "param-id": 1000
+            }
+        },
+        "textures": {
+            "200001": {
+                "enabled": true,
+                "param-ids": [
+                    1000
+                ]
+            },
+            "200002": {
+                "enabled": true,
+                "param-ids": [
+                    1001
+                ]
+            }
+        }
+    },
     "entities": [
         {
+            "components": {
+                "model_component": 100001,
+                "texture_component": 200001
+            },
             "enabled": true,
             "id": 1000001,
             "name": "Floor",
-            "params": {
-                "model": 1001,
-                "texture": 1000
-            },
             "position": [
                 0.0,
                 -1.0,
@@ -42,13 +68,13 @@
             ]
         },
         {
+            "components": {
+                "model_component": 100002,
+                "texture_component": 200002
+            },
             "enabled": true,
             "id": 1000002,
             "name": "Sphere Object",
-            "params": {
-                "model": 1000,
-                "texture": 1001
-            },
             "position": [
                 0.0,
                 0.0,

@@ -6,8 +6,6 @@
 namespace Bonfire
 {
 	std::pair<ImVec4, std::string> ParseAnsiLine(const std::string& line);
-	PARAM_TYPE StringToParamType(const std::string& str);
-	std::string ParamTypeToString(const PARAM_TYPE& type);
 	bool ContainsCharacter(const std::string& str, const char& chr);
 	void RemoveCharacter(std::string& str, const char& chr);
 	ImVec4 HexToImVec4(unsigned int hex_value, float alpha = 1.0f);

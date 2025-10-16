@@ -171,10 +171,10 @@ namespace Bonfire
 		colors[ImGuiCol_ResizeGripHovered] = highlight_primary;
 		colors[ImGuiCol_ResizeGripActive] = highlight_primary;
 		colors[ImGuiCol_Tab] = background_primary;
-		colors[ImGuiCol_TabHovered] = background_primary;
+		colors[ImGuiCol_TabHovered] = background_tertiary;
 		colors[ImGuiCol_TabActive] = background_primary;
-		colors[ImGuiCol_TabUnfocused] = background_secondary;
-		colors[ImGuiCol_TabUnfocusedActive] = background_secondary;
+		colors[ImGuiCol_TabUnfocused] = background_primary;
+		colors[ImGuiCol_TabUnfocusedActive] = background_primary;
 		colors[ImGuiCol_DockingPreview] = highlight_primary;
 		colors[ImGuiCol_DockingEmptyBg] = background_secondary;
 		

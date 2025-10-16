@@ -4,7 +4,7 @@
 namespace Bonfire
 {
     Texture::Texture(std::string path, TEXTURE_TYPE type, bool flip)
-        : path(std::move(path)), type(type), flip(flip)
+        : path(path), type(type), flip(flip)
     {
         gl_id = 0;
     }

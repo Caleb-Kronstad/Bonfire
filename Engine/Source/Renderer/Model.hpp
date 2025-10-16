@@ -2,6 +2,7 @@
 
 #include "Shader.hpp"
 #include "Mesh.hpp"
+#include "ParamDatabase.hpp"
 
 namespace Bonfire
 {
@@ -16,6 +17,8 @@ namespace Bonfire
         Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
 
     public:
+        uint32_t param_id;
+        std::string name;
         std::string path;
         std::string directory;
         std::vector<Mesh> meshes;

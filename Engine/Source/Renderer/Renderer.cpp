@@ -25,10 +25,9 @@ namespace Bonfire
 		//console_capture->StopCapture(); // uncomment if editor console is not running properly
 		
 		manipulation_matrix = glm::mat4(1.0f);
-		engine_camera = std::make_unique<Camera>();
 		engine_camera_can_rotate = false;
 
-		param_database = std::make_unique<ParamDatabase>("Assets/Params/modelparams.bonfireparams", "Assets/Params/textureparams.bonfireparams");
+		param_database = std::make_unique<ParamDatabase>("Assets/Params/models.params", "Assets/Params/textures.params");
 
 		background_color = RgbToGlmVec4(22, 22, 22, 1.0f);
 		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
@@ -43,16 +42,17 @@ namespace Bonfire
 		font_body = io.Fonts->AddFontFromFileTTF("Assets/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
 
 		// --- TESTING ---
-		default_shader = std::make_unique<Shader>("Default", "Assets/Resources/Shaders/default.vert", "Assets/Resources/Shaders/default.frag", "None");
-		default_shader->Use();
-		default_shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
+		default_shader = Shader("Default", "Assets/Resources/Shaders/default.vert", "Assets/Resources/Shaders/default.frag", "None");
+		default_shader.Use();
+		default_shader.SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
 		// -------
 		
 		// SCENE AND EDITOR LOADING
 		scene = std::make_unique<Scene>("Assets/Scenes/testscene.bonfirescene");
 		Load();
-		if (!entities.empty())
-			current_entity_id = entities[0];
+		if (!scene->GetEntities().empty())
+			selected_entity = scene->GetEntities().begin()->second;
+		
 		
 	}
 	void Renderer::OnDetach()
@@ -73,13 +73,13 @@ namespace Bonfire
 		if (viewport_focused)
 		{
 			if (glfwGetKey(glfw_window, InputCode::W) == GLFW_PRESS)
-				engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::FORWARD, deltaTime);
+				scene->GetEngineCamera()->ProcessKeyboard(MOVEMENT_DIRECTION::FORWARD, deltaTime);
 			if (glfwGetKey(glfw_window, InputCode::S) == GLFW_PRESS)
-				engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::BACKWARD, deltaTime);
+				scene->GetEngineCamera()->ProcessKeyboard(MOVEMENT_DIRECTION::BACKWARD, deltaTime);
 			if (glfwGetKey(glfw_window, InputCode::A) == GLFW_PRESS)
-				engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::LEFT, deltaTime);
+				scene->GetEngineCamera()->ProcessKeyboard(MOVEMENT_DIRECTION::LEFT, deltaTime);
 			if (glfwGetKey(glfw_window, InputCode::D) == GLFW_PRESS)
-				engine_camera->ProcessKeyboard(MOVEMENT_DIRECTION::	RIGHT, deltaTime);
+				scene->GetEngineCamera()->ProcessKeyboard(MOVEMENT_DIRECTION::	RIGHT, deltaTime);
 		}
 		// ---
 
@@ -88,16 +88,16 @@ namespace Bonfire
 		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glm::mat4 projection = engine_camera->GetProjectionMatrix(viewport_size.x, viewport_size.y);
-		glm::mat4 view = engine_camera->GetViewMatrix();
+		glm::mat4 projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_size.x, viewport_size.y);
+		glm::mat4 view = scene->GetEngineCamera()->GetViewMatrix();
 
-		default_shader->Use();
-		default_shader->SetMat4("projection", projection);
-		default_shader->SetMat4("view", view);
+		default_shader.Use();
+		default_shader.SetMat4("projection", projection);
+		default_shader.SetMat4("view", view);
 
-		for (auto entity_id : entities)
+		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			DrawEntity(entity_id);
+			entity->Draw(default_shader, manipulation_matrix);
 		}
 
 		viewport_framebuffer->Unbind();
@@ -174,12 +174,11 @@ namespace Bonfire
 		ImGui::PushFont(font_body);
 		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
 		
-		for (auto entity_id : entities)
+		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			EntityData entity_data = entities_data.at(entity_id);
-			if (ImGui::Selectable(entity_data.name.c_str()))
+			if (ImGui::Selectable(entity->name.c_str()))
 			{
-				current_entity_id = entity_id;
+				selected_entity = entity;
 			}
 		}
 		
@@ -196,18 +195,16 @@ namespace Bonfire
 		ImGui::Spacing();
 		ImGui::PopFont();
 		ImGui::PushFont(font_body);
-
-		EntityData& current_entity_data = entities_data.at(current_entity_id);
 		
 		ImGui::SetNextItemWidth(-1.0f);
-		ImGui::InputText(" ", &current_entity_data.name);
+		ImGui::InputText(" ", &selected_entity->name);
 		
 		if (ImGui::CollapsingHeader("Transform"))
 		{
 			ImGui::PushItemWidth(200.0f);
-			ImGui::DragFloat3("Position ", (float*)&current_entity_data.position, drag_step, -1000, 1000);
-			ImGui::DragFloat3("Scale ", (float*)&current_entity_data.scale, drag_step, 0, 1000);
-			ImGui::DragFloat3("Rotation ", (float*)&current_entity_data.rotation, drag_step, 0, 360);
+			ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000);
+			ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000);
+			ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360);
 			ImGui::PopItemWidth();
 		}
 		
@@ -244,7 +241,7 @@ namespace Bonfire
 		ImGui::PopFont();
 		ImGui::PushFont(font_body);
 
-		if (ImGui::BeginTabBar("ParamEditorTabs"))
+		/*if (ImGui::BeginTabBar("ParamEditorTabs"))
 		{
 			ImGui::PushStyleColor(ImGuiCol_TabActive, project_interface.highlight_primary);
 			ImGui::PushStyleColor(ImGuiCol_TabHovered, project_interface.highlight_secondary);
@@ -261,8 +258,6 @@ namespace Bonfire
 		                ImGui::SetNextItemWidth(-1.0f);
 		                ImGui::InputText(" ", &model_data.name);
 		                ImGui::Text(model_data.path.c_str());
-		                ImGui::DragFloat3("Rotation Multiplier ", (float*)&model_data.rotation_multiplier, drag_step, 0, 100);
-		                ImGui::DragFloat3("Scale Multiplier", (float*)&model_data.scale_multiplier, drag_step, 0, 100);
 		                
 		                ImGui::PopID();
 		            }
@@ -310,7 +305,7 @@ namespace Bonfire
 		    }
 			ImGui::EndTabBar();
 			ImGui::PopStyleColor(4);
-		}
+		}*/
 		
 		ImGui::PopFont();
 		ImGui::Unindent(8.0f);
@@ -399,21 +394,21 @@ namespace Bonfire
 				const float x_position = mouseInput.GetX();
 				const float y_position = mouseInput.GetY();
 
-				if (engine_camera->firstMouse)
+				if (scene->GetEngineCamera()->firstMouse)
 				{
-					engine_camera->lastX = x_position;
-					engine_camera->lastY = y_position;
-					engine_camera->firstMouse = false;
+					scene->GetEngineCamera()->lastX = x_position;
+					scene->GetEngineCamera()->lastY = y_position;
+					scene->GetEngineCamera()->firstMouse = false;
 				}
 
-				const float x_offset = x_position - engine_camera->lastX;
-				const float y_offset = y_position - engine_camera->lastY;
+				const float x_offset = x_position - scene->GetEngineCamera()->lastX;
+				const float y_offset = y_position - scene->GetEngineCamera()->lastY;
 
-				engine_camera->lastX = x_position;
-				engine_camera->lastY = y_position;
+				scene->GetEngineCamera()->lastX = x_position;
+				scene->GetEngineCamera()->lastY = y_position;
 
 				if (engine_camera_can_rotate)
-					engine_camera->ProcessMouseMovement(x_offset, y_offset);
+					scene->GetEngineCamera()->ProcessMouseMovement(x_offset, y_offset);
 				
 				break;
 			}
@@ -430,120 +425,17 @@ namespace Bonfire
 		}
 	}
 
-	void Renderer::DrawModel(ParamReference model_ref, ParamReference texture_ref)
-	{
-		Model& model = models.at(model_ref);
-		Texture& texture = textures.at(texture_ref);
-		std::vector<std::shared_ptr<Texture>> textures;
-		textures.push_back(std::make_shared<Texture>(texture));
-		model.Draw(*default_shader, textures);
-	}
-	void Renderer::DrawEntity(EntityID id)
-	{
-		EntityData data = entities_data.at(id);
-		if (!data.enabled) return;
-		manipulation_matrix = GetTransformMatrix(id);
-		default_shader->SetMat4("model", manipulation_matrix);
-		DrawModel(data.params.at(PARAM_TYPE::MODEL), data.params.at(PARAM_TYPE::TEXTURE));
-	}
-	glm::quat Renderer::GetTransformOrientation(EntityID id)
-	{
-		EntityData data = entities_data.at(id);
-		return glm::quat(data.rotation / 180.0f * glm::pi<float>());
-	}
-	glm::mat4 Renderer::GetTransformMatrix(EntityID id)
-	{
-		EntityData data = entities_data.at(id);
-		return glm::translate(glm::mat4(1.0f), data.position)
-		* glm::toMat4(GetTransformOrientation(id))
-		* glm::scale(glm::mat4(1.0f), data.scale);
-	}
-
 	bool Renderer::Load()
 	{
-		bool loaded = scene->LoadScene();
-		entities = scene->GetEntities();
-		entities_data = scene->GetEntitiesData();
-		engine_camera = std::move(scene->GetSceneCamera());
-		
 		param_database->LoadParams();
-
-		for (const auto& entity_id : entities)
-		{
-			EntityData& entity_data = entities_data.at(entity_id);
-
-			if (entity_data.params.contains(PARAM_TYPE::MODEL))
-			{
-				ParamReference model_ref = entity_data.params.at(PARAM_TYPE::MODEL);
-				if (!models.contains(model_ref))
-				{
-					ModelParamData model_param = param_database->GetModelParam(model_ref);
-					Model model(model_param.path);
-					model.Load();
-					models.insert_or_assign(model_ref, model);
-				}
-			}
-
-			if (entity_data.params.contains(PARAM_TYPE::TEXTURE))
-			{
-				ParamReference texture_ref = entity_data.params.at(PARAM_TYPE::TEXTURE);
-				if (!textures.contains(texture_ref))
-				{
-					TextureParamData texture_param = param_database->GetTextureParam(texture_ref);
-					Texture texture(texture_param.path, texture_param.type, texture_param.flip);
-					texture.Load();
-					textures.insert_or_assign(texture_ref, texture);
-				}
-			}
-
-			if (entity_data.params.contains(PARAM_TYPE::AI))
-			{
-				// load ai param
-			}
-
-			if (entity_data.params.contains(PARAM_TYPE::PHYSICS))
-			{
-				// load physics param
-			}
-
-			if (entity_data.params.contains(PARAM_TYPE::ANIMATION))
-			{
-				// load animation param
-			}
-		}
-
-		return loaded;
+		bool scene_loaded = scene->LoadScene(*param_database);
+		return scene_loaded;
 	}
 	bool Renderer::Save()
 	{
-		scene->GetEntities() = entities;
-		scene->GetEntitiesData() = entities_data;
-		scene->GetSceneCamera() = std::move(engine_camera);
-		bool saved = scene->SaveScene();
-		entities = scene->GetEntities();
-		entities_data = scene->GetEntitiesData();
-		engine_camera = std::move(scene->GetSceneCamera());
-		
+		bool scene_saved = scene->SaveScene(*param_database);
 		param_database->SaveParams();
-		
-		return saved;
-	}
-	void Renderer::ReloadParams(ParamReference ref, PARAM_TYPE type)
-	{
-		if (type == PARAM_TYPE::MODEL)
-		{
-			ModelParamData model_param = param_database->GetModelParam(ref);
-			Model model(model_param.path);
-			model.Load();
-			models.insert_or_assign(ref, model);
-		}
-		else if (type == PARAM_TYPE::TEXTURE)
-		{
-			TextureParamData texture_param = param_database->GetTextureParam(ref);
-			Texture texture(texture_param.path, texture_param.type, texture_param.flip);
-			texture.Load();
-			textures.insert_or_assign(ref, texture);
-		}
+		return scene_saved;
 	}
 	
 	void Renderer::DrawActiveTitleLine(const ImVec4& color, float thickness)

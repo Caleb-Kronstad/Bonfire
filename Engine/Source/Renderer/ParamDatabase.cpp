@@ -25,20 +25,13 @@ namespace Bonfire
         for (auto& [key, value] : model_json.items())
         {
             uint32_t id = std::stoul(key);
-            ParamReference ref(id);
+            uint32_t ref(id);
 
             std::string name = value["name"].get<std::string>();
             std::string path = value["path"].get<std::string>();
 
-            auto rotation_array = value["rotationMultiplier"].get<std::vector<float>>();
-            auto scale_array = value["scaleMultiplier"].get<std::vector<float>>();
-
-            glm::vec3 rotation_multiplier(rotation_array[0], rotation_array[1], rotation_array[2]);
-            glm::vec3 scale_multiplier(scale_array[0], scale_array[1], scale_array[2]);
-
-            model_params[ref] = ModelParamData(name, path, rotation_multiplier, scale_multiplier);
+            model_params[ref] = ModelParamData(name, path);
         }
-        Log::Info("Loaded " + std::to_string(model_params.size()) + " model params from " + model_path);
 
         std::ifstream texture_file(texture_path);
         if (!texture_file.is_open())
@@ -60,7 +53,7 @@ namespace Bonfire
         for (auto& [key,value] : texture_json.items())
         {
             uint32_t id = std::stoul(key);
-            ParamReference ref(id);
+            uint32_t ref(id);
 
             std::string name = value["name"].get<std::string>();
             TEXTURE_TYPE type = value["type"].get<TEXTURE_TYPE>();
@@ -68,8 +61,6 @@ namespace Bonfire
             std::string path = value["path"].get<std::string>();
             texture_params[ref] = TextureParamData(name, type, flip, path);
         }
-
-        Log::Info("Loaded " + std::to_string(texture_params.size()) + " texture params from " + texture_path);
 
         // load other param types
     }
@@ -80,12 +71,10 @@ namespace Bonfire
 
         for (const auto& [ref, data] : model_params)
         {
-            std::string key = std::to_string(ref.value);
+            std::string key = std::to_string(ref);
             model_json[key] = {
                 {"name", data.name},
-                {"path", data.path},
-                {"rotationMultiplier", {data.rotation_multiplier.x, data.rotation_multiplier.y, data.rotation_multiplier.z}},
-                {"scaleMultiplier", {data.scale_multiplier.x, data.scale_multiplier.y, data.scale_multiplier.z}}
+                {"path", data.path}
             };
         }
 
@@ -105,13 +94,11 @@ namespace Bonfire
             return;
         }
 
-        Log::Info("Saved " + std::to_string(model_params.size()) + " model params to " + model_path);
-
         nlohmann::json texture_json;
 
         for (const auto& [ref, data] : texture_params)
         {
-            std::string key = std::to_string(ref.value);
+            std::string key = std::to_string(ref);
             texture_json[key] = {
                 {"name", data.name},
                 {"type", data.type},
@@ -135,8 +122,6 @@ namespace Bonfire
             Log::Error("Failed to write texture params JSON: " + std::string(e.what()));
             return;
         }
-
-        Log::Info("Saved " + std::to_string(texture_params.size()) + " texture params to " + texture_path);
 
         // save other param types
     }

@@ -5,10 +5,32 @@
 
 namespace Bonfire
 {
-    bool Scene::LoadScene()
+    bool Scene::LoadScene(ParamDatabase& param_database)
     {
         entities.clear();
-        entities_data.clear();
+        models.clear();
+        textures.clear();
+        model_components.clear();
+        texture_components.clear();
+
+        // LOAD COMPONENT TYPES FROM PARAM DATABASE
+        for (auto& [model_id, model_data] : param_database.model_params)
+        {
+            std::shared_ptr<Model> model = std::make_shared<Model>(model_data.path);
+            model->param_id = model_id;
+            model->name = model_data.name;
+            model->Load();
+            models.insert_or_assign(model_id, std::move(model));
+        }
+        for (auto& [texture_id, texture_data] : param_database.texture_params)
+        {
+            std::shared_ptr<Texture> texture = std::make_shared<Texture>(texture_data.path, texture_data.type, texture_data.flip);
+            texture->name = texture_data.name;
+            texture->param_id = texture_id;
+            texture->Load();
+            textures.insert_or_assign(texture_id, std::move(texture));
+        }
+        //  LOAD OTHER COMPONENT TYPES
 
         std::ifstream file(path);
         if (!file.is_open())
@@ -31,7 +53,7 @@ namespace Bonfire
         // Load camera
         if (!json.contains("cameras"))
         {
-            Log::Warning("Scene file has no camera");
+            Log::Error("Scene file has no camera");
             return false;
         }
         for (const auto& camera_json : json["cameras"])
@@ -46,92 +68,165 @@ namespace Bonfire
             glm::vec3 position(position_array[0], position_array[1], position_array[2]);
             glm::vec3 up(up_array[0], up_array[1], up_array[2]);
 
-            camera = std::make_unique<Camera>(id, position, up, yaw, pitch);
+            engine_camera = std::make_unique<Camera>(id, position, up, yaw, pitch);
+        }
+
+        // Load components
+        if (!json.contains("components"))
+        {
+            Log::Warning("Scene file has no components");
+        }
+        else
+        {
+            const auto& components = json["components"];
+
+            if (components.contains("models"))
+            {
+                for (const auto& [model_id, model_data] : components["models"].items())
+                {
+                    uint32_t id = std::stoul(model_id);
+                    bool enabled = model_data["enabled"].get<bool>();
+                    uint32_t param_id = model_data["param-id"].get<uint32_t>();
+                    std::shared_ptr<ModelComponent> model_included = std::make_shared<ModelComponent>(id, enabled, models.at(param_id));
+                    model_components.insert_or_assign(id, model_included);
+                }
+            }
+            if (components.contains("textures"))
+            {
+                for (const auto& [texure_id, texture_data] : components["textures"].items())
+                {
+                    uint32_t id = std::stoul(texure_id);
+                    bool enabled = texture_data["enabled"].get<bool>();
+                    std::vector<uint32_t> param_ids = texture_data["param-ids"].get<std::vector<uint32_t>>();
+                    std::vector<std::shared_ptr<Texture>> textures_included;
+                    for (const auto& param_id : param_ids)
+                        textures_included.push_back(textures.at(param_id));
+                    std::shared_ptr<TextureComponent> texture_included = std::make_shared<TextureComponent>(id, enabled, textures_included);
+                    texture_components.insert_or_assign(id, texture_included);
+                }
+            }
+            // ADD OTHER COMPONENT TYPES
         }
 
         // Load entities
         if (!json.contains("entities"))
         {
-            Log::Warning("Scene file has no entities array");
-            return false;
+            Log::Warning("Scene file has no entities");
         }
-        for (const auto& entity_json : json["entities"])
+        else
         {
-            uint32_t id = entity_json["id"].get<uint32_t>();
-            bool enabled = entity_json["enabled"].get<bool>();
-            std::string name = entity_json["name"].get<std::string>();
-
-            auto position_array = entity_json["position"].get<std::vector<float>>();
-            auto rotation_array = entity_json["rotation"].get<std::vector<float>>();
-            auto scale_array = entity_json["scale"].get<std::vector<float>>();
-
-            glm::vec3 position(position_array[0], position_array[1], position_array[2]);
-            glm::vec3 rotation(rotation_array[0], rotation_array[1], rotation_array[2]);
-            glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
-
-            EntityID entity_id(id);
-            EntityData entity_data(enabled, name, position, rotation, scale);
-
-            if (entity_json.contains("params"))
+            for (const auto& entity_json : json["entities"])
             {
-                for (auto& [key, value] : entity_json["params"].items())
-                {
-                    PARAM_TYPE param_type = StringToParamType(key);
-                    uint32_t param_value = value.get<uint32_t>();
-                    entity_data.AddParam(param_type, ParamReference(param_value));
-                }
-            }
+                uint32_t id = entity_json["id"].get<uint32_t>();
+                bool enabled = entity_json["enabled"].get<bool>();
+                std::string name = entity_json["name"].get<std::string>();
 
-            entities.push_back(entity_id);
-            entities_data.insert_or_assign(entity_id, entity_data);
+                auto position_array = entity_json["position"].get<std::vector<float>>();
+                auto rotation_array = entity_json["rotation"].get<std::vector<float>>();
+                auto scale_array = entity_json["scale"].get<std::vector<float>>();
+
+                glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+                glm::vec3 rotation(rotation_array[0], rotation_array[1], rotation_array[2]);
+                glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
+
+                std::shared_ptr<Entity> entity = std::make_shared<Entity>(id, enabled, name, position, rotation, scale);
+                
+                const auto& entity_components = entity_json["components"];
+                if (entity_components.contains("model_component"))
+                {
+                    uint32_t model_id = entity_components["model_component"].get<uint32_t>();
+                    entity->AddComponent(COMPONENT_TYPE::MODEL, model_components.at(model_id));
+                }
+                if (entity_components.contains("texture_component"))
+                {
+                    uint32_t model_id = entity_components["texture_component"].get<uint32_t>();
+                    entity->AddComponent(COMPONENT_TYPE::TEXTURE, texture_components.at(model_id));
+                }
+
+                entities.insert_or_assign(id, entity);
+            }
         }
 
         Log::Info("Loaded scene from " + path);
         return true;
     }
 
-    bool Scene::SaveScene()
+    bool Scene::SaveScene(ParamDatabase& param_database)
     {
         nlohmann::json json;
         nlohmann::json camera_array = nlohmann::json::array();
         nlohmann::json entities_array = nlohmann::json::array();
 
         nlohmann::json camera_json;
-        camera_json["id"] = camera->id;
-        camera_json["yaw"] = camera->Yaw;
-        camera_json["pitch"] = camera->Pitch;
-        camera_json["position"] = {camera->Position.x, camera->Position.y, camera->Position.z};
-        camera_json["up"] = {camera->WorldUp.x, camera->WorldUp.y, camera->WorldUp.z};
+        camera_json["id"] = engine_camera->id;
+        camera_json["yaw"] = engine_camera->Yaw;
+        camera_json["pitch"] = engine_camera->Pitch;
+        camera_json["position"] = {engine_camera->Position.x, engine_camera->Position.y, engine_camera->Position.z};
+        camera_json["up"] = {engine_camera->WorldUp.x, engine_camera->WorldUp.y, engine_camera->WorldUp.z};
         camera_array.push_back(camera_json);
 
-        for (const auto& entity_id : entities)
+        nlohmann::json components_json;
+        
+        // Save model components
+        nlohmann::json models_json;
+        for (const auto& [id, model_component] : model_components)
         {
-            const auto& entity_data = entities_data[entity_id];
+            nlohmann::json model_json;
+            model_json["enabled"] = model_component->enabled;
+            model_json["param-id"] = model_component->model->param_id;
+            models_json[std::to_string(id)] = model_json;
+        }
+        if (!models_json.empty())
+            components_json["models"] = models_json;
         
+        nlohmann::json textures_json;
+        for (const auto& [id, texture_component] : texture_components)
+        {
+            nlohmann::json texture_json;
+            texture_json["enabled"] = texture_component->enabled;
+        
+            std::vector<uint32_t> param_ids;
+            for (const auto& texture : texture_component->textures)
+                param_ids.push_back(texture->param_id);
+            texture_json["param-ids"] = param_ids;
+        
+            textures_json[std::to_string(id)] = texture_json;
+        }
+        if (!textures_json.empty())
+            components_json["textures"] = textures_json;
+
+        // Save entities
+        for (const auto& [id, entity] : entities)
+        {
             nlohmann::json entity_json;
-            entity_json["id"] = entity_id.value;
-            entity_json["enabled"] = entity_data.enabled;
-            entity_json["name"] = entity_data.name;
+            entity_json["id"] = id;
+            entity_json["enabled"] = entity->enabled;
+            entity_json["name"] = entity->name;
         
-            entity_json["position"] = {entity_data.position.x, entity_data.position.y, entity_data.position.z};
-            entity_json["rotation"] = {entity_data.rotation.x, entity_data.rotation.y, entity_data.rotation.z};
-            entity_json["scale"] = {entity_data.scale.x, entity_data.scale.y, entity_data.scale.z};
+            entity_json["position"] = {entity->position.x, entity->position.y, entity->position.z};
+            entity_json["rotation"] = {entity->rotation.x, entity->rotation.y, entity->rotation.z};
+            entity_json["scale"] = {entity->scale.x, entity->scale.y, entity->scale.z};
         
-            if (!entity_data.params.empty())
+            // Save entity components
+            nlohmann::json entity_components_json;
+            if (entity->HasComponent<ModelComponent>())
             {
-                nlohmann::json params_json;
-                for (const auto& [param_type, param_ref] : entity_data.params)
-                {
-                    std::string key = ParamTypeToString(param_type);
-                    params_json[key] = param_ref.value;
-                }
-                entity_json["params"] = params_json;
+                auto& model_component = entity->GetComponent<ModelComponent>();
+                entity_components_json["model_component"] = model_component.id;
+            }
+
+            if (entity->HasComponent<TextureComponent>())
+            {
+                auto& texture_component = entity->GetComponent<TextureComponent>();
+                entity_components_json["texture_component"] = texture_component.id;
             }
         
+            entity_json["components"] = entity_components_json;
             entities_array.push_back(entity_json);
         }
 
         json["cameras"] = camera_array;
+        json["components"] = components_json;
         json["entities"] = entities_array;
 
         std::ofstream file(path);

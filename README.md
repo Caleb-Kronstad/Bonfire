@@ -13,10 +13,8 @@
 ### Linux
 
   - clang++ or g++
-  - make
-  - CMake (optional)
+  - make or CMake
   - X11 development libraries: libx11-dev libxrandr-dev libxi-dev libxxf86vm-dev libxcursor-dev libxinerama-dev
-  - [Optional] CLion or similar IDE (use CMake or install bear for better CLion integration)
 
 ## Build Instructions
 

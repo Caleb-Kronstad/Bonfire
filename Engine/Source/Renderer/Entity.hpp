@@ -1,53 +1,51 @@
 ﻿#pragma once
 
 #include "Shader.hpp"
+#include "Components.hpp"
 #include "ParamDatabase.hpp"
 
-namespace Bonfire
-{
-    struct EntityID
-    {
-        uint32_t value;
-
-        explicit EntityID(uint32_t v) : value(v) {}
-
-        bool operator==(const EntityID& other) const { return value == other.value; }
-        bool operator!=(const EntityID& other) const { return value != other.value; }
-        bool operator<(const EntityID& other) const { return value < other.value; }
-    };
-}
-
-namespace std
-{
-    template<>
-    struct hash<Bonfire::EntityID>
-    {
-        size_t operator()(const Bonfire::EntityID& ref) const
-        {
-            return hash<uint32_t>()(ref.value);
-        }
-    };
-}
-
 namespace Bonfire {
+
+    template<typename T>
+    COMPONENT_TYPE GetComponentType();
+    template<>
+    inline COMPONENT_TYPE GetComponentType<ModelComponent>() { return COMPONENT_TYPE::MODEL; }
+    template<>
+    inline COMPONENT_TYPE GetComponentType<TextureComponent>() { return COMPONENT_TYPE::TEXTURE; }
+    template<>
+    inline COMPONENT_TYPE GetComponentType<PhysicsComponent>() { return COMPONENT_TYPE::PHYSICS; }
+    template<>
+    inline COMPONENT_TYPE GetComponentType<AnimationComponent>() { return COMPONENT_TYPE::ANIMATION; }
     
-    struct EntityData
+    class Entity
     {
+    public:
+        Entity(const uint32_t& id = 0, const bool& enabled = true, const std::string& name = "Entity", glm::vec3 position = glm::vec3(0.0f), glm::vec3 rotation = glm::vec3(0.0f), glm::vec3 scale = glm::vec3(1.0f))
+            : id(id), enabled(enabled), name(name), position(position), rotation(rotation), scale(scale)
+        {
+        }
+
+        void Draw(Shader& shader, glm::mat4& manipulation_matrix);
+        
+        void AddComponent(COMPONENT_TYPE type, std::shared_ptr<Component> component);
+        void RemoveComponent(COMPONENT_TYPE type);
+        template<typename T> T& GetComponent() { return *std::static_pointer_cast<T>(components.at(GetComponentType<T>())); }
+        template<typename T> bool HasComponent() const { return components.contains(GetComponentType<T>()); }
+
+    private:
+        glm::quat GetTransformOrientation();
+        glm::mat4 GetTransformMatrix();
+
+    public:
+        uint32_t id;
         bool enabled;
         std::string name;
         glm::vec3 position;
         glm::vec3 rotation;
         glm::vec3 scale;
-        std::unordered_map<PARAM_TYPE, ParamReference> params;
 
-        EntityData(bool enabled = true, std::string name = "Entity", glm::vec3 position = glm::vec3(0.0f), glm::vec3 rotation = glm::vec3(0.0f), glm::vec3 scale = glm::vec3(1.0f))
-            : enabled(enabled), name(name), position(position), rotation(rotation), scale(scale)
-        {
-        }
-        void AddParam(PARAM_TYPE type, ParamReference ref)
-        {
-            params.insert_or_assign(type, ref);
-        }
+    private:
+        std::unordered_map<COMPONENT_TYPE, std::shared_ptr<Component>> components;
     };
 
 }
