@@ -46,6 +46,8 @@ namespace Bonfire
 		std::unique_ptr<Scene> scene;
 		std::shared_ptr<Entity> selected_entity;
 		std::unique_ptr<ParamDatabase> param_database;
+		std::string new_model_path;
+		std::string new_texture_path;
 
 		// interface
 		std::unique_ptr<ConsoleCapture> console_capture;

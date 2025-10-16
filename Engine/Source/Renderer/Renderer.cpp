@@ -28,6 +28,8 @@ namespace Bonfire
 		engine_camera_can_rotate = false;
 
 		param_database = std::make_unique<ParamDatabase>("Assets/Params/models.params", "Assets/Params/textures.params");
+		new_model_path = "Assets/Resources/Models/Cube.obj";
+		new_texture_path = "Assets/Resources/Textures/Checkered.png";
 
 		background_color = RgbToGlmVec4(22, 22, 22, 1.0f);
 		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
@@ -256,6 +258,8 @@ namespace Bonfire
 			{
 				for (auto& [model_id, scene_model] : scene->GetModels())
 				{
+					ImGui::PushID(model_id);
+					
 					bool is_selected = (model_component.model->param_id == model_id);
 
 					if (ImGui::Selectable(scene_model->name.c_str(), is_selected))
@@ -265,6 +269,8 @@ namespace Bonfire
 
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
+
+					ImGui::PopID();
 				}
 				ImGui::EndCombo();
 			}
@@ -450,6 +456,74 @@ namespace Bonfire
 		        	ImGui::PopID();
 		        }
 		        ImGui::EndTabItem();
+
+				ImGui::Separator();
+
+				char exe_path[MAX_PATH];
+				GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+				std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
+				std::filesystem::path models_dir = exe_dir / "Assets/Resources/Models";
+				std::string model_file = std::string(MAX_PATH, '\0');
+
+				if (ImGui::Button("+"))
+				{
+					OPENFILENAMEA ofn;
+					ZeroMemory(&ofn, sizeof(OPENFILENAME));
+					ofn.lStructSize = sizeof(OPENFILENAME);
+					ofn.lpstrFile = (LPSTR)model_file.c_str();
+					ofn.nMaxFile = model_file.size();
+					ofn.lpstrInitialDir = models_dir.string().c_str();
+					ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+					ofn.lpstrFilter = "Model Files\0*.obj;*.fbx;*.dae\0Obj Files\0*.obj\0FBX Files\0*.fbx\0DAE Files\0*.dae\0All Files\0*.*\0";
+					ofn.lpstrTitle = "Select model file";
+
+					if (GetOpenFileNameA(&ofn))
+					{
+						model_file.resize(model_file.find('\0'));
+
+						std::filesystem::path absolute_path = model_file;
+						std::string abs_str = absolute_path.string();
+
+						size_t assets_pos = abs_str.find("Assets");
+						if (assets_pos != std::string::npos)
+						{
+							new_model_path = abs_str.substr(assets_pos);
+							std::replace(new_model_path.begin(), new_model_path.end(), '\\', '/');
+						}
+						else
+							new_model_path = model_file;
+
+						Log::Info("File selected at " + new_model_path);
+					}
+					else
+						Log::Warning("File operation cancelled");
+					
+					uint32_t next_id = 1;
+					if (!scene->GetModels().empty())
+					{
+						auto max_it = std::max_element(
+							scene->GetModels().begin(),
+							scene->GetModels().end(),
+							[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+						next_id = max_it->first + 1;
+					}
+
+					std::filesystem::path path_obj(new_model_path);
+					std::string model_name = path_obj.stem().string();
+
+					Log::Info("Current working dir: " + std::filesystem::current_path().string());
+					Log::Info("Trying to load: " + new_model_path);
+					Log::Info("New path: [" + new_model_path + "]");
+					Log::Info("Existing path: [" + param_database->model_params[1000].path + "]");
+					
+					std::shared_ptr<Model> new_model = std::make_shared<Model>(new_model_path);
+					new_model->param_id = next_id;
+					new_model->name = model_name;
+					new_model->Load();
+					scene->GetModels().insert_or_assign(next_id, new_model);
+					param_database->model_params[next_id] = ModelParamData(model_name, new_model_path);
+				}
 		    }
 		    
 		    if (ImGui::BeginTabItem("Texture Params"))
