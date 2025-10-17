@@ -10,5 +10,11 @@
         "name": "Checkered",
         "path": "Assets/Resources/Textures/checkered.png",
         "type": 0
+    },
+    "1002": {
+        "flip": false,
+        "name": "albinauric",
+        "path": "Assets/Resources/Textures/albinauric.jpg",
+        "type": 0
     }
 }

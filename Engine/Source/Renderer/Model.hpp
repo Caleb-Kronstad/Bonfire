@@ -22,6 +22,5 @@ namespace Bonfire
         std::string path;
         std::string directory;
         std::vector<Mesh> meshes;
-        
     };
 }

@@ -1,0 +1,16 @@
+{
+    "1000":
+    {
+        "name": "Unlit",
+        "vert-path": "Assets/Resources/Shaders/unlit.vert",
+        "frag-path": "Assets/Resources/Shaders/unlit.frag",
+        "geom-path": "None"
+    },
+    "1001":
+    {
+        "name": "Point Shadow Map",
+        "vert-path": "Assets/Resources/Shaders/pointshadowmap.vert",
+        "frag-path": "Assets/Resources/Shaders/pointshadowmap.frag",
+        "geom-path": "Assets/Resources/Shaders/pointshadowmap.geom"
+    }
+}

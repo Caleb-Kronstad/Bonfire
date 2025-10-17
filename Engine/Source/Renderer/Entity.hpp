@@ -25,7 +25,7 @@ namespace Bonfire {
         {
         }
 
-        void Draw(Shader& shader, glm::mat4& manipulation_matrix, std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities);
+        void Draw(std::unordered_map<uint32_t, std::shared_ptr<Shader>>& shaders, std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix);
         
         bool AddComponent(COMPONENT_TYPE type, std::shared_ptr<Component> component);
         bool RemoveComponent(COMPONENT_TYPE type);

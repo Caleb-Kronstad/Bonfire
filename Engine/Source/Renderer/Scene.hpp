@@ -16,6 +16,7 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<Entity>>& GetEntities() { return entities; }
         std::unordered_map<uint32_t, std::shared_ptr<Model>>& GetModels() { return models; }
         std::unordered_map<uint32_t, std::shared_ptr<Texture>>& GetTextures() { return textures; }
+        std::unordered_map<uint32_t, std::shared_ptr<Shader>>& GetShaders() { return shaders; }
         std::unordered_map<uint32_t, std::shared_ptr<ModelComponent>>& GetModelComponents() { return model_components; }
         std::unordered_map<uint32_t, std::shared_ptr<TextureComponent>>& GetTextureComponents() { return texture_components; }
         std::unique_ptr<Camera>& GetEngineCamera() { return engine_camera; }
@@ -25,6 +26,7 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<Entity>> entities;
         std::unordered_map<uint32_t, std::shared_ptr<Model>> models;
         std::unordered_map<uint32_t, std::shared_ptr<Texture>> textures;
+        std::unordered_map<uint32_t, std::shared_ptr<Shader>> shaders;
         std::unordered_map<uint32_t, std::shared_ptr<ModelComponent>> model_components;
         std::unordered_map<uint32_t, std::shared_ptr<TextureComponent>> texture_components;
         std::unique_ptr<Camera> engine_camera;

@@ -2,6 +2,7 @@
 
 #include "Texture.hpp"
 #include "Model.hpp"
+#include "Shader.hpp"
 
 namespace Bonfire
 {
@@ -16,9 +17,10 @@ namespace Bonfire
     struct ModelComponent : Component
     {
         std::shared_ptr<Model> model;
+        std::shared_ptr<Shader> shader;
 
         ModelComponent() {}
-        ModelComponent(uint32_t id, bool enabled, std::shared_ptr<Model> model) { this->id = id; this->enabled = enabled; this->model = model; }
+        ModelComponent(uint32_t id, bool enabled, std::shared_ptr<Model> model, std::shared_ptr<Shader> shader) { this->id = id; this->enabled = enabled; this->model = model; this->shader = shader; }
     };
 
     struct TextureComponent : Component

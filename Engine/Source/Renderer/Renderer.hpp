@@ -48,8 +48,12 @@ namespace Bonfire
 		std::unique_ptr<ParamDatabase> param_database;
 		std::string new_model_path;
 		std::string new_texture_path;
+		std::string new_shader_vert_path;
+		std::string new_shader_frag_path;
+		std::string new_shader_geom_path;
 
 		// interface
+		glm::vec4 background_color; // add customization later
 		std::unique_ptr<ConsoleCapture> console_capture;
 		std::unique_ptr<Framebuffer> viewport_framebuffer;
 		glm::vec2 viewport_size = { 1280, 720 };
@@ -59,10 +63,5 @@ namespace Bonfire
 		// fonts
 		ImFont* font_title;
 		ImFont* font_body;
-
-		// -- TEST MEMBERS --
-		Shader default_shader;
-		glm::vec4 background_color;
-		// --
 	};
 }

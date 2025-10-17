@@ -5,9 +5,9 @@ namespace Bonfire
 	class Shader
 	{
 	public:
-		Shader(std::string name = "NewShader", std::string vertexPath = "None", std::string fragmentPath = "None", std::string geometryPath = "None");
+		Shader(const uint32_t& id = 0, const std::string& name = "New Shader", const std::string& vertexPath = "None", const std::string& fragmentPath = "None", const std::string& geometryPath = "None");
 
-		void Load(std::string& name, std::string& vertexPath, std::string& fragmentPath, std::string& geometryPath);
+		void Load();
 		void Use();
 
 		void SetBool(const std::string& name, bool value) const;
@@ -32,6 +32,10 @@ namespace Bonfire
 
 	private:
 		void CheckCompileErrors(GLuint shader, std::string type);
+
+	public:
+		std::string name;
+		uint32_t param_id;
 
 	private:
 		GLuint m_ShaderID;

@@ -10,6 +10,7 @@ namespace Bonfire
         entities.clear();
         models.clear();
         textures.clear();
+        shaders.clear();
         model_components.clear();
         texture_components.clear();
 
@@ -29,6 +30,12 @@ namespace Bonfire
             texture->param_id = texture_id;
             texture->Load();
             textures.insert_or_assign(texture_id, std::move(texture));
+        }
+        for (auto& [shader_id, shader_data] : param_database.shader_params)
+        {
+            std::shared_ptr<Shader> shader = std::make_shared<Shader>(shader_id, shader_data.name, shader_data.vert_path, shader_data.frag_path, shader_data.geom_path);
+            shader->Load();
+            shaders.insert_or_assign(shader_id, std::move(shader));
         }
         //  LOAD OTHER COMPONENT TYPES
 
@@ -87,15 +94,16 @@ namespace Bonfire
                     uint32_t id = std::stoul(model_id);
                     bool enabled = model_data["enabled"].get<bool>();
                     uint32_t param_id = model_data["param-id"].get<uint32_t>();
-                    std::shared_ptr<ModelComponent> model_included = std::make_shared<ModelComponent>(id, enabled, models.at(param_id));
+                    uint32_t shader_id = model_data["shader-id"].get<uint32_t>();
+                    std::shared_ptr<ModelComponent> model_included = std::make_shared<ModelComponent>(id, enabled, models.at(param_id), shaders.at(shader_id));
                     model_components.insert_or_assign(id, model_included);
                 }
             }
             if (components.contains("textures"))
             {
-                for (const auto& [texure_id, texture_data] : components["textures"].items())
+                for (const auto& [texture_id, texture_data] : components["textures"].items())
                 {
-                    uint32_t id = std::stoul(texure_id);
+                    uint32_t id = std::stoul(texture_id);
                     bool enabled = texture_data["enabled"].get<bool>();
                     std::vector<uint32_t> param_ids = texture_data["param-ids"].get<std::vector<uint32_t>>();
                     std::vector<std::shared_ptr<Texture>> textures_included;

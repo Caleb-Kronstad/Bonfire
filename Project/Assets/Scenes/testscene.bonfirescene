@@ -20,15 +20,18 @@
         "models": {
             "100001": {
                 "enabled": true,
-                "param-id": 1001
+                "param-id": 1001,
+                "shader-id": 1000
             },
             "100002": {
                 "enabled": true,
-                "param-id": 1000
+                "param-id": 1000,
+                "shader-id": 1000
             },
             "100003": {
                 "enabled": true,
-                "param-id": 1002
+                "param-id": 1002,
+                "shader-id": 1000
             }
         },
         "textures": {
@@ -47,7 +50,7 @@
             "200003": {
                 "enabled": true,
                 "param-ids": [
-                    1001
+                    1002
                 ]
             }
         }

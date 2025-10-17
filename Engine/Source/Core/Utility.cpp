@@ -58,16 +58,19 @@ namespace Bonfire
 		float b = ((hex_value) & 0xFF) / 255.0f;
 		return ImVec4(r, g, b, alpha);
 	}
-	ImVec4 RgbToImVec4(unsigned int r, unsigned int g, unsigned int b, float alpha) {
+	ImVec4 RgbToImVec4(unsigned int r, unsigned int g, unsigned int b, float alpha)
+	{
 		return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, alpha);
 	}
-	glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha) {
+	glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha)
+	{
 		float r = ((hex_value >> 16) & 0xFF) / 255.0f;
 		float g = ((hex_value >> 8) & 0xFF) / 255.0f;
 		float b = ((hex_value) & 0xFF) / 255.0f;
 		return glm::vec4(r, g, b, alpha);
 	}
-	glm::vec4 RgbToGlmVec4(unsigned int r, unsigned int g, unsigned int b, float alpha) {
+	glm::vec4 RgbToGlmVec4(unsigned int r, unsigned int g, unsigned int b, float alpha)
+	{
 		return glm::vec4(r / 255.0f, g / 255.0f, b / 255.0f, alpha);
 	}
 

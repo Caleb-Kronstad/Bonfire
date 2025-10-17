@@ -57,7 +57,7 @@ Clone the repository with submodules
 
 ## Build System
 
-  Bonfire uses Premake5 and CMake for cross-platform project generation
+  Bonfire uses Premake5 and CMake for cross-platform project generation  
   Currently only the Debug config works properly, though you are welcome to try Dist and Release
 
 <p align="center">

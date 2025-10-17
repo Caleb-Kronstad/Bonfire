@@ -3,13 +3,17 @@
 
 namespace Bonfire
 {
-	Shader::Shader(std::string name, std::string vertexPath, std::string fragmentPath, std::string geometryPath)
+	Shader::Shader(const uint32_t& id, const std::string& name, const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath)
+		: param_id(id), name(name), vPath(vertexPath), fPath(fragmentPath), gPath(geometryPath)
 	{
-		Load(name, vertexPath, fragmentPath, geometryPath);
 	}
 
-	void Shader::Load(std::string& name, std::string& vertexPath, std::string& fragmentPath, std::string& geometryPath)
+	void Shader::Load()
 	{
+		std::string vertexPath = std::string(vPath);
+		std::string fragmentPath = std::string(fPath);
+		std::string geometryPath = std::string(gPath);
+		
 		if (vertexPath != "None") vPath = std::string(vertexPath);
 		if (fragmentPath != "None") fPath = std::string(fragmentPath);
 		if (geometryPath != "None") gPath = std::string(geometryPath);
