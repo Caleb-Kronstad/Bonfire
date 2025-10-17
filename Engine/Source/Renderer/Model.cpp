@@ -16,6 +16,19 @@ namespace Bonfire
             mesh.Draw(shader, textures);
         }
     }
+
+    AABB Model::CalculateAABB() const
+    {
+        AABB aabb;
+        for (const auto& mesh : meshes)
+        {
+            for (const auto& vertex : mesh.vertices)
+                aabb.Expand(vertex.position);
+        }
+        return aabb;
+    }
+
+    
     void Model::Load()
     {
         Assimp::Importer import;

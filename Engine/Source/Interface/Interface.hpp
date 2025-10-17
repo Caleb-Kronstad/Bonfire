@@ -19,6 +19,8 @@ namespace Bonfire
 		void OnInput(Input& input) override;
 
 		void SetMainStyle();
+		void SetGizmoStyle();
+		void SetStyle();
 
 	public:
 		ImVec4 text_primary;

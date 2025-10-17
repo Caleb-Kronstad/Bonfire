@@ -9,9 +9,9 @@ namespace Bonfire
 	bool ContainsCharacter(const std::string& str, const char& chr);
 	void RemoveCharacter(std::string& str, const char& chr);
 	ImVec4 HexToImVec4(unsigned int hex_value, float alpha = 1.0f);
-	ImVec4 RgbToImVec4(unsigned int r, unsigned int g, unsigned int b, float alpha = 1.0f);
+	ImVec4 RgbaToImVec4(unsigned int r, unsigned int g, unsigned int b, unsigned int a = 255);
 	glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha = 1.0f);
-	glm::vec4 RgbToGlmVec4(unsigned int r, unsigned int g, unsigned int b, float alpha = 1.0f);
+	glm::vec4 RgbaToGlmVec4(unsigned int r, unsigned int g, unsigned int b, unsigned int a = 255);
 	std::vector<std::filesystem::path> GetFilesInDirectory(const std::string& path);
 
 	// yoinked from charno https://github.com/TheCherno/Hazel/blob/master/Hazel/src/Hazel/Math/Math.cpp

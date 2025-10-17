@@ -58,9 +58,9 @@ namespace Bonfire
 		float b = ((hex_value) & 0xFF) / 255.0f;
 		return ImVec4(r, g, b, alpha);
 	}
-	ImVec4 RgbToImVec4(unsigned int r, unsigned int g, unsigned int b, float alpha)
+	ImVec4 RgbaToImVec4(unsigned int r, unsigned int g, unsigned int b, unsigned int a)
 	{
-		return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, alpha);
+		return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 	}
 	glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha)
 	{
@@ -69,9 +69,9 @@ namespace Bonfire
 		float b = ((hex_value) & 0xFF) / 255.0f;
 		return glm::vec4(r, g, b, alpha);
 	}
-	glm::vec4 RgbToGlmVec4(unsigned int r, unsigned int g, unsigned int b, float alpha)
+	glm::vec4 RgbaToGlmVec4(unsigned int r, unsigned int g, unsigned int b, unsigned int a)
 	{
-		return glm::vec4(r / 255.0f, g / 255.0f, b / 255.0f, alpha);
+		return glm::vec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 	}
 
 	std::vector<std::filesystem::path> GetFilesInDirectory(const std::string& path)

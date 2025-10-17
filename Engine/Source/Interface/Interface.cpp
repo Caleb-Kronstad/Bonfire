@@ -131,19 +131,11 @@ namespace Bonfire
 			input.Handled |= io.WantCaptureKeyboard;
 		}
 	}
-	
-	// hard coded style for the time being, will update for customization later
-	void Interface::SetMainStyle() 
+
+	void Interface::SetStyle()
 	{
 		ImGuiStyle* style = &ImGui::GetStyle();
 		ImVec4* colors = style->Colors;
-		
-		text_primary = RgbToImVec4(255, 255, 255);
-		background_primary = RgbToImVec4(38, 38, 38);
-		background_secondary = RgbToImVec4(23, 23, 23);
-		background_tertiary = RgbToImVec4(56, 56, 56);
-		highlight_primary = RgbToImVec4(125, 96, 186);
-		highlight_secondary = RgbToImVec4(141, 124, 192);
 		
 		colors[ImGuiCol_Text] = text_primary;
 		colors[ImGuiCol_WindowBg] = background_primary;
@@ -162,7 +154,7 @@ namespace Bonfire
 		colors[ImGuiCol_TextSelectedBg] = highlight_primary;
 		colors[ImGuiCol_CheckMark] = highlight_primary;
 		colors[ImGuiCol_Button] = background_tertiary;
-		colors[ImGuiCol_ButtonHovered] = highlight_primary;
+		colors[ImGuiCol_ButtonHovered] = highlight_secondary;
 		colors[ImGuiCol_ButtonActive] = highlight_primary;
 		colors[ImGuiCol_Separator] = background_tertiary;
 		colors[ImGuiCol_SeparatorHovered] = highlight_primary;
@@ -191,5 +183,30 @@ namespace Bonfire
 		style->DockingSeparatorSize = 1.0f;
 		style->SeparatorTextBorderSize = 2.0f;
 		style->WindowPadding = ImVec2(0.0f, 0.0f);
+	}
+
+	
+	void Interface::SetMainStyle() 
+	{
+		text_primary = RgbaToImVec4(255, 255, 255);
+		background_primary = RgbaToImVec4(38, 38, 38);
+		background_secondary = RgbaToImVec4(23, 23, 23);
+		background_tertiary = RgbaToImVec4(56, 56, 56);
+		highlight_primary = RgbaToImVec4(116, 77, 169);
+		highlight_secondary = RgbaToImVec4(141, 124, 192);
+
+		SetStyle();
+	}
+
+	void Interface::SetGizmoStyle()
+	{
+		text_primary = RgbaToImVec4(0, 0, 0, 0);
+		background_primary = RgbaToImVec4(0, 0, 0, 0);
+		background_secondary = RgbaToImVec4(0, 0, 0, 0);
+		background_tertiary = RgbaToImVec4(0, 0, 0, 0);
+		highlight_primary = RgbaToImVec4(0, 0, 0, 0);
+		highlight_secondary = RgbaToImVec4(0, 0, 0, 0);
+		
+		SetStyle();
 	}
 }

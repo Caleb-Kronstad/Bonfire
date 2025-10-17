@@ -31,15 +31,16 @@ namespace Bonfire {
         bool RemoveComponent(COMPONENT_TYPE type);
         template<typename T> T& GetComponent() { return *std::static_pointer_cast<T>(components.at(GetComponentType<T>())); }
         template<typename T> bool HasComponent() const { return components.contains(GetComponentType<T>()); }
+        
+        glm::quat GetTransformOrientation();
+        glm::mat4 GetTransformMatrix();
+        glm::mat4 GetWorldTransformMatrix(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities);
 
         bool AddChild(uint32_t child_id);
         bool RemoveChild(uint32_t child_id);
         bool IsRoot() const { return parent == 0; }
 
-    private:
-        glm::quat GetTransformOrientation();
-        glm::mat4 GetTransformMatrix();
-        glm::mat4 GetWorldTransformMatrix(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities);
+        AABB GetWorldAABB(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities);
 
     public:
         uint32_t id;

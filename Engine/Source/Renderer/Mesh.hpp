@@ -20,10 +20,9 @@ namespace Bonfire
 
     private:
         void SetupMesh();
-        
-    private:
-        GLuint vertex_buffer, element_buffer, vertex_array;
 
+    public:
+        GLuint vertex_buffer, element_buffer, vertex_array;
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
     };

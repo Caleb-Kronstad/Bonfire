@@ -3,6 +3,7 @@
 #include "Shader.hpp"
 #include "Mesh.hpp"
 #include "ParamDatabase.hpp"
+#include "Ray.hpp"
 
 namespace Bonfire
 {
@@ -15,6 +16,8 @@ namespace Bonfire
         void Draw(Shader& shader, const std::vector<std::shared_ptr<Texture>>& textures);
         void ProcessNode(aiNode* node, const aiScene* scene);
         Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
+
+        AABB CalculateAABB() const;
 
     public:
         uint32_t param_id;

@@ -15,7 +15,7 @@ namespace Bonfire
 		ModelComponent& model_component = GetComponent<ModelComponent>();
 		TextureComponent& texture_component = GetComponent<TextureComponent>();
 
-		if (!model_component.enabled) return;
+		if (!model_component.model || !model_component.enabled) return;
 
 		manipulation_matrix = GetWorldTransformMatrix(entities);
 
@@ -25,6 +25,20 @@ namespace Bonfire
 		model_component.shader->SetMat4("model", manipulation_matrix);
 		
 		model_component.model->Draw(*model_component.shader, texture_component.textures);
+	}
+
+	AABB Entity::GetWorldAABB(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities)
+	{
+		AABB world_aabb;
+		if (!HasComponent<ModelComponent>()) return world_aabb;
+		ModelComponent& model_component = GetComponent<ModelComponent>();
+		if (!model_component.model || !model_component.enabled) return world_aabb;
+
+		AABB local_aabb = model_component.model->CalculateAABB();
+		glm::mat4 world_transform = GetWorldTransformMatrix(entities);
+		world_aabb = TransformAABB(local_aabb, world_transform);
+
+		return world_aabb;
 	}
 	
 	bool Entity::AddComponent(COMPONENT_TYPE type, std::shared_ptr<Component> component)

@@ -5,6 +5,7 @@
 #include "Interface/ConsoleCapture.hpp"
 #include "Framebuffer.hpp"
 
+#include "Renderer/Ray.hpp"
 #include "Renderer/Camera.hpp"
 #include "Renderer/Mesh.hpp"
 #include "Renderer/Model.hpp"
@@ -59,9 +60,15 @@ namespace Bonfire
 		glm::vec4 background_color; // add customization later
 		std::unique_ptr<ConsoleCapture> console_capture;
 		std::unique_ptr<Framebuffer> viewport_framebuffer;
-		glm::vec2 viewport_size = { 1280, 720 };
 		float drag_step = 1.0f;
+		int gizmo_type = ImGuizmo::TRANSLATE;
+		int gizmo_space = 0;
+		glm::vec2 viewport_size = { 1280, 720 };
 		bool viewport_focused = false;
+
+		std::unique_ptr<Texture> move_icon;
+		std::unique_ptr<Texture> rotate_icon;
+		std::unique_ptr<Texture> resize_icon;
 
 		// fonts
 		ImFont* font_title;

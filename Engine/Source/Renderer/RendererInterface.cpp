@@ -39,7 +39,84 @@ namespace Bonfire
 		ImGui::PopFont();
 
 		ImGui::Image((void*)(intptr_t)viewport_framebuffer->GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
-		ImGui::End();
+    	ImVec2 viewport_min = ImGui::GetItemRectMin();
+    	ImVec2 viewport_max = ImGui::GetItemRectMax();
+    	float viewport_width = viewport_max.x - viewport_min.x;
+    	float viewport_height = viewport_max.y - viewport_min.y;
+
+    	if (selected_entity != nullptr && gizmo_type != -1)
+    	{
+    		ImGuizmo::SetOrthographic(scene->GetEngineCamera()->isOrthographic);
+    		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+    		ImGuizmo::SetRect(viewport_min.x, viewport_min.y, viewport_width, viewport_height);
+    		const glm::mat4& camera_view = scene->GetEngineCamera()->GetViewMatrix();
+    		const glm::mat4& camera_projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_width, viewport_height);
+    		glm::mat4 transform = selected_entity->GetWorldTransformMatrix(scene->GetEntities());
+
+    		ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection), (ImGuizmo::OPERATION)gizmo_type, (ImGuizmo::MODE)gizmo_space, glm::value_ptr(transform));
+
+    		if (ImGuizmo::IsUsing())
+    		{
+    			glm::mat4 local_transform = transform;
+
+    			if (!selected_entity->IsRoot() && scene->GetEntities().contains(selected_entity->parent))
+    			{
+    				glm::mat4 parent_world_transform = scene->GetEntities().at(selected_entity->parent)->GetWorldTransformMatrix(scene->GetEntities());
+    				local_transform = glm::inverse(parent_world_transform) * transform;
+    			}
+    			glm::vec3 translation, rotation, scale;
+    			DecomposeTransform(local_transform, translation, rotation, scale);
+    			selected_entity->position = translation;
+    			selected_entity->rotation = glm::degrees(rotation);
+    			selected_entity->scale = scale;
+    		}
+    	}
+
+    	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGuizmo::IsOver())
+    	{
+    		std::shared_ptr<Entity> hit_entity = nullptr;
+    		float closest_distance = FLT_MAX;
+
+    		ImVec2 mouse_pos = ImGui::GetMousePos();
+
+    		const glm::mat4& camera_view = scene->GetEngineCamera()->GetViewMatrix();
+    		const glm::mat4& camera_projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_width, viewport_height);
+
+    		Ray ray = ScreenPointToRay(
+    			glm::vec2(mouse_pos.x, mouse_pos.y),
+    			glm::vec2(viewport_min.x, viewport_min.y),
+    			glm::vec2(viewport_width, viewport_height),
+    			camera_view,
+    			camera_projection
+    			);
+
+    		for (auto& [entity_id, entity] : scene->GetEntities())
+    		{
+    			if (!entity->enabled)
+    				continue;
+
+    			AABB world_aabb = entity->GetWorldAABB(scene->GetEntities());
+    			if (world_aabb.minimum.x > world_aabb.maximum.x)
+    				continue;
+
+    			float t;
+    			if (RayIntersectsAABB(ray, world_aabb, t))
+    			{
+    				if (t < closest_distance)
+    				{
+    					closest_distance = t;
+    					hit_entity = entity;
+    				}
+    			}
+    		}
+
+    		if (hit_entity != nullptr)
+    			selected_entity = hit_entity;
+    		else
+    			selected_entity = nullptr;
+    	}
+    	
+    	ImGui::End();
 
 		// -- PROJECT SETTINGS --
 		ImGui::PushFont(font_title);
@@ -82,6 +159,37 @@ namespace Bonfire
 		ImGui::PopFont();
 		ImGui::Unindent(8.0f);
 		ImGui::End();
+
+    	// -- Toolbar --
+    	ImGuiWindowFlags toolbar_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
+    	
+    	ImGui::PushFont(font_title);
+    	ImGui::Begin("Toolbar", nullptr, toolbar_flags);
+    	DrawActiveTitleLine(highlight_color, inactive_color);
+    	ImGui::Indent(8.0f);
+    	ImGui::Spacing();
+    	ImGui::PopFont();
+    	ImGui::PushFont(font_body);
+
+    	if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_E) == GLFW_PRESS)
+    		gizmo_type = ImGuizmo::TRANSLATE;
+    	if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_R) == GLFW_PRESS)
+    		gizmo_type = ImGuizmo::ROTATE;
+    	if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_T) == GLFW_PRESS)
+    		gizmo_type = ImGuizmo::SCALE;
+
+    	if (ImGui::ImageButton((void*)move_icon->gl_id, ImVec2(20, 20)))
+    		gizmo_type = ImGuizmo::TRANSLATE;
+    	ImGui::SameLine();
+    	if (ImGui::ImageButton((void*)rotate_icon->gl_id, ImVec2(20, 20)))
+    		gizmo_type = ImGuizmo::ROTATE;
+    	ImGui::SameLine();
+    	if (ImGui::ImageButton((void*)resize_icon->gl_id, ImVec2(20, 20)))
+    		gizmo_type = ImGuizmo::SCALE;
+
+    	ImGui::PopFont();
+    	ImGui::Unindent(8.0f);
+    	ImGui::End();
 
 		// -- HIERARCHY --
 		ImGui::PushFont(font_title);

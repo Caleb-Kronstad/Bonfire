@@ -34,7 +34,14 @@ namespace Bonfire
 		new_shader_frag_path = "Assets/Resources/Shaders/unlit.frag";
 		new_shader_geom_path = "Assets/Resources/Shaders/unlit.geom";
 
-		background_color = RgbToGlmVec4(22, 22, 22, 1.0f);
+		move_icon = std::make_unique<Texture>("Assets/Resources/Textures/move-icon.png", TEXTURE_TYPE::DIFFUSE, false);
+		rotate_icon = std::make_unique<Texture>("Assets/Resources/Textures/rotate-icon.png", TEXTURE_TYPE::DIFFUSE, false);
+		resize_icon = std::make_unique<Texture>("Assets/Resources/Textures/resize-icon.png", TEXTURE_TYPE::DIFFUSE, false);
+		move_icon->Load();
+		rotate_icon->Load();
+		resize_icon->Load();
+
+		background_color = RgbaToGlmVec4(22, 22, 22);
 		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
 		
 		std::stringstream path_stream;
