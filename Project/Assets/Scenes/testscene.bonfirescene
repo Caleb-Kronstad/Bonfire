@@ -2,18 +2,18 @@
     "cameras": [
         {
             "id": 1100001,
-            "pitch": 1.8000178337097168,
+            "pitch": 3.500023365020752,
             "position": [
-                10.310569763183594,
-                1.985005497932434,
-                10.734663963317871
+                23.949426651000977,
+                1.5751875638961792,
+                14.580015182495117
             ],
             "up": [
                 0.0,
                 1.0,
                 0.0
             ],
-            "yaw": -130.3997344970703
+            "yaw": -143.19996643066406
         }
     ],
     "components": {
@@ -29,6 +29,11 @@
                 "shader-id": 1000
             },
             "100003": {
+                "enabled": true,
+                "param-id": 1002,
+                "shader-id": 1000
+            },
+            "100004": {
                 "enabled": true,
                 "param-id": 1002,
                 "shader-id": 1000
@@ -52,6 +57,10 @@
                 "param-ids": [
                     1002
                 ]
+            },
+            "200004": {
+                "enabled": true,
+                "param-ids": []
             }
         }
     },
@@ -114,7 +123,7 @@
             "enabled": true,
             "id": 1000003,
             "name": "Bald Dude",
-            "parent": 0,
+            "parent": 1000002,
             "position": [
                 0.0,
                 5.0,
@@ -127,6 +136,81 @@
             ],
             "scale": [
                 1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "components": {
+                "model_component": 100002,
+                "texture_component": 200002
+            },
+            "enabled": true,
+            "id": 1000004,
+            "name": "Sphere Object",
+            "parent": 1000001,
+            "position": [
+                0.0,
+                54.0,
+                -2.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.25,
+                5.0,
+                0.25
+            ]
+        },
+        {
+            "components": {
+                "model_component": 100003,
+                "texture_component": 200003
+            },
+            "enabled": true,
+            "id": 1000005,
+            "name": "Bald Dude",
+            "parent": 1000004,
+            "position": [
+                0.0,
+                5.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "components": {
+                "model_component": 100004,
+                "texture_component": 200004
+            },
+            "enabled": true,
+            "id": 1000006,
+            "name": "The Bald Guy 3",
+            "parent": 0,
+            "position": [
+                0.0,
+                -7.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                4.0,
                 1.0,
                 1.0
             ]

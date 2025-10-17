@@ -49,8 +49,7 @@ namespace Bonfire
 		// SCENE AND EDITOR LOADING
 		scene = std::make_unique<Scene>("Assets/Scenes/testscene.bonfirescene");
 		Load();
-		if (!scene->GetEntities().empty())
-			selected_entity = scene->GetEntities().begin()->second;
+		selected_entity = nullptr;
 		
 		for (auto& [shader_id, shader] : scene->GetShaders())
 		{
@@ -219,45 +218,157 @@ namespace Bonfire
 		}
 	}
 
-	void Renderer::RenderEntityTree(std::shared_ptr<Entity> entity)
+	void Renderer::DuplicateEntity(std::shared_ptr<Entity> entity)
 	{
-		Project& project = Project::GetInstance();
-		Interface& project_interface = project.GetInterface();
-		
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-
-		bool is_selected = (entity == selected_entity);
-
-		if (is_selected)
-			flags |= ImGuiTreeNodeFlags_Selected;
-
-		if (entity->children.empty())
-			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-
-		if (is_selected)
+	    std::function<uint32_t(std::shared_ptr<Entity>)> DuplicateRecursive;
+		DuplicateRecursive = [&](std::shared_ptr<Entity> ent) -> uint32_t
 		{
-			ImGui::PushStyleColor(ImGuiCol_Header, project_interface.highlight_primary);
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, project_interface.highlight_secondary);
-			ImGui::PushStyleColor(ImGuiCol_HeaderActive, project_interface.highlight_primary);
-		}
+			uint32_t next_entity_id = 1000001;
+			if (!scene->GetEntities().empty())
+			{
+				auto max_it = std::max_element(
+				  scene->GetEntities().begin(),
+				  scene->GetEntities().end(),
+				  [](const auto& a, const auto& b) { return a.first < b.first; }
+				);
+				next_entity_id = max_it->first + 1;
+			}
 
-		bool node_open = ImGui::TreeNodeEx(entity->name.c_str(), flags);
+			std::shared_ptr<Entity> duplicated = std::make_shared<Entity>(*ent);
+			duplicated->id = next_entity_id;
+			std::vector<uint32_t> original_children = duplicated->children;
+			duplicated->children.clear();
 
-		if (is_selected)
-			ImGui::PopStyleColor(3);
+			if (ent->HasComponent<ModelComponent>())
+			{
+				auto& original_component = ent->GetComponent<ModelComponent>();
 
-		if (ImGui::IsItemClicked())
-			selected_entity = entity;
+				uint32_t next_comp_id = 1;
+				if (!scene->GetModelComponents().empty())
+				{
+				  auto max_comp = std::max_element(
+				      scene->GetModelComponents().begin(),
+				      scene->GetModelComponents().end(),
+				      [](const auto& a, const auto& b) { return a.first < b.first; }
+				  );
+				  next_comp_id = max_comp->first + 1;
+				}
 
-		if (node_open && !entity->children.empty())
-		{
-			for (uint32_t child_id : entity->children)
+				std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(
+				  next_comp_id,
+				  original_component.enabled,
+				  original_component.model,
+				  original_component.shader
+				);
+
+				scene->GetModelComponents().insert_or_assign(next_comp_id, new_component);
+				duplicated->RemoveComponent(COMPONENT_TYPE::MODEL);
+				duplicated->AddComponent(COMPONENT_TYPE::MODEL, new_component);
+			}
+
+			if (ent->HasComponent<TextureComponent>())
+			{
+				auto& original_component = ent->GetComponent<TextureComponent>();
+
+				uint32_t next_comp_id = 1;
+				if (!scene->GetTextureComponents().empty())
+				{
+					auto max_comp = std::max_element(
+						scene->GetTextureComponents().begin(),
+						scene->GetTextureComponents().end(),
+						[](const auto& a, const auto& b) { return a.first < b.first; }
+						);
+					next_comp_id = max_comp->first + 1;
+				}
+
+				std::shared_ptr<TextureComponent> new_component = std::make_shared<TextureComponent>(
+					next_comp_id,
+					original_component.enabled,
+					original_component.textures
+				);
+
+				scene->GetTextureComponents().insert_or_assign(next_comp_id, new_component);
+				duplicated->RemoveComponent(COMPONENT_TYPE::TEXTURE);
+				duplicated->AddComponent(COMPONENT_TYPE::TEXTURE, new_component);
+			}
+
+			scene->GetEntities().insert_or_assign(next_entity_id, duplicated);
+
+			for (uint32_t child_id : original_children)
 			{
 				if (scene->GetEntities().contains(child_id))
-					RenderEntityTree(scene->GetEntities()[child_id]);
+				{
+					uint32_t new_child_id = DuplicateRecursive(scene->GetEntities()[child_id]);
+					duplicated->children.push_back(new_child_id);
+					scene->GetEntities()[new_child_id]->parent = next_entity_id;
+				}
 			}
-			ImGui::TreePop();
+
+			return next_entity_id;
+		};
+
+		uint32_t original_parent = entity->parent;
+		bool original_is_root = entity->IsRoot();
+		uint32_t new_root_id = DuplicateRecursive(entity);
+
+		scene->GetEntities()[new_root_id]->parent = original_parent;
+
+		if (!original_is_root && scene->GetEntities().contains(original_parent))
+			scene->GetEntities()[original_parent]->children.push_back(new_root_id);
+
+		selected_entity = scene->GetEntities()[new_root_id];
+	}
+
+	void Renderer::DeleteEntity(std::shared_ptr<Entity> entity)
+	{
+		std::function<void(std::shared_ptr<Entity>)> DeleteRecursive;
+		DeleteRecursive = [&](std::shared_ptr<Entity> ent)
+		{
+			std::vector<uint32_t> children_copy = ent->children;
+			for (uint32_t child_id : children_copy)
+			{
+				if (scene->GetEntities().contains(child_id))
+				{
+					DeleteRecursive(scene->GetEntities()[child_id]);
+				}
+			}
+
+			if (ent->HasComponent<ModelComponent>())
+			{
+				auto& model_component = ent->GetComponent<ModelComponent>();
+				scene->GetModelComponents().erase(model_component.id);
+			}
+			if (ent->HasComponent<TextureComponent>())
+			{
+				auto& texture_component = ent->GetComponent<TextureComponent>();
+				scene->GetTextureComponents().erase(texture_component.id);
+			}
+			if (ent->HasComponent<PhysicsComponent>())
+			{
+				auto& physics_component = ent->GetComponent<PhysicsComponent>();
+				// delete physics component
+			}
+			if (ent->HasComponent<AnimationComponent>())
+			{
+				auto& animation_component = ent->GetComponent<AnimationComponent>();
+				// delete animation component
+			}
+
+			if (selected_entity == ent)
+				selected_entity = nullptr;
+
+			scene->GetEntities().erase(ent->id);
+		};
+
+		if (!entity->IsRoot() && scene->GetEntities().contains(entity->parent))
+		{
+			scene->GetEntities()[entity->parent]->RemoveChild(entity->id);
 		}
+
+		DeleteRecursive(entity);
+
+		if (selected_entity == nullptr && !scene->GetEntities().empty())
+			selected_entity = scene->GetEntities().begin()->second;
 	}
 
 	bool Renderer::Load()
@@ -273,10 +384,11 @@ namespace Bonfire
 		return scene_saved || params_saved;
 	}
 	
-	void Renderer::DrawActiveTitleLine(const ImVec4& color, float thickness)
+	void Renderer::DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness)
 	{
+		ImVec4 color = active_color;
 		if (!ImGui::IsWindowFocused())
-			return;
+			color = inactive_color;
 
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImDrawList* draw_list = ImGui::GetForegroundDrawList();

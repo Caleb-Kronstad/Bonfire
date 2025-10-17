@@ -12,11 +12,12 @@ namespace Bonfire
 		Interface& project_interface = project.GetInterface();
 		Window& project_window = project.GetWindow();
 		ImVec4& highlight_color = project_interface.highlight_primary;
+    	ImVec4& inactive_color = project_interface.background_tertiary;
 		
 		// -- VIEWPORT --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Viewport");
-		DrawActiveTitleLine(highlight_color);
+		DrawActiveTitleLine(highlight_color, inactive_color);
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
 			ImGui::SetWindowFocus();
@@ -43,7 +44,7 @@ namespace Bonfire
 		// -- PROJECT SETTINGS --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Project Settings", nullptr);
-		DrawActiveTitleLine(highlight_color);
+		DrawActiveTitleLine(highlight_color, inactive_color);
 		ImGui::Indent(8.0f); // Add left padding for content
 		ImGui::Spacing(); // Add top spacing
 		ImGui::PopFont();
@@ -63,7 +64,7 @@ namespace Bonfire
 		// -- CONSOLE --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Console", nullptr);
-		DrawActiveTitleLine(highlight_color);
+		DrawActiveTitleLine(highlight_color, inactive_color);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
@@ -85,7 +86,7 @@ namespace Bonfire
 		// -- HIERARCHY --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Hierarchy", nullptr);
-		DrawActiveTitleLine(highlight_color);
+		DrawActiveTitleLine(highlight_color, inactive_color);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
@@ -121,229 +122,262 @@ namespace Bonfire
 		ImGui::Unindent(8.0f);
 		ImGui::End();
 
+    	if (entity_to_delete != nullptr)
+    	{
+    		DeleteEntity(entity_to_delete);
+    		entity_to_delete = nullptr;
+    	}
+
 		// -- DETAILS --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Details", nullptr);
-		DrawActiveTitleLine(highlight_color);
+		DrawActiveTitleLine(highlight_color, inactive_color);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
 		ImGui::PushFont(font_body);
 		
-		ImGui::SetNextItemWidth(-1.0f);
-		ImGui::InputText(" ", &selected_entity->name);
+    	if (selected_entity == nullptr)
+    	{
+    		ImGui::Text("No Entity Selected");
+    	}
+    	else
+    	{
+    		ImGui::SetNextItemWidth(200.0f);
+    		ImGui::InputText(" ", &selected_entity->name);
+    		ImGui::SameLine();
+    		ImGui::Text(std::to_string(selected_entity->id).c_str());
 		
-		ImGui::Separator();
-		ImGui::Text("Transform");
-		ImGui::Spacing();
+    		ImGui::Separator();
+    		ImGui::Text("Transform");
+    		ImGui::Spacing();
 		
-		ImGui::PushItemWidth(200.0f);
-		ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000);
-		ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000);
-		ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360);
-		ImGui::PopItemWidth();
-
-		// MODEL COMPONENT
-		if (selected_entity->HasComponent<ModelComponent>())
-		{
-			ImGui::Separator();
-			ImGui::Text("Model Component");
-			ImGui::Spacing();
-			
-			ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
-
-			const char* preview_value = model_component.model->name.c_str();
-			if (ImGui::BeginCombo("Model", preview_value))
+    		ImGui::PushItemWidth(200.0f);
+    		ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000);
+    		ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000);
+    		ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360);
+    		ImGui::PopItemWidth();
+    		
+			// MODEL COMPONENT
+    		if (selected_entity->HasComponent<ModelComponent>())
 			{
-				for (auto& [model_id, scene_model] : scene->GetModels())
+				ImGui::Separator();
+				ImGui::Text("Model Component");
+				ImGui::Spacing();
+				
+				ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+
+				const char* preview_value = model_component.model->name.c_str();
+				if (ImGui::BeginCombo("Model", preview_value))
 				{
-					ImGui::PushID(&scene_model);
-					
-					bool is_selected = (model_component.model->param_id == model_id);
-
-					if (ImGui::Selectable(scene_model->name.c_str(), is_selected))
+					for (auto& [model_id, scene_model] : scene->GetModels())
 					{
-						model_component.model = scene_model;
-					}
+						ImGui::PushID(&scene_model);
+						
+						bool is_selected = (model_component.model->param_id == model_id);
 
-					if (is_selected)
-						ImGui::SetItemDefaultFocus();
-
-					ImGui::PopID();
-				}
-				ImGui::EndCombo();
-			}
-
-			preview_value = model_component.shader->name.c_str();
-			if (ImGui::BeginCombo("Shader", preview_value))
-			{
-				for (auto& [shader_id, scene_shader] : scene->GetShaders())
-				{
-					ImGui::PushID(&scene_shader);
-					
-					bool is_selected = (model_component.shader->param_id == shader_id);
-
-					if (ImGui::Selectable(scene_shader->name.c_str(), is_selected))
-					{
-						model_component.shader = scene_shader;
-					}
-
-					if (is_selected)
-						ImGui::SetItemDefaultFocus();
-
-					ImGui::PopID();
-				}
-				ImGui::EndCombo();
-			}
-
-			ImGui::Spacing();
-		}
-
-		// TEXTURE COMPONENT
-		if (selected_entity->HasComponent<TextureComponent>())
-		{
-			ImGui::Separator();
-			ImGui::Text("Texture Component");
-			ImGui::Spacing();
-			
-			TextureComponent& texture_component = selected_entity->GetComponent<TextureComponent>();
-			for (int i = texture_component.textures.size() - 1; i >= 0; i--)
-			{
-				auto& texture = texture_component.textures[i];
-				ImGui::PushID(i);
-
-				const char* preview_value = texture->name.c_str();
-				if (ImGui::BeginCombo("##", preview_value))
-				{
-					for (auto& [texture_id, scene_texture] : scene->GetTextures())
-					{
-						bool is_selected = (texture == scene_texture);
-
-						if (ImGui::Selectable(scene_texture->name.c_str(), is_selected))
+						if (ImGui::Selectable(scene_model->name.c_str(), is_selected))
 						{
-							texture = scene_texture;
+							model_component.model = scene_model;
 						}
 
 						if (is_selected)
 							ImGui::SetItemDefaultFocus();
+
+						ImGui::PopID();
 					}
 					ImGui::EndCombo();
 				}
 
-				ImGui::SameLine();
-
-				if (ImGui::Button("-"))
+				preview_value = model_component.shader->name.c_str();
+				if (ImGui::BeginCombo("Shader", preview_value))
 				{
-					texture_component.RemoveTexture(texture);
+					for (auto& [shader_id, scene_shader] : scene->GetShaders())
+					{
+						ImGui::PushID(&scene_shader);
+						
+						bool is_selected = (model_component.shader->param_id == shader_id);
+
+						if (ImGui::Selectable(scene_shader->name.c_str(), is_selected))
+						{
+							model_component.shader = scene_shader;
+						}
+
+						if (is_selected)
+							ImGui::SetItemDefaultFocus();
+
+						ImGui::PopID();
+					}
+					ImGui::EndCombo();
 				}
 
-				ImGui::PopID();
+				ImGui::Spacing();
 			}
 
-			ImGui::Spacing();
-
-			if (ImGui::Button("+"))
+			// TEXTURE COMPONENT
+			if (selected_entity->HasComponent<TextureComponent>())
 			{
-				texture_component.AddTexture(scene->GetTextures().begin()->second);
-			}
-			
-			ImGui::Spacing();
-		}
-
-		// PHYSICS COMPONENT
-		if (selected_entity->HasComponent<PhysicsComponent>())
-		{
-			
-		}
-
-		// ANIMATION COMPONENT
-		if (selected_entity->HasComponent<PhysicsComponent>())
-		{
-			
-		}
-
-		ImGui::Separator();
-
-		// ADD COMPONENT
-		ImGui::PushID("##NEWCOMPONENT");
-		ImGui::PushStyleColor(ImGuiCol_Button, project_interface.background_secondary);
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, project_interface.highlight_secondary);
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, project_interface.highlight_primary);
-		if (ImGui::BeginCombo(" ", "Add Component"))
-		{
-			if (ImGui::Button("Model Component"))
-			{
-				if (!selected_entity->HasComponent<ModelComponent>())
+				ImGui::Separator();
+				ImGui::Text("Texture Component");
+				ImGui::Spacing();
+				
+				TextureComponent& texture_component = selected_entity->GetComponent<TextureComponent>();
+				for (int i = texture_component.textures.size() - 1; i >= 0; i--)
 				{
-					uint32_t next_id = 1;
-					if (!scene->GetModelComponents().empty())
+					auto& texture = texture_component.textures[i];
+					ImGui::PushID(i);
+
+					const char* preview_value = texture->name.c_str();
+					if (ImGui::BeginCombo("##", preview_value))
 					{
-						auto max_it = std::max_element(
-							scene->GetModelComponents().begin(),
-							scene->GetModelComponents().end(),
-							[](const auto& a, const auto& b) { return a.first < b.first; }
-							);
-						next_id = max_it->first + 1;
+						for (auto& [texture_id, scene_texture] : scene->GetTextures())
+						{
+							bool is_selected = (texture == scene_texture);
+
+							if (ImGui::Selectable(scene_texture->name.c_str(), is_selected))
+							{
+								texture = scene_texture;
+							}
+
+							if (is_selected)
+								ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
 					}
 
-					if (!scene->GetModels().empty())
-					{
-						std::shared_ptr<Model> default_model = scene->GetModels().begin()->second;
-						std::shared_ptr<Shader> default_shader = scene->GetShaders().begin()->second;
-						std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader);
+					ImGui::SameLine();
 
-						scene->GetModelComponents().insert_or_assign(next_id, new_component);
-						selected_entity->AddComponent(COMPONENT_TYPE::MODEL, new_component);
+					if (ImGui::Button("-"))
+					{
+						texture_component.RemoveTexture(texture);
+					}
+
+					ImGui::PopID();
+				}
+
+				ImGui::Spacing();
+
+				if (ImGui::Button("+"))
+				{
+					texture_component.AddTexture(scene->GetTextures().begin()->second);
+				}
+				
+				ImGui::Spacing();
+			}
+
+			// PHYSICS COMPONENT
+			if (selected_entity->HasComponent<PhysicsComponent>())
+			{
+				
+			}
+
+			// ANIMATION COMPONENT
+			if (selected_entity->HasComponent<PhysicsComponent>())
+			{
+				
+			}
+
+			ImGui::Separator();
+
+			// ADD COMPONENT
+			ImGui::PushID("##NEWCOMPONENT");
+		
+			if (ImGui::Button("Add Component"))
+				ImGui::OpenPopup("AddComponentPopup");
+
+    		if (ImGui::BeginPopup("AddComponentPopup"))
+    		{
+				if (ImGui::MenuItem("Model Component"))
+				{
+					if (!selected_entity->HasComponent<ModelComponent>())
+					{
+						uint32_t next_id = 1;
+						if (!scene->GetModelComponents().empty())
+						{
+							auto max_it = std::max_element(
+								scene->GetModelComponents().begin(),
+								scene->GetModelComponents().end(),
+								[](const auto& a, const auto& b) { return a.first < b.first; }
+								);
+							next_id = max_it->first + 1;
+						}
+
+						if (!scene->GetModels().empty())
+						{
+							std::shared_ptr<Model> default_model = scene->GetModels().begin()->second;
+							std::shared_ptr<Shader> default_shader = scene->GetShaders().begin()->second;
+							std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader);
+
+							scene->GetModelComponents().insert_or_assign(next_id, new_component);
+							selected_entity->AddComponent(COMPONENT_TYPE::MODEL, new_component);
+						}
+						else
+							Log::Warning("No models available");
 					}
 					else
-						Log::Warning("No models available");
-				}
-				else
-					Log::Warning("Entity already has a Model Component");
-				ImGui::CloseCurrentPopup();
-			}
-
-			if (ImGui::Button("Texture Component"))
-			{
-				if (!selected_entity->HasComponent<TextureComponent>())
-				{
-					uint32_t next_id = 1;
-					if (!scene->GetTextureComponents().empty())
 					{
-						auto max_it = std::max_element(
-							scene->GetTextureComponents().begin(),
-							scene->GetTextureComponents().end(),
-							[](const auto& a, const auto& b) { return a.first < b.first; }
-							);
-						next_id = max_it->first + 1;
+						Log::Warning("Entity already has model component");
+						ImGui::CloseCurrentPopup();
 					}
-
-					std::shared_ptr<TextureComponent> new_component = std::make_shared<TextureComponent>(next_id, true, std::vector<std::shared_ptr<Texture>>());
-
-					scene->GetTextureComponents().insert_or_assign(next_id, new_component);
-					selected_entity->AddComponent(COMPONENT_TYPE::TEXTURE, new_component);
 				}
-				else
-					Log::Warning("Entity already has a Texture Component");
-				ImGui::CloseCurrentPopup();
-			}
 
-			if (ImGui::Button("Physics Component"))
-			{
-				Log::Warning("Physics component not yet implemented");
-				ImGui::CloseCurrentPopup();
-			}
+    			if (ImGui::MenuItem("Texture Component"))
+    			{
+    				if (!selected_entity->HasComponent<TextureComponent>())
+    				{
+    					uint32_t next_id = 1;
+    					if (!scene->GetTextureComponents().empty())
+    					{
+    						auto max_it = std::max_element(
+								scene->GetTextureComponents().begin(),
+								scene->GetTextureComponents().end(),
+								[](const auto& a, const auto& b) { return a.first < b.first; }
+								);
+    						next_id = max_it->first + 1;
+    					}
 
-			if (ImGui::Button("Animation Component"))
-			{
-				Log::Warning("Physics component not yet implemented");
-				ImGui::CloseCurrentPopup();
-			}
+    					std::shared_ptr<TextureComponent> new_component = std::make_shared<TextureComponent>(next_id, true, std::vector<std::shared_ptr<Texture>>());
 
-			ImGui::EndCombo();
-		}
-		ImGui::PopStyleColor(3);
-		ImGui::PopID();
+    					scene->GetTextureComponents().insert_or_assign(next_id, new_component);
+    					selected_entity->AddComponent(COMPONENT_TYPE::TEXTURE, new_component);
+    				}
+    				else
+    				{
+						Log::Warning("Entity already has texture component");
+    					ImGui::CloseCurrentPopup();
+    				}
+    			}
+
+    			if (ImGui::MenuItem("Physics Component"))
+    			{
+    				if (!selected_entity->HasComponent<PhysicsComponent>())
+    				{
+						Log::Warning("Physics component not yet implemented");
+    				}
+    				else
+    				{
+    					Log::Warning("Entity already has physics component");
+    					ImGui::CloseCurrentPopup();
+    				}
+    			}
+
+    			if (ImGui::MenuItem("Animation Component"))
+    			{
+    				if (!selected_entity->HasComponent<AnimationComponent>())
+    				{
+						Log::Warning("Animation component not yet implemented");
+    				}
+    				else
+    				{
+    					Log::Warning("Entity already has animation component");
+    					ImGui::CloseCurrentPopup();
+    				}
+    			}
+    			ImGui::EndPopup();
+    		}
+    	
+			ImGui::PopID();
+    	}
 		
 		ImGui::PopFont();
 		ImGui::Unindent(8.0f);
@@ -352,7 +386,7 @@ namespace Bonfire
 		// -- PARAM EDITOR --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Param Editor", nullptr);
-		DrawActiveTitleLine(highlight_color);
+		DrawActiveTitleLine(highlight_color, inactive_color);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
@@ -438,7 +472,7 @@ namespace Bonfire
 						param_database->model_params[next_id] = ModelParamData(model_name, new_model_path);
 					}
 					else
-						Log::Warning("File operation cancelled");
+						Log::Info("File operation cancelled");
 				}
 				
 		        ImGui::EndTabItem();
@@ -538,7 +572,7 @@ namespace Bonfire
 		    			param_database->texture_params[next_id] = TextureParamData(texture_name, TEXTURE_TYPE::DIFFUSE, false, new_texture_path);
 		    		}
 		    		else
-		    			Log::Warning("File operation cancelled");
+		    			Log::Info("File operation cancelled");
 		    	}
 		    	
 		        ImGui::EndTabItem();
@@ -569,5 +603,64 @@ namespace Bonfire
 		ImGui::Unindent(8.0f);
 		ImGui::End();
 	}
+
+	void Renderer::RenderEntityTree(std::shared_ptr<Entity> entity)
+    {
+    	ImGui::PushID(&entity->id);
+    	
+    	Project& project = Project::GetInstance();
+    	Interface& project_interface = project.GetInterface();
+		
+    	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+    	bool is_selected = (entity == selected_entity);
+
+    	if (is_selected)
+    		flags |= ImGuiTreeNodeFlags_Selected;
+
+    	if (entity->children.empty())
+    		flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+    	if (is_selected)
+    	{
+    		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.highlight_primary);
+    		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, project_interface.highlight_secondary);
+    		ImGui::PushStyleColor(ImGuiCol_HeaderActive, project_interface.highlight_primary);
+    	}
+
+    	bool node_open = ImGui::TreeNodeEx(entity->name.c_str(), flags);
+
+    	if (is_selected)
+    		ImGui::PopStyleColor(3);
+
+    	if (ImGui::IsItemClicked())
+    		selected_entity = entity;
+
+    	if (ImGui::BeginPopupContextItem())
+    	{
+    		if (ImGui::MenuItem("Duplicate"))
+    		{
+    			DuplicateEntity(entity);
+    			ImGui::CloseCurrentPopup();
+    		}
+    		if (ImGui::MenuItem("Delete"))
+    		{
+    			entity_to_delete = entity;
+    			ImGui::CloseCurrentPopup();
+    		}
+    		ImGui::EndPopup();	
+    	}
+
+    	if (node_open && !entity->children.empty())
+    	{
+    		for (uint32_t child_id : entity->children)
+    		{
+    			if (scene->GetEntities().contains(child_id))
+    				RenderEntityTree(scene->GetEntities()[child_id]);
+    		}
+    		ImGui::TreePop();
+    	}
+    	ImGui::PopID();
+    }
 
 }

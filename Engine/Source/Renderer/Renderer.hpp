@@ -32,8 +32,10 @@ namespace Bonfire
 		bool Load();
 		bool Save();
 
-		void DrawActiveTitleLine(const ImVec4& color, float thickness = 3.0f);
+		void DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness = 3.0f);
 		void RenderEntityTree(std::shared_ptr<Entity> entity);
+		void DuplicateEntity(std::shared_ptr<Entity> entity);
+		void DeleteEntity(std::shared_ptr<Entity> entity);
 
 	private:
 		std::string project_path;
@@ -45,6 +47,7 @@ namespace Bonfire
 		// scene
 		std::unique_ptr<Scene> scene;
 		std::shared_ptr<Entity> selected_entity;
+		std::shared_ptr<Entity> entity_to_delete;
 		std::unique_ptr<ParamDatabase> param_database;
 		std::string new_model_path;
 		std::string new_texture_path;

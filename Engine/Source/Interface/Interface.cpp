@@ -147,7 +147,7 @@ namespace Bonfire
 		
 		colors[ImGuiCol_Text] = text_primary;
 		colors[ImGuiCol_WindowBg] = background_primary;
-		colors[ImGuiCol_Border] = background_primary;
+		colors[ImGuiCol_Border] = background_tertiary;
 		colors[ImGuiCol_FrameBg] = background_secondary;
 		colors[ImGuiCol_FrameBgHovered] = highlight_primary;
 		colors[ImGuiCol_FrameBgActive] = highlight_secondary;
@@ -177,6 +177,8 @@ namespace Bonfire
 		colors[ImGuiCol_TabUnfocusedActive] = background_primary;
 		colors[ImGuiCol_DockingPreview] = highlight_primary;
 		colors[ImGuiCol_DockingEmptyBg] = background_secondary;
+		colors[ImGuiCol_PlotHistogram] = highlight_primary;
+		colors[ImGuiCol_PlotHistogramHovered] = highlight_secondary;
 		
 		style->WindowRounding = 0.0f;
 		style->FrameRounding = 0.0f;

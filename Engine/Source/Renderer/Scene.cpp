@@ -192,6 +192,7 @@ namespace Bonfire
             nlohmann::json model_json;
             model_json["enabled"] = model_component->enabled;
             model_json["param-id"] = model_component->model->param_id;
+            model_json["shader-id"] = model_component->shader->param_id;
             models_json[std::to_string(id)] = model_json;
         }
         if (!models_json.empty())
