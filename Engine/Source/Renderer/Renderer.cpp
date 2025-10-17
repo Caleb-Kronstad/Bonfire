@@ -377,6 +377,57 @@ namespace Bonfire
 		if (selected_entity == nullptr && !scene->GetEntities().empty())
 			selected_entity = scene->GetEntities().begin()->second;
 	}
+	
+	bool Renderer::IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent)
+	{
+		if (potential_parent == nullptr)
+			return false;
+		if (potential_parent == potential_child)
+			return true;
+
+		for (uint32_t child_id : potential_child->children)
+		{
+			if (scene->GetEntities().contains(child_id))
+			{
+				if (IsDescendentOf(scene->GetEntities().at(child_id), potential_parent))
+					return true;
+			}
+		}
+
+		return false;
+	}
+	void Renderer::ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent)
+	{
+		glm::mat4 world_transform = entity->GetWorldTransformMatrix(scene->GetEntities());
+		
+		if (!entity->IsRoot() && scene->GetEntities().contains(entity->parent))
+			scene->GetEntities().at(entity->parent)->RemoveChild(entity->id);
+
+		if (new_parent != nullptr)
+		{
+			entity->parent = new_parent->id;
+			new_parent->AddChild(entity->id);
+
+			glm::mat4 parent_world_transform = new_parent->GetWorldTransformMatrix(scene->GetEntities());
+			glm::mat4 new_local_transform = glm::inverse(parent_world_transform) * world_transform;
+
+			glm::vec3 translation, rotation, scale;
+			DecomposeTransform(new_local_transform, translation, rotation, scale);
+			entity->position = translation;
+			entity->rotation = glm::degrees(rotation);
+			entity->scale = scale;
+		}
+		else
+		{
+			entity->parent = 0;
+
+			glm::vec3 translation, rotation, scale;
+			DecomposeTransform(world_transform, translation, rotation, scale);
+			entity->position = translation;
+			entity->rotation = glm::degrees(rotation);
+			entity->scale = scale;
+		}
+	}
 
 	bool Renderer::Load()
 	{

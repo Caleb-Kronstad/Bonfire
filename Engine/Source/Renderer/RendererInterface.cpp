@@ -207,7 +207,35 @@ namespace Bonfire
 				RenderEntityTree(entity);
 		}
 
-		if (ImGui::Button("+"))
+    	ImGui::Spacing();
+
+    	float available_width = ImGui::GetContentRegionAvail().x;
+    	float button_width = available_width * 0.9f;
+    	float indent = (available_width - button_width) * 0.5f;
+    	
+    	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
+    	ImGui::PushStyleColor(ImGuiCol_Button, project_interface.background_primary);
+    	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, project_interface.background_primary);
+    	ImGui::PushStyleColor(ImGuiCol_ButtonActive, project_interface.background_primary);
+    	ImGui::Button("##MoveButton", ImVec2(button_width, 10.0f));
+
+    	if (ImGui::BeginDragDropTarget())
+    	{
+    		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_NODE"))
+    		{
+    			uint32_t dragged_entity_id = *(const uint32_t*)payload->Data;
+    			if (scene->GetEntities().contains(dragged_entity_id))
+    			{
+    				std::shared_ptr<Entity> dragged_entity = scene->GetEntities().at(dragged_entity_id);
+    				entity_to_reparent = dragged_entity;
+    				reparent_target = nullptr;
+    			}
+    		}
+    		ImGui::EndDragDropTarget();
+    	}
+    	ImGui::PopStyleColor(3);
+
+		/*if (ImGui::Button("+"))
 		{
 			uint32_t next_id = 1000001;
 			if (!scene->GetEntities().empty())
@@ -223,7 +251,7 @@ namespace Bonfire
 			std::shared_ptr<Entity> new_entity = std::make_shared<Entity>(next_id, true, "New Entity");
 			scene->GetEntities().insert_or_assign(next_id, new_entity);
 			selected_entity = new_entity;
-		}
+		}*/
 		
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
@@ -234,6 +262,13 @@ namespace Bonfire
     	{
     		DeleteEntity(entity_to_delete);
     		entity_to_delete = nullptr;
+    	}
+
+    	if (entity_to_reparent != nullptr)
+    	{
+    		ReparentEntity(entity_to_reparent, reparent_target);
+    		entity_to_reparent = nullptr;
+    		reparent_target = nullptr;
     	}
 
 		// -- DETAILS --
@@ -743,6 +778,32 @@ namespace Bonfire
 
     	if (ImGui::IsItemClicked())
     		selected_entity = entity;
+
+    	if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+    	{
+    		ImGui::SetDragDropPayload("ENTITY_NODE", &entity->id, sizeof(uint32_t));
+    		ImGui::EndDragDropSource();
+    	}
+
+    	if (ImGui::BeginDragDropTarget())
+    	{
+    		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_NODE"))
+    		{
+    			uint32_t dragged_entity_id = *(const uint32_t*)payload->Data;
+
+    			if (scene->GetEntities().contains(dragged_entity_id))
+    			{
+    				std::shared_ptr<Entity> dragged_entity = scene->GetEntities().at(dragged_entity_id);
+
+    				if (dragged_entity->id != entity->id && !IsDescendentOf(dragged_entity, entity))
+    				{
+    					entity_to_reparent = dragged_entity;
+    					reparent_target = entity;
+    				}
+    			}
+    		}
+    		ImGui::EndDragDropTarget();
+    	}
 
     	if (ImGui::BeginPopupContextItem())
     	{

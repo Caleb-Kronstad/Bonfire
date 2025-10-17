@@ -37,6 +37,8 @@ namespace Bonfire
 		void RenderEntityTree(std::shared_ptr<Entity> entity);
 		void DuplicateEntity(std::shared_ptr<Entity> entity);
 		void DeleteEntity(std::shared_ptr<Entity> entity);
+		bool IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent);
+		void ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent);
 
 	private:
 		std::string project_path;
@@ -49,6 +51,8 @@ namespace Bonfire
 		std::unique_ptr<Scene> scene;
 		std::shared_ptr<Entity> selected_entity;
 		std::shared_ptr<Entity> entity_to_delete;
+		std::shared_ptr<Entity> entity_to_reparent;
+		std::shared_ptr<Entity> reparent_target;
 		std::unique_ptr<ParamDatabase> param_database;
 		std::string new_model_path;
 		std::string new_texture_path;
