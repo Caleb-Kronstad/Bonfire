@@ -13,6 +13,8 @@ namespace Bonfire
 	glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha = 1.0f);
 	glm::vec4 RgbaToGlmVec4(unsigned int r, unsigned int g, unsigned int b, unsigned int a = 255);
 	std::vector<std::filesystem::path> GetFilesInDirectory(const std::string& path);
+	bool FloatEquals(float a, float b, float epsilon = 1e-9);
+	bool DoubleEquals(double a, double b, double epsilon = 1e-9);
 
 	// yoinked from charno https://github.com/TheCherno/Hazel/blob/master/Hazel/src/Hazel/Math/Math.cpp
 	bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);

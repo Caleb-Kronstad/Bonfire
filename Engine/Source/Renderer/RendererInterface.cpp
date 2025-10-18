@@ -27,7 +27,7 @@ namespace Bonfire
 		viewport_focused = ImGui::IsWindowFocused();
 		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
 		
-		if (viewport_panel_size.x != viewport_size.x || viewport_panel_size.y != viewport_size.y)
+		if (!FloatEquals(viewport_panel_size.x, viewport_size.x) || !FloatEquals(viewport_panel_size.y, viewport_size.y))
 		{
 			if (viewport_panel_size.x > 0 && viewport_panel_size.y > 0)
 			{
@@ -234,24 +234,6 @@ namespace Bonfire
     		ImGui::EndDragDropTarget();
     	}
     	ImGui::PopStyleColor(3);
-
-		/*if (ImGui::Button("+"))
-		{
-			uint32_t next_id = 1000001;
-			if (!scene->GetEntities().empty())
-			{
-				auto max_it = std::max_element(
-					scene->GetEntities().begin(),
-					scene->GetEntities().end(),
-					[](const auto& a, const auto& b) { return a.first < b.first; }
-					);
-				next_id = max_it->first+1;
-			}
-
-			std::shared_ptr<Entity> new_entity = std::make_shared<Entity>(next_id, true, "New Entity");
-			scene->GetEntities().insert_or_assign(next_id, new_entity);
-			selected_entity = new_entity;
-		}*/
 		
 		ImGui::PopStyleColor();
 		ImGui::PopFont();

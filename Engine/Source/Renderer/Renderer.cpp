@@ -22,7 +22,6 @@ namespace Bonfire
 		
 		console_capture = std::make_unique<ConsoleCapture>();
 		console_capture->StartCapture();
-		//console_capture->StopCapture(); // uncomment if editor console is not running properly
 		
 		manipulation_matrix = glm::mat4(1.0f);
 		engine_camera_can_rotate = false;
@@ -56,7 +55,6 @@ namespace Bonfire
 		// SCENE AND EDITOR LOADING
 		scene = std::make_unique<Scene>("Assets/Scenes/testscene.bonfirescene");
 		Load();
-		selected_entity = nullptr;
 		
 		for (auto& [shader_id, shader] : scene->GetShaders())
 		{
@@ -104,6 +102,10 @@ namespace Bonfire
 		{
 			entity->Draw(scene->GetShaders(), scene->GetEntities(), manipulation_matrix, view, projection);
 		}
+
+		projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_size.x, viewport_size.y);
+		view = scene->GetEngineCamera()->GetViewMatrix();
+		scene->GetSkybox()->Draw(view, projection);
 
 		viewport_framebuffer->Unbind();
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
@@ -433,6 +435,7 @@ namespace Bonfire
 	{
 		bool params_loaded = param_database->LoadParams();
 		bool scene_loaded = scene->LoadScene(*param_database);
+		selected_entity = nullptr;
 		return scene_loaded || params_loaded;
 	}
 	bool Renderer::Save()

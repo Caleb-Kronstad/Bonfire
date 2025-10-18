@@ -19,7 +19,7 @@ namespace Bonfire
         void Draw(Shader& shader, const std::vector<std::shared_ptr<Texture>>& textures);
 
     private:
-        void SetupMesh();
+        void Setup();
 
     public:
         GLuint vertex_buffer, element_buffer, vertex_array;

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Entity.hpp"
+#include "Skybox.hpp"
 #include "Camera.hpp"
 
 namespace Bonfire
@@ -8,7 +9,7 @@ namespace Bonfire
     class Scene
     {
     public:
-        Scene(const std::string& path) : path(path) { engine_camera = std::make_unique<Camera>(); }
+        Scene(const std::string& path) : path(path) {}
 
         bool LoadScene(ParamDatabase& param_database);
         bool SaveScene(ParamDatabase& param_database);
@@ -20,6 +21,7 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<ModelComponent>>& GetModelComponents() { return model_components; }
         std::unordered_map<uint32_t, std::shared_ptr<TextureComponent>>& GetTextureComponents() { return texture_components; }
         std::unique_ptr<Camera>& GetEngineCamera() { return engine_camera; }
+        std::unique_ptr<Skybox>& GetSkybox() { return skybox; }
 
     private:
         std::string path;
@@ -30,5 +32,6 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<ModelComponent>> model_components;
         std::unordered_map<uint32_t, std::shared_ptr<TextureComponent>> texture_components;
         std::unique_ptr<Camera> engine_camera;
+        std::unique_ptr<Skybox> skybox;
     };
 }

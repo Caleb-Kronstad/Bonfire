@@ -4,21 +4,29 @@
 namespace Bonfire
 {
     ConsoleBuffer::ConsoleBuffer(std::vector<std::string>& lines, std::mutex& mutex)
-        : lines(lines), mutex(mutex), current_line("")
+        : lines(lines), mutex(mutex), current_line(""), original_buffer(nullptr)
     {
+    }
+
+    void ConsoleBuffer::SetOriginalBuffer(std::streambuf* buf)
+    {
+        original_buffer = buf;
     }
 
     std::streambuf::int_type ConsoleBuffer::overflow(int_type c)
     {
         if (c != EOF)
         {
+            if (original_buffer)
+            {
+                original_buffer->sputc(c);
+            }
             if (c == '\n')
             {
                 std::lock_guard<std::mutex> lock(mutex);
                 lines.push_back(current_line);
                 current_line.clear();
                 
-                // Limit buffer size (keep last 1000 lines)
                 if (lines.size() > 1000)
                 {
                     lines.erase(lines.begin());
@@ -47,7 +55,10 @@ namespace Bonfire
         if (!old_cout_buffer)
         {
             old_cout_buffer = std::cout.rdbuf(&buffer);
+            buffer.SetOriginalBuffer(old_cout_buffer);
+            std::cout.rdbuf(&buffer);
             old_cerr_buffer = std::cerr.rdbuf(&buffer);
+            std::cerr.rdbuf(&buffer);
         }
     }
 

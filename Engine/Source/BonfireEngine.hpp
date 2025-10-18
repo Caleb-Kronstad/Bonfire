@@ -22,6 +22,7 @@
 // Renderer
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Shader.hpp"
+#include "Renderer/Skybox.hpp"
 #include "Renderer/Ray.hpp"
 #include "Renderer/Camera.hpp"
 #include "Renderer/Texture.hpp"

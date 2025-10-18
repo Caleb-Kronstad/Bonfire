@@ -6,7 +6,7 @@ namespace Bonfire
     Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices)
 	    : vertices(vertices), indices(indices)
     {
-        SetupMesh();
+        Setup();
     }
 
     void Mesh::Draw(Shader& shader, const std::vector<std::shared_ptr<Texture>>& textures)
@@ -54,7 +54,7 @@ namespace Bonfire
         glActiveTexture(GL_TEXTURE0);
     }
 
-    void Mesh::SetupMesh()
+    void Mesh::Setup()
     {
         glGenVertexArrays(1, &vertex_array);
         glGenBuffers(1, &vertex_buffer);

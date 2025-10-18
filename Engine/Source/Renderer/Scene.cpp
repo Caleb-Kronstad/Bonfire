@@ -164,6 +164,9 @@ namespace Bonfire
                 }
             }
         }
+        
+        skybox = std::make_unique<Skybox>("S3");
+        skybox->Load(shaders.at(1001));
 
         Log::Info("Loaded scene from " + path);
         return true;

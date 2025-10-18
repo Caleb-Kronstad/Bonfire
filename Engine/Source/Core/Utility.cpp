@@ -81,6 +81,9 @@ namespace Bonfire
 			files_in_directory.push_back(file.path());
 		return files_in_directory;
 	}
+	
+	bool FloatEquals(float a, float b, float epsilon) { return std::abs(a - b) < epsilon; }
+	bool DoubleEquals(double a, double b, double epsilon) { return std::abs(a - b) < epsilon; }
 
 	bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
 	{

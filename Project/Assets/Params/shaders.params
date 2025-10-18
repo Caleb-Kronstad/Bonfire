@@ -6,6 +6,12 @@
         "vert-path": "Assets/Resources/Shaders/unlit.vert"
     },
     "1001": {
+        "frag-path": "Assets/Resources/Shaders/skybox.frag",
+        "geom-path": "None",
+        "name": "Skybox",
+        "vert-path": "Assets/Resources/Shaders/skybox.vert"
+    },
+    "1002": {
         "frag-path": "Assets/Resources/Shaders/pointshadowmap.frag",
         "geom-path": "Assets/Resources/Shaders/pointshadowmap.geom",
         "name": "Point Shadow Map",

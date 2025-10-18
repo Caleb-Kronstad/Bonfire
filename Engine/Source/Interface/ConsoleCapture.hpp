@@ -8,6 +8,7 @@ namespace Bonfire
     {
     public:
         ConsoleBuffer(std::vector<std::string>& lines, std::mutex& mutex);
+        void SetOriginalBuffer(std::streambuf* buf);
 
     protected:
         virtual int_type overflow(int_type c) override;
@@ -16,6 +17,7 @@ namespace Bonfire
         std::vector<std::string>& lines;
         std::mutex& mutex;
         std::string current_line;
+        std::streambuf* original_buffer;
     };
 
     class ConsoleCapture
