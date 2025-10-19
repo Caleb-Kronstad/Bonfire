@@ -299,6 +299,8 @@ namespace Bonfire
     	}
     	else
     	{
+    		ImGui::Checkbox("##Enabled", &selected_entity->enabled);
+    		ImGui::SameLine();
     		ImGui::SetNextItemWidth(200.0f);
     		ImGui::InputText(" ", &selected_entity->name);
     		ImGui::SameLine();
@@ -317,11 +319,15 @@ namespace Bonfire
 			// MODEL COMPONENT
     		if (selected_entity->HasComponent<ModelComponent>())
 			{
+				ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+    			
 				ImGui::Separator();
+    			ImGui::Checkbox("##Enabled", &model_component.enabled);
+    			ImGui::SameLine();
 				ImGui::Text("Model Component");
 				ImGui::Spacing();
-				
-				ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+
+    			ImGui::Checkbox("Casts Shadow", &model_component.model->casts_shadow);
 
     			if (ImGui::Button(model_component.model->name.c_str(), ImVec2(100, 22)))
     				ImGui::OpenPopup("ChangeModelModelComponent");

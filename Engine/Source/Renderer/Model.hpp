@@ -20,6 +20,7 @@ namespace Bonfire
         AABB CalculateAABB() const;
 
     public:
+        bool casts_shadow = false;
         uint32_t param_id;
         std::string name;
         std::string path;

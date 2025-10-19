@@ -6,6 +6,8 @@
 
 namespace Bonfire {
 
+    class Scene;
+    
     template<typename T>
     COMPONENT_TYPE GetComponentType();
     template<>
@@ -23,7 +25,7 @@ namespace Bonfire {
         {
         }
 
-        void Draw(std::unordered_map<uint32_t, std::shared_ptr<Shader>>& shaders, std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix);
+        void Draw(std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix);
         
         bool AddComponent(COMPONENT_TYPE type, std::shared_ptr<Component> component);
         bool RemoveComponent(COMPONENT_TYPE type);

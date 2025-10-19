@@ -4,6 +4,7 @@
 #include "Model.hpp"
 #include "Shader.hpp"
 #include "Material.hpp"
+#include "Lighting.hpp"
 
 namespace Bonfire
 {
@@ -29,6 +30,19 @@ namespace Bonfire
             this->model = model;
             this->shader = shader;
             this->material = material;
+        }
+    };
+
+    struct LightSourceComponent : Component
+    {
+        std::shared_ptr<LightSource> light_source;
+
+        LightSourceComponent() {}
+        LightSourceComponent(uint32_t id, bool enabled, std::shared_ptr<LightSource> light_source)
+        {
+            this->id = id;
+            this->enabled = enabled;
+            this->light_source = light_source;
         }
     };
 

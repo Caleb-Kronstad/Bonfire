@@ -34,6 +34,7 @@ namespace Bonfire
 		void CheckCompileErrors(GLuint shader, std::string type);
 
 	public:
+        bool updated_this_frame = false;
 		std::string name;
 		uint32_t param_id;
 

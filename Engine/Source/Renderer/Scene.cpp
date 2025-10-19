@@ -5,6 +5,57 @@
 
 namespace Bonfire
 {
+    void Scene::UpdateLightSources(Shader& shader, float shininess)
+    {
+        shader.SetFloat("material.shininess", shininess);
+
+        if (directional_light)
+        {
+            shader.SetVec3("directional_light.direction", directional_light->direction);
+            shader.SetVec3("directional_light.ambient", directional_light->color / 255.0f * 0.2f);
+            shader.SetVec3("directional_light.diffuse", directional_light->color / 255.0f);
+            shader.SetVec3("directional_light.specular", directional_light->color / 255.0f * 0.2f);
+        }
+
+        int i = 0;
+        for (auto& [id, point_light] : point_lights)
+        {
+            std::string number = std::to_string(i);
+
+            shader.SetVec3("point_lights[" + number + "].position", point_light->position);
+            shader.SetVec3("point_lights[" + number + "].ambient", point_light->color / 255.0f * 0.1f);
+            shader.SetVec3("point_lights[" + number + "].diffuse", point_light->color / 255.0f);
+            shader.SetVec3("point_lights[" + number + "].specular", point_light->color / 255.0f);
+
+            shader.SetFloat("point_lights[" + number + "].constant", 1.0f);
+            shader.SetFloat("point_lights[" + number + "].linear", 0.09f);
+            shader.SetFloat("point_lights[" + number + "].quadratic", 0.032f);
+            i++;
+        }
+        shader.SetInt("num_point_lights", i);
+
+        i = 0;
+        for (auto& [id, spot_light] : spot_lights)
+        {
+            std::string number = std::to_string(i);
+
+            shader.SetVec3("spot_lights[" + number + "].position", spot_light->position);
+            shader.SetVec3("spot_lights[" + number + "].direction", spot_light->direction);
+            shader.SetVec3("spot_lights[" + number + "].ambient", spot_light->color / 255.0f * 0.1f);
+            shader.SetVec3("spot_lights[" + number + "].diffuse", spot_light->color / 255.0f);
+            shader.SetVec3("spot_lights[" + number + "].specular", spot_light->color / 255.0f * 0.5f);
+
+            shader.SetFloat("spotLights[" + number + "].cutOff", glm::cos(glm::radians(12.5f)));
+            shader.SetFloat("spotLights[" + number + "].outerCutOff", glm::cos(glm::radians(25.0f)));
+            shader.SetFloat("spotLights[" + number + "].constant", 1.0f);
+            shader.SetFloat("spotLights[" + number + "].linear", 0.09f);
+            shader.SetFloat("spotLights[" + number + "].quadratic", 0.032f);
+            i++;
+        }
+        shader.SetInt("num_spot_lights", i);
+    }
+
+    
     bool Scene::LoadScene(ParamDatabase& param_database)
     {
         entities.clear();
@@ -165,7 +216,23 @@ namespace Bonfire
         }
         
         skybox = std::make_unique<Skybox>("S3");
-        skybox->Load(shaders.at(1001));
+        shadow_map = std::make_unique<ShadowMap>();
+        std::shared_ptr<Shader> point_shadow_map_shader;
+        std::shared_ptr<Shader> lit_shader;
+        for (auto& [shader_id, shader] : shaders)
+        {
+            if (shader->name == "Skybox")
+                skybox->Load(shader);
+            else if (shader->name == "Point Shadow Map")
+                point_shadow_map_shader = shader;
+            else if (shader->name == "Lit")
+                lit_shader = shader;
+        }
+        shadow_map->Generate(point_shadow_map_shader, lit_shader, "Data/Resources/Textures/checkered.png");
+        
+        std::shared_ptr<PointLight> test_point_light = std::make_shared<PointLight>();
+        test_point_light->id = 1000;
+        point_lights.insert_or_assign(test_point_light->id, test_point_light);
 
         Log::Info("Loaded scene from " + path);
         return true;

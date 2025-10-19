@@ -89,17 +89,43 @@ namespace Bonfire
 		}
 		// ---
 
-		viewport_framebuffer->Bind();
-		
-		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glm::mat4 projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_size.x, viewport_size.y);
 		glm::mat4 view = scene->GetEngineCamera()->GetViewMatrix();
 
+		if (!scene->GetPointLights().empty())
+		{
+			glm::vec3& test_shadow_light_pos = scene->GetPointLights().begin()->second->position;
+			scene->GetShadowMap()->Load(test_shadow_light_pos);
+			scene->GetShadowMap()->Set(test_shadow_light_pos);
+			for (auto& [entity_id, entity] : scene->GetEntities())
+			{
+				entity->Draw(scene->GetShadowMap()->point_shadow_map_shader, *scene, manipulation_matrix, view, projection);
+			}
+			scene->GetShadowMap()->Reset(true);
+		}
+		
+		viewport_framebuffer->Bind();
+		
+		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_size.x, viewport_size.y);
+		view = scene->GetEngineCamera()->GetViewMatrix();
+
+		scene->GetShadowMap()->updated_this_frame = false;
+		for (auto& [shader_id, shader] : scene->GetShaders())
+			shader->updated_this_frame = false;
+		
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			entity->Draw(scene->GetShaders(), scene->GetEntities(), manipulation_matrix, view, projection);
+			if (entity->HasComponent<ModelComponent>())
+			{
+				ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+				entity->Draw(model_component.shader, *scene, manipulation_matrix, view, projection);
+			}
 		}
 
 		projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_size.x, viewport_size.y);
@@ -108,9 +134,6 @@ namespace Bonfire
 
 		viewport_framebuffer->Unbind();
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
-
-		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	// Used for engine input, not game logic input

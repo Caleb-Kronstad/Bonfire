@@ -7,11 +7,13 @@ project "Project"
 
     files {
         "Source/**",
-        "Assets/**"
+        "Data/**",
+        "../Project",
     }
 
     includedirs {
-        "Assets",
+        "Source",
+        "Data",
         -- Include Core
         "../Engine/Source",
         "%{IncludeDir.GLAD}",
@@ -45,9 +47,9 @@ project "Project"
             "_CRT_SECURE_NO_WARNINGS"
         }
         postbuildcommands {
-            "{COPY} %{wks.location}/../Project/Assets %{cfg.buildtarget.directory}/Assets", -- uncomment if building via build script "Windows-Build.bat"
+            "{COPY} %{wks.location}/../Project/Data %{cfg.buildtarget.directory}/Data", -- uncomment if building via build script "Windows-Build.bat"
             "{COPY} %{wks.location}/../Project/imgui.ini %{cfg.buildtarget.directory}/", -- uncomment if building via build script "Windows-Build.bat"
-            -- "{COPY} %{wks.location}/../Project/Assets %{wks.location}/Build-Files/Assets", -- uncomment if building via IDE
+            -- "{COPY} %{wks.location}/../Project/Data %{wks.location}/Build-Files/Data", -- uncomment if building via IDE
             -- "{COPY} %{wks.location}/../Project/imgui.ini %{wks.location}/Build-Files/", -- uncomment if building via IDE
         }
 

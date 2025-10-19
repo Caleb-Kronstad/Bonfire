@@ -1,0 +1,81 @@
+﻿#include "bonfire_pch.hpp"
+#include "ShadowMap.hpp"
+
+namespace Bonfire
+{
+	
+	void ShadowMap::Generate(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> lit_shader, const std::string& path)
+	{
+		this->point_shadow_map_shader = point_shadow_map_shader;
+		this->lit_shader = lit_shader;
+		map_texture = LoadTexture(path.c_str());
+
+		glGenFramebuffers(1, &frame_buffer);
+
+		glGenTextures(1, &shadow_cubemap);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, shadow_cubemap);
+		for (unsigned int i = 0; i < 6; ++i)
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadow_cubemap, 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		this->lit_shader->Use();
+		this->lit_shader->SetInt("point_shadow_map", 1);
+	}
+
+	void ShadowMap::Load(glm::vec3& light_pos)
+	{
+		aspect = (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT;
+		near_plane = 1.0f;
+		far_plane = 25.0f;
+
+		glm::mat4 shadow_projection = glm::perspective(glm::radians(90.0f), aspect, near_plane, far_plane);
+
+		shadow_transforms.clear();
+
+		shadow_transforms.push_back(shadow_projection * glm::lookAt(light_pos, light_pos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		shadow_transforms.push_back(shadow_projection * glm::lookAt(light_pos, light_pos + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		shadow_transforms.push_back(shadow_projection * glm::lookAt(light_pos, light_pos + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+		shadow_transforms.push_back(shadow_projection * glm::lookAt(light_pos, light_pos + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)));
+		shadow_transforms.push_back(shadow_projection * glm::lookAt(light_pos, light_pos + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		shadow_transforms.push_back(shadow_projection * glm::lookAt(light_pos, light_pos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+
+	}
+
+	void ShadowMap::Set(glm::vec3& light_pos)
+	{
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		point_shadow_map_shader->Use();
+		for (unsigned int i = 0; i < 6; ++i)
+			point_shadow_map_shader->SetMat4("shadow_matrices[" + std::to_string(i) + "]", shadow_transforms[i]);
+		point_shadow_map_shader->SetFloat("far_plane", far_plane);
+		point_shadow_map_shader->SetVec3("light_pos", light_pos);
+	}
+
+	void ShadowMap::Draw()
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, map_texture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, shadow_cubemap);
+	}
+
+	void ShadowMap::Reset(bool cull) // unbinds the frame buffer and switches the cull setting to back faces (if cull is set to true)
+	{
+		if (cull) glCullFace(GL_BACK);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+}

@@ -2,11 +2,17 @@
 out vec4 FragColor;
 
 in VERT_OUT {
+	in vec3 FragPos;
+	in vec3 Normal;
     vec2 TexCoords;
 } frag_in;
 
 struct Material {
     sampler2D diffuse;
+	sampler2D specular;
+	sampler2D normal;
+	sampler2D height;
+	float shininess;
 };
 
 uniform Material material;

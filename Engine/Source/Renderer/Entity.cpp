@@ -2,11 +2,12 @@
 #include "Entity.hpp"
 
 #include "Shader.hpp"
+#include "Scene.hpp"
 
 namespace Bonfire
 {
 
-	void Entity::Draw(std::unordered_map<uint32_t, std::shared_ptr<Shader>>& shaders, std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix)
+	void Entity::Draw(std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix)
 	{
 		if (!enabled) return;
 		if (!HasComponent<ModelComponent>()) return;
@@ -15,15 +16,41 @@ namespace Bonfire
 
 		if (!model_component.enabled || !model_component.model || !model_component.material) return;
 
-		manipulation_matrix = GetWorldTransformMatrix(entities);
+		manipulation_matrix = GetWorldTransformMatrix(scene.GetEntities());
 
-		model_component.shader->Use();
-		model_component.shader->SetMat4("projection", projection_matrix);
-		model_component.shader->SetMat4("view", view_matrix);
-		model_component.shader->SetMat4("model", manipulation_matrix);
+		shader->Use();
+		shader->SetMat4("projection", projection_matrix);
+		shader->SetMat4("view", view_matrix);
 		
-		model_component.model->Draw(*model_component.shader, model_component.material);
+		if (shader->name == "Unlit")
+		{
+		}
+		if (shader->name == "Lit")
+		{
+			if (!shader->updated_this_frame && !scene.GetShadowMap()->updated_this_frame)
+			{
+				shader->SetVec3("view_pos", scene.GetEngineCamera()->Position);
+				shader->SetFloat("far_plane", scene.GetShadowMap()->far_plane);
+				shader->SetMat4("lightSpaceMatrix", glm::mat4(1.0f));
+				shader->SetBool("reverseNormals", false);
+				scene.UpdateLightSources(*shader);
+				scene.GetShadowMap()->Draw();
+				scene.GetShadowMap()->updated_this_frame = true;
+				shader->updated_this_frame = true;
+			}
+		}
+		if (shader->name == "Point Shadow Map")
+		{
+			if (!shader->updated_this_frame)
+			{
+				
+			}
+		}
+		
+		shader->SetMat4("model", manipulation_matrix);
+		model_component.model->Draw(*shader, model_component.material);
 	}
+
 
 	AABB Entity::GetWorldAABB(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities)
 	{
