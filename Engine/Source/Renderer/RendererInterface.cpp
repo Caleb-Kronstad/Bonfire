@@ -313,7 +313,7 @@ namespace Bonfire
     		ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000);
     		ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360);
     		ImGui::PopItemWidth();
-    		
+
 			// MODEL COMPONENT
     		if (selected_entity->HasComponent<ModelComponent>())
 			{
@@ -323,118 +323,75 @@ namespace Bonfire
 				
 				ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
 
-				const char* preview_value = model_component.model->name.c_str();
-				if (ImGui::BeginCombo("Model", preview_value))
-				{
-					for (auto& [model_id, scene_model] : scene->GetModels())
-					{
-						ImGui::PushID(&scene_model);
-						
-						bool is_selected = (model_component.model->param_id == model_id);
+    			if (ImGui::Button(model_component.model->name.c_str(), ImVec2(100, 22)))
+    				ImGui::OpenPopup("ChangeModelModelComponent");
+    			ImGui::SameLine(); ImGui::Text("Model");
+    			if (ImGui::Button(model_component.shader->name.c_str(), ImVec2(100, 22)))
+    				ImGui::OpenPopup("ChangeShaderModelComponent");
+    			ImGui::SameLine(); ImGui::Text("Shader");
+    			if (ImGui::Button(model_component.material->name.c_str(), ImVec2(100, 22)))
+    				ImGui::OpenPopup("ChangeMaterialModelComponent");
+    			ImGui::SameLine(); ImGui::Text("Material");
 
-						if (ImGui::Selectable(scene_model->name.c_str(), is_selected))
-						{
-							model_component.model = scene_model;
-						}
-
-						if (is_selected)
-							ImGui::SetItemDefaultFocus();
-
-						ImGui::PopID();
-					}
-					ImGui::EndCombo();
-				}
-
-				preview_value = model_component.shader->name.c_str();
-				if (ImGui::BeginCombo("Shader", preview_value))
-				{
-					for (auto& [shader_id, scene_shader] : scene->GetShaders())
-					{
-						ImGui::PushID(&scene_shader);
-						
-						bool is_selected = (model_component.shader->param_id == shader_id);
-
-						if (ImGui::Selectable(scene_shader->name.c_str(), is_selected))
-						{
-							model_component.shader = scene_shader;
-						}
-
-						if (is_selected)
-							ImGui::SetItemDefaultFocus();
-
-						ImGui::PopID();
-					}
-					ImGui::EndCombo();
-				}
-
-				ImGui::Spacing();
+    			if (ImGui::BeginPopup("ChangeModelModelComponent"))
+    			{
+    				for (auto& [id, scene_item] : scene->GetModels())
+    				{
+    					ImGui::PushID(&id);
+    					if (ImGui::Selectable(scene_item->name.c_str(), false, 0))
+    					{
+    						model_component.model = scene_item;
+    						ImGui::CloseCurrentPopup();
+    					}
+    					ImGui::PopID();
+    				}
+    				ImGui::EndPopup();
+    			}
+    			if (ImGui::BeginPopup("ChangeShaderModelComponent"))
+    			{
+    				for (auto& [id, scene_item] : scene->GetShaders())
+    				{
+    					ImGui::PushID(&id);
+    					if (ImGui::Selectable(scene_item->name.c_str(), false, 0))
+    					{
+    						model_component.shader = scene_item;
+    						ImGui::CloseCurrentPopup();
+    					}
+    					ImGui::PopID();
+    				}
+    				ImGui::EndPopup();
+    			}
+    			if (ImGui::BeginPopup("ChangeMaterialModelComponent"))
+    			{
+    				for (auto& [id, scene_item] : scene->GetMaterials())
+    				{
+    					ImGui::PushID(&id);
+    					if (ImGui::Selectable(scene_item->name.c_str(), false, 0))
+    					{
+    						model_component.material = scene_item;
+    						ImGui::CloseCurrentPopup();
+    					}
+    					ImGui::PopID();
+    				}
+    				ImGui::EndPopup();
+    			}
 			}
-
-			// TEXTURE COMPONENT
-			if (selected_entity->HasComponent<TextureComponent>())
-			{
-				ImGui::Separator();
-				ImGui::Text("Texture Component");
-				ImGui::Spacing();
-				
-				TextureComponent& texture_component = selected_entity->GetComponent<TextureComponent>();
-				for (int i = texture_component.textures.size() - 1; i >= 0; i--)
-				{
-					auto& texture = texture_component.textures[i];
-					ImGui::PushID(i);
-
-					const char* preview_value = texture->name.c_str();
-					if (ImGui::BeginCombo("##", preview_value))
-					{
-						for (auto& [texture_id, scene_texture] : scene->GetTextures())
-						{
-							bool is_selected = (texture == scene_texture);
-
-							if (ImGui::Selectable(scene_texture->name.c_str(), is_selected))
-							{
-								texture = scene_texture;
-							}
-
-							if (is_selected)
-								ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					ImGui::SameLine();
-
-					if (ImGui::Button("-"))
-					{
-						texture_component.RemoveTexture(texture);
-					}
-
-					ImGui::PopID();
-				}
-
-				ImGui::Spacing();
-
-				if (ImGui::Button("+"))
-				{
-					texture_component.AddTexture(scene->GetTextures().begin()->second);
-				}
-				
-				ImGui::Spacing();
-			}
-
 			// PHYSICS COMPONENT
 			if (selected_entity->HasComponent<PhysicsComponent>())
 			{
+				ImGui::Separator();
 				
 			}
 
 			// ANIMATION COMPONENT
 			if (selected_entity->HasComponent<PhysicsComponent>())
 			{
+				ImGui::Separator();
 				
 			}
 
 			ImGui::Separator();
-
+    		
 			// ADD COMPONENT
 			ImGui::PushID("##NEWCOMPONENT");
 		
@@ -462,7 +419,8 @@ namespace Bonfire
 						{
 							std::shared_ptr<Model> default_model = scene->GetModels().begin()->second;
 							std::shared_ptr<Shader> default_shader = scene->GetShaders().begin()->second;
-							std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader);
+							std::shared_ptr<Material> default_material = scene->GetMaterials().begin()->second;
+							std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, default_material);
 
 							scene->GetModelComponents().insert_or_assign(next_id, new_component);
 							selected_entity->AddComponent(COMPONENT_TYPE::MODEL, new_component);
@@ -476,34 +434,7 @@ namespace Bonfire
 						ImGui::CloseCurrentPopup();
 					}
 				}
-
-    			if (ImGui::MenuItem("Texture Component"))
-    			{
-    				if (!selected_entity->HasComponent<TextureComponent>())
-    				{
-    					uint32_t next_id = 200001;
-    					if (!scene->GetTextureComponents().empty())
-    					{
-    						auto max_it = std::max_element(
-								scene->GetTextureComponents().begin(),
-								scene->GetTextureComponents().end(),
-								[](const auto& a, const auto& b) { return a.first < b.first; }
-								);
-    						next_id = max_it->first + 1;
-    					}
-
-    					std::shared_ptr<TextureComponent> new_component = std::make_shared<TextureComponent>(next_id, true, std::vector<std::shared_ptr<Texture>>());
-
-    					scene->GetTextureComponents().insert_or_assign(next_id, new_component);
-    					selected_entity->AddComponent(COMPONENT_TYPE::TEXTURE, new_component);
-    				}
-    				else
-    				{
-						Log::Warning("Entity already has texture component");
-    					ImGui::CloseCurrentPopup();
-    				}
-    			}
-
+    			
     			if (ImGui::MenuItem("Physics Component"))
     			{
     				if (!selected_entity->HasComponent<PhysicsComponent>())
@@ -625,46 +556,87 @@ namespace Bonfire
 						new_model->name = model_name;
 						new_model->Load();
 
-						for (const auto& mat_texture : new_model->extracted_textures)
+						std::vector<std::shared_ptr<Texture>> auto_textures;
+						for (const auto& [tex_path, tex_type] : new_model->extracted_texture_paths)
 						{
-							bool texture_exists = false;
-							for (const auto& [tex_id, tex] : scene->GetTextures())
+							std::shared_ptr<Texture> existing_texture = nullptr;
+							for (const auto& [id, tex] : scene->GetTextures())
 							{
-								if (tex->path == mat_texture.path)
+								if (tex->path == tex_path)
 								{
-									texture_exists = true;
+									existing_texture = tex;
 									break;
 								}
 							}
 
-							if (!texture_exists)
+							if (existing_texture)
 							{
-								uint32_t tex_next_id = 1000;
+								auto_textures.push_back(existing_texture);
+							}
+							else
+							{
+								uint32_t tex_id = 1;
 								if (!scene->GetTextures().empty())
 								{
 									auto max_it = std::max_element(
 										scene->GetTextures().begin(),
 										scene->GetTextures().end(),
 										[](const auto& a, const auto& b) { return a.first < b.first; }
-										);
-									tex_next_id = max_it->first + 1;
+									);
+									tex_id = max_it->first + 1;
 								}
 
-								std::filesystem::path tex_path_obj(mat_texture.path);
+								std::filesystem::path tex_path_obj(tex_path);
 								std::string tex_name = tex_path_obj.stem().string();
-								std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(mat_texture.path, mat_texture.type, false);
-								new_texture->param_id = tex_next_id;
+
+								std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(tex_path, tex_type, false);
+								new_texture->param_id = tex_id;
 								new_texture->name = tex_name;
 								new_texture->Load();
-								scene->GetTextures().insert_or_assign(tex_next_id, new_texture);
-								param_database->texture_params.insert_or_assign(tex_next_id, TextureParamData(tex_name, mat_texture.type, false, mat_texture.path));
 
-								Log::Info("Loaded texture: " + tex_name + " (" + mat_texture.path + ")");
+								scene->GetTextures().insert_or_assign(tex_id, new_texture);
+								param_database->texture_params[tex_id] = TextureParamData(tex_name, tex_type, false, tex_path);
+
+								auto_textures.push_back(new_texture);
+								Log::Info("Loaded texture: " + tex_name);
 							}
+						}
+						if (!auto_textures.empty())
+						{
+							uint32_t mat_id = 1000;
+							if (!scene->GetMaterials().empty())
+							{
+								auto max_it = std::max_element(
+									scene->GetMaterials().begin(),
+									scene->GetMaterials().end(),
+									[](const auto& a, const auto& b) { return a.first < b.first; }
+								);
+								mat_id = max_it->first + 1;
+							}
+
+							std::string mat_name = model_name + "_material";
+							std::shared_ptr<Material> new_material = std::make_shared<Material>(mat_name);
+							new_material->param_id = mat_id;
+
+							for (auto& tex : auto_textures)
+							{
+								new_material->AddTexture(tex);
+							}
+
+							scene->GetMaterials().insert_or_assign(mat_id, new_material);
+
+							std::vector<uint32_t> texture_ids;
+							for (auto& tex : auto_textures)
+							{
+								texture_ids.push_back(tex->param_id);
+							}
+							param_database->material_params[mat_id] = MaterialParamData(mat_name, texture_ids);
+
+							Log::Info("Created material: " + mat_name + " with " + std::to_string(auto_textures.size()) + " texture(s)");
 						}
 						
 						scene->GetModels().insert_or_assign(next_id, new_model);
-						param_database->model_params[next_id] = ModelParamData(model_name, new_model_path);
+						param_database->model_params.insert_or_assign(next_id, ModelParamData(model_name, new_model_path));
 					}
 					else
 						Log::Info("File operation cancelled");
@@ -703,6 +675,9 @@ namespace Bonfire
 		                    }
 		                    ImGui::EndCombo();
 		                }
+
+		            	GLuint texture_gl_id = scene->GetTextures().at(texture_id)->gl_id;
+		            	ImGui::Image((void*)texture_gl_id, ImVec2(100,100));
 		            }
 		        	ImGui::PopID();
 		        }
@@ -772,6 +747,63 @@ namespace Bonfire
 		    	
 		        ImGui::EndTabItem();
 		    }
+
+			if (ImGui::BeginTabItem("Material Params"))
+			{
+				for (auto& [material_id, material_data] : scene->GetMaterials())
+				{
+					ImGui::PushID(&material_id);
+					if (ImGui::CollapsingHeader(std::to_string(material_id).c_str()))
+					{
+						ImGui::SetNextItemWidth(200.0f);
+						ImGui::InputText("Name", &material_data->name);
+
+						ImGui::Text("Textures");
+
+						std::shared_ptr<Texture> texture_to_remove = nullptr;
+						for (auto& texture_data : material_data->textures)
+						{
+							ImGui::PushID(&texture_data);
+							ImGui::Text("%u", texture_data->param_id);
+							ImGui::Image((void*)texture_data->gl_id, ImVec2(100,100));
+							if (ImGui::Button("-"))
+							{
+								if (material_data->textures.size() > 1)
+									texture_to_remove = texture_data;
+								else
+									Log::Warning("Material must have at least 1 texture");
+							}
+							ImGui::PopID();
+						}
+						if (texture_to_remove != nullptr)
+							material_data->RemoveTexture(texture_to_remove);
+
+						if (ImGui::Button("+"))
+						{
+							ImGui::OpenPopup("AddTextureMaterialPopup");
+						}
+						if (ImGui::BeginPopup("AddTextureMaterialPopup"))
+						{
+							for (auto& [texture_id, texture_data] : scene->GetTextures())
+							{
+								ImGui::PushID(&texture_id);
+								ImGui::Image((void*)(intptr_t)texture_data->gl_id, ImVec2(25, 25));
+								ImGui::SameLine(); 
+								if (ImGui::Selectable(texture_data->name.c_str(), false, 0, ImVec2(150, 25)))
+								{
+									scene->GetMaterials().at(material_id)->AddTexture(scene->GetTextures().at(texture_id));
+									ImGui::CloseCurrentPopup();
+								}
+
+								ImGui::PopID();
+							}
+							ImGui::EndPopup();
+						}
+					}
+					ImGui::PopID();
+				}
+				ImGui::EndTabItem();
+			}
 
 			if (ImGui::BeginTabItem("Shader Params"))
 			{

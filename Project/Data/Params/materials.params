@@ -1,0 +1,20 @@
+{
+    "1000": {
+        "name": "Default",
+        "texture_ids": [
+            1001
+        ]
+    },
+    "1001": {
+        "name": "Test 1",
+        "texture_ids": [
+            1000
+        ]
+    },
+    "1002": {
+        "name": "Albinauric",
+        "texture_ids": [
+            1002
+        ]
+    }
+}

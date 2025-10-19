@@ -2,73 +2,46 @@
     "cameras": [
         {
             "id": 1100001,
-            "pitch": 5.800018787384033,
+            "pitch": 1.0000073909759521,
             "position": [
-                23.949426651000977,
-                1.5751875638961792,
-                14.580015182495117
+                14.579739570617676,
+                2.55121111869812,
+                12.49502182006836
             ],
             "up": [
                 0.0,
                 1.0,
                 0.0
             ],
-            "yaw": -141.1999969482422
+            "yaw": -858.9027709960938
         }
     ],
     "components": {
         "models": {
             "100001": {
                 "enabled": true,
-                "param-id": 1001,
+                "material-id": 1001,
+                "model-id": 1001,
                 "shader-id": 1000
             },
             "100002": {
                 "enabled": true,
-                "param-id": 1000,
+                "material-id": 1000,
+                "model-id": 1000,
                 "shader-id": 1000
             },
             "100003": {
                 "enabled": true,
-                "param-id": 1002,
+                "material-id": 1002,
+                "model-id": 1002,
                 "shader-id": 1000
-            },
-            "100004": {
-                "enabled": true,
-                "param-id": 1002,
-                "shader-id": 1000
-            }
-        },
-        "textures": {
-            "200001": {
-                "enabled": true,
-                "param-ids": [
-                    1000
-                ]
-            },
-            "200002": {
-                "enabled": true,
-                "param-ids": [
-                    1001
-                ]
-            },
-            "200003": {
-                "enabled": true,
-                "param-ids": [
-                    1002
-                ]
-            },
-            "200004": {
-                "enabled": true,
-                "param-ids": []
             }
         }
     },
     "entities": [
         {
             "components": {
-                "model_component": 100001,
-                "texture_component": 200001
+                "model_component": 100001
             },
             "enabled": true,
             "id": 1000001,
@@ -92,33 +65,31 @@
         },
         {
             "components": {
-                "model_component": 100002,
-                "texture_component": 200002
+                "model_component": 100002
             },
             "enabled": true,
             "id": 1000002,
             "name": "Sphere Object",
-            "parent": 1000001,
+            "parent": 0,
             "position": [
                 0.0,
-                7.0,
+                0.75,
                 0.0
             ],
             "rotation": [
                 0.0,
-                0.0,
+                -0.0,
                 0.0
             ],
             "scale": [
-                0.25,
-                5.0,
-                0.25
+                1.25,
+                1.25,
+                1.25
             ]
         },
         {
             "components": {
-                "model_component": 100003,
-                "texture_component": 200003
+                "model_component": 100003
             },
             "enabled": true,
             "id": 1000003,
@@ -136,81 +107,6 @@
             ],
             "scale": [
                 1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "components": {
-                "model_component": 100002,
-                "texture_component": 200002
-            },
-            "enabled": true,
-            "id": 1000004,
-            "name": "Sphere Object",
-            "parent": 1000001,
-            "position": [
-                0.0,
-                54.0,
-                -2.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                0.25,
-                5.0,
-                0.25
-            ]
-        },
-        {
-            "components": {
-                "model_component": 100003,
-                "texture_component": 200003
-            },
-            "enabled": true,
-            "id": 1000005,
-            "name": "Bald Dude",
-            "parent": 1000004,
-            "position": [
-                0.0,
-                5.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "components": {
-                "model_component": 100004,
-                "texture_component": 200004
-            },
-            "enabled": true,
-            "id": 1000006,
-            "name": "The Bald Guy 3",
-            "parent": 0,
-            "position": [
-                0.0,
-                -7.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                4.0,
                 1.0,
                 1.0
             ]

@@ -11,8 +11,6 @@ namespace Bonfire {
     template<>
     inline COMPONENT_TYPE GetComponentType<ModelComponent>() { return COMPONENT_TYPE::MODEL; }
     template<>
-    inline COMPONENT_TYPE GetComponentType<TextureComponent>() { return COMPONENT_TYPE::TEXTURE; }
-    template<>
     inline COMPONENT_TYPE GetComponentType<PhysicsComponent>() { return COMPONENT_TYPE::PHYSICS; }
     template<>
     inline COMPONENT_TYPE GetComponentType<AnimationComponent>() { return COMPONENT_TYPE::ANIMATION; }

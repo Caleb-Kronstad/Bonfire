@@ -3,6 +3,7 @@
 #include "Texture.hpp"
 #include "Model.hpp"
 #include "Shader.hpp"
+#include "Material.hpp"
 
 namespace Bonfire
 {
@@ -18,34 +19,17 @@ namespace Bonfire
     {
         std::shared_ptr<Model> model;
         std::shared_ptr<Shader> shader;
+        std::shared_ptr<Material> material;
 
         ModelComponent() {}
-        ModelComponent(uint32_t id, bool enabled, std::shared_ptr<Model> model, std::shared_ptr<Shader> shader) { this->id = id; this->enabled = enabled; this->model = model; this->shader = shader; }
-    };
-
-    struct TextureComponent : Component
-    {
-        std::vector<std::shared_ptr<Texture>> textures;
-
-        void AddTexture(std::shared_ptr<Texture> texture)
+        ModelComponent(uint32_t id, bool enabled, std::shared_ptr<Model> model, std::shared_ptr<Shader> shader, std::shared_ptr<Material> material)
         {
-            textures.push_back(texture);
-            texture->Load();
+            this->id = id;
+            this->enabled = enabled;
+            this->model = model;
+            this->shader = shader;
+            this->material = material;
         }
-        bool RemoveTexture(std::shared_ptr<Texture> texture)
-        {
-            auto it = std::find(textures.begin(), textures.end(), texture);
-            if (it != textures.end())
-            {
-                textures.erase(it);
-                return true;
-            }
-            Log::Warning("[FAILED] Texture does not contain this Texture");
-            return false;
-        }
-
-        TextureComponent() {}
-        TextureComponent(uint32_t id, bool enabled, std::vector<std::shared_ptr<Texture>> textures) { this->id = id; this->enabled = enabled; this->textures = textures; }
     };
 
     struct PhysicsComponent : Component

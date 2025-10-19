@@ -26,7 +26,7 @@ namespace Bonfire
 		manipulation_matrix = glm::mat4(1.0f);
 		engine_camera_can_rotate = false;
 
-		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params");
+		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params", "Data/Params/materials.params");
 		new_model_path = "Data/Resources/Models/Cube.obj";
 		new_texture_path = "Data/Resources/Textures/Checkered.png";
 		new_shader_vert_path = "Data/Resources/Shaders/unlit.vert";
@@ -271,7 +271,7 @@ namespace Bonfire
 			{
 				auto& original_component = ent->GetComponent<ModelComponent>();
 
-				uint32_t next_comp_id = 1;
+				uint32_t next_comp_id = 100001;
 				if (!scene->GetModelComponents().empty())
 				{
 				  auto max_comp = std::max_element(
@@ -286,40 +286,14 @@ namespace Bonfire
 				  next_comp_id,
 				  original_component.enabled,
 				  original_component.model,
-				  original_component.shader
+				  original_component.shader,
+				  original_component.material
 				);
 
 				scene->GetModelComponents().insert_or_assign(next_comp_id, new_component);
 				duplicated->RemoveComponent(COMPONENT_TYPE::MODEL);
 				duplicated->AddComponent(COMPONENT_TYPE::MODEL, new_component);
 			}
-
-			if (ent->HasComponent<TextureComponent>())
-			{
-				auto& original_component = ent->GetComponent<TextureComponent>();
-
-				uint32_t next_comp_id = 1;
-				if (!scene->GetTextureComponents().empty())
-				{
-					auto max_comp = std::max_element(
-						scene->GetTextureComponents().begin(),
-						scene->GetTextureComponents().end(),
-						[](const auto& a, const auto& b) { return a.first < b.first; }
-						);
-					next_comp_id = max_comp->first + 1;
-				}
-
-				std::shared_ptr<TextureComponent> new_component = std::make_shared<TextureComponent>(
-					next_comp_id,
-					original_component.enabled,
-					original_component.textures
-				);
-
-				scene->GetTextureComponents().insert_or_assign(next_comp_id, new_component);
-				duplicated->RemoveComponent(COMPONENT_TYPE::TEXTURE);
-				duplicated->AddComponent(COMPONENT_TYPE::TEXTURE, new_component);
-			}
-
 			scene->GetEntities().insert_or_assign(next_entity_id, duplicated);
 
 			for (uint32_t child_id : original_children)
@@ -365,11 +339,6 @@ namespace Bonfire
 			{
 				auto& model_component = ent->GetComponent<ModelComponent>();
 				scene->GetModelComponents().erase(model_component.id);
-			}
-			if (ent->HasComponent<TextureComponent>())
-			{
-				auto& texture_component = ent->GetComponent<TextureComponent>();
-				scene->GetTextureComponents().erase(texture_component.id);
 			}
 			if (ent->HasComponent<PhysicsComponent>())
 			{
@@ -460,7 +429,7 @@ namespace Bonfire
 	bool Renderer::Save()
 	{
 		bool scene_saved = scene->SaveScene(*param_database);
-		bool params_saved = param_database->SaveParams();
+		bool params_saved = param_database->SaveParams(scene->GetMaterials());
 		return scene_saved || params_saved;
 	}
 	

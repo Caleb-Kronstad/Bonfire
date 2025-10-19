@@ -1,10 +1,13 @@
 #include "bonfire_pch.hpp"
 #include "ParamDatabase.hpp"
 
+#include "Material.hpp"
+
 namespace Bonfire
 {
     bool ParamDatabase::LoadParams()
     {
+        // model params
         std::ifstream model_file(model_path);
         if (!model_file.is_open())
         {
@@ -32,7 +35,9 @@ namespace Bonfire
 
             model_params[ref] = ModelParamData(name, path);
         }
+        model_file.close();
 
+        // texture params
         std::ifstream texture_file(texture_path);
         if (!texture_file.is_open())
         {
@@ -61,7 +66,44 @@ namespace Bonfire
             std::string path = value["path"].get<std::string>();
             texture_params[ref] = TextureParamData(name, type, flip, path);
         }
+        texture_file.close();
 
+        // material params
+        std::ifstream material_file(material_path);
+        if (!material_file.is_open())
+        {
+            Log::Error("Failed to open material params file: " + material_path);
+            return false;
+        }
+        nlohmann::json material_json;
+        try
+        {
+            material_file >> material_json;
+        } catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to parse material params JSON: " + std::string(e.what()));
+            return false;
+        }
+
+        for (auto& [key, value] : material_json.items())
+        {
+            uint32_t id = std::stoul(key);
+            MaterialParamData material_data;
+            material_data.name = value["name"].get<std::string>();
+
+            if (value.contains("texture_ids"))
+            {
+                for (auto& tex_id : value["texture_ids"])
+                {
+                    material_data.texture_ids.push_back(tex_id.get<uint32_t>());
+                }
+            }
+
+            material_params[id] = material_data;
+        }
+        material_file.close();
+        
+        // shader params
         std::ifstream shader_file(shader_path);
         if (!shader_file.is_open())
         {
@@ -90,6 +132,7 @@ namespace Bonfire
             std::string geom_path = value["geom-path"].get<std::string>();
             shader_params[ref] = ShaderParamData(name, vert_path, frag_path, geom_path);
         }
+        shader_file.close();
 
         // load other param types
 
@@ -97,8 +140,9 @@ namespace Bonfire
         return true;
     }
 
-    bool ParamDatabase::SaveParams()
+    bool ParamDatabase::SaveParams(const std::unordered_map<uint32_t, std::shared_ptr<Material>>& materials)
     {
+        // model params
         nlohmann::json model_json;
 
         for (const auto& [ref, data] : model_params)
@@ -126,6 +170,7 @@ namespace Bonfire
             return false;
         }
 
+        // texture params
         nlohmann::json texture_json;
 
         for (const auto& [ref, data] : texture_params)
@@ -155,6 +200,53 @@ namespace Bonfire
             return false;
         }
 
+        // material params
+        nlohmann::json material_json;
+        for (auto& [material_id, material_obj] : materials)
+        {
+            if (material_params.contains(material_id))
+            {
+                material_params[material_id].name = material_obj->name;
+                material_params[material_id].texture_ids.clear();
+
+                for (const auto& texture : material_obj->GetTextures())
+                    material_params[material_id].texture_ids.push_back(texture->param_id);
+            }
+            else
+            {
+                std::vector<uint32_t> texture_ids;
+                for (const auto& texture : material_obj->GetTextures())
+                    texture_ids.push_back(texture->param_id);
+                
+                material_params[material_id] = MaterialParamData(material_obj->name, texture_ids);
+            }
+        }
+
+        for (auto& [id, material_data] : material_params)
+        {
+            material_json[std::to_string(id)] = {
+                {"name", material_data.name},
+                {"texture_ids", material_data.texture_ids}
+            };
+        }
+        
+        std::ofstream material_file(material_path);
+        if (!material_file.is_open())
+        {
+            Log::Error("Failed to open material params file for writing: " + material_path);
+            return false;
+        }
+        try
+        {
+            material_file << material_json.dump(4);
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to write material params JSON: " + std::string(e.what()));
+            return false;
+        }
+
+        // shader params
         nlohmann::json shader_json;
 
         for (const auto& [ref, data] : shader_params)

@@ -10,12 +10,10 @@ namespace Bonfire
 	{
 		if (!enabled) return;
 		if (!HasComponent<ModelComponent>()) return;
-		if (!HasComponent<TextureComponent>()) return;
 		
 		ModelComponent& model_component = GetComponent<ModelComponent>();
-		TextureComponent& texture_component = GetComponent<TextureComponent>();
 
-		if (!model_component.model || !model_component.enabled) return;
+		if (!model_component.enabled || !model_component.model || !model_component.material) return;
 
 		manipulation_matrix = GetWorldTransformMatrix(entities);
 
@@ -24,7 +22,7 @@ namespace Bonfire
 		model_component.shader->SetMat4("view", view_matrix);
 		model_component.shader->SetMat4("model", manipulation_matrix);
 		
-		model_component.model->Draw(*model_component.shader, texture_component.textures);
+		model_component.model->Draw(*model_component.shader, model_component.material);
 	}
 
 	AABB Entity::GetWorldAABB(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities)

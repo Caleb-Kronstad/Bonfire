@@ -9,8 +9,10 @@ namespace Bonfire
         Setup();
     }
 
-    void Mesh::Draw(Shader& shader, const std::vector<std::shared_ptr<Texture>>& textures)
+    void Mesh::Draw(Shader& shader, std::shared_ptr<Material> material)
     {
+		const auto& textures = material->textures;
+    	
 		for (unsigned int i = 0; i < textures.size(); i++)
 		{
 		    glActiveTexture(GL_TEXTURE0+i);
@@ -19,25 +21,17 @@ namespace Bonfire
 			switch (textures[i]->type)
 			{
 			case TEXTURE_TYPE::DIFFUSE:
-				{
 					texture_type_name = "diffuse";
 					break;
-				}
 			case TEXTURE_TYPE::SPECULAR:
-				{
 					texture_type_name = "specular";
 					break;
-				}
 			case TEXTURE_TYPE::NORMAL:
-				{
 					texture_type_name = "normal";
 					break;
-				}
 			case TEXTURE_TYPE::HEIGHT:
-				{
 					texture_type_name = "height";
 					break;
-				}
 			default:
 				break;
 			}

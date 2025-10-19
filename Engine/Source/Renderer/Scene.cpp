@@ -12,7 +12,6 @@ namespace Bonfire
         textures.clear();
         shaders.clear();
         model_components.clear();
-        texture_components.clear();
 
         // LOAD COMPONENT TYPES FROM PARAM DATABASE
         for (auto& [model_id, model_data] : param_database.model_params)
@@ -30,6 +29,19 @@ namespace Bonfire
             texture->param_id = texture_id;
             texture->Load();
             textures.insert_or_assign(texture_id, std::move(texture));
+        }
+        for (auto& [material_id, material_data] : param_database.material_params)
+        {
+            std::shared_ptr<Material> material = std::make_shared<Material>(material_data.name);
+            material->param_id = material_id;
+            for (uint32_t tex_id : material_data.texture_ids)
+            {
+                if (textures.contains(tex_id))
+                {
+                    material->AddTexture(textures.at(tex_id));
+                }
+            }
+            materials.insert_or_assign(material_id, std::move(material));
         }
         for (auto& [shader_id, shader_data] : param_database.shader_params)
         {
@@ -89,28 +101,20 @@ namespace Bonfire
 
             if (components.contains("models"))
             {
-                for (const auto& [model_id, model_data] : components["models"].items())
+                for (const auto& [model_component_id, model_data] : components["models"].items())
                 {
-                    uint32_t id = std::stoul(model_id);
+                    uint32_t id = std::stoul(model_component_id);
                     bool enabled = model_data["enabled"].get<bool>();
-                    uint32_t param_id = model_data["param-id"].get<uint32_t>();
+                    uint32_t model_id = model_data["model-id"].get<uint32_t>();
                     uint32_t shader_id = model_data["shader-id"].get<uint32_t>();
-                    std::shared_ptr<ModelComponent> model_included = std::make_shared<ModelComponent>(id, enabled, models.at(param_id), shaders.at(shader_id));
+                    uint32_t material_id = model_data["material-id"].get<uint32_t>();
+
+                    std::shared_ptr<Model> model = models.contains(model_id) ? models.at(model_id) : nullptr;
+                    std::shared_ptr<Shader> shader = shaders.contains(shader_id) ? shaders.at(shader_id) : nullptr;
+                    std::shared_ptr<Material> material = materials.contains(material_id) ? materials.at(material_id) : nullptr;
+                    
+                    std::shared_ptr<ModelComponent> model_included = std::make_shared<ModelComponent>(id, enabled, model, shader, material);
                     model_components.insert_or_assign(id, model_included);
-                }
-            }
-            if (components.contains("textures"))
-            {
-                for (const auto& [texture_id, texture_data] : components["textures"].items())
-                {
-                    uint32_t id = std::stoul(texture_id);
-                    bool enabled = texture_data["enabled"].get<bool>();
-                    std::vector<uint32_t> param_ids = texture_data["param-ids"].get<std::vector<uint32_t>>();
-                    std::vector<std::shared_ptr<Texture>> textures_included;
-                    for (const auto& param_id : param_ids)
-                        textures_included.push_back(textures.at(param_id));
-                    std::shared_ptr<TextureComponent> texture_included = std::make_shared<TextureComponent>(id, enabled, textures_included);
-                    texture_components.insert_or_assign(id, texture_included);
                 }
             }
             // ADD OTHER COMPONENT TYPES
@@ -146,11 +150,6 @@ namespace Bonfire
                 {
                     uint32_t model_id = entity_components["model_component"].get<uint32_t>();
                     entity->AddComponent(COMPONENT_TYPE::MODEL, model_components.at(model_id));
-                }
-                if (entity_components.contains("texture_component"))
-                {
-                    uint32_t model_id = entity_components["texture_component"].get<uint32_t>();
-                    entity->AddComponent(COMPONENT_TYPE::TEXTURE, texture_components.at(model_id));
                 }
 
                 entities.insert_or_assign(id, entity);
@@ -188,34 +187,19 @@ namespace Bonfire
 
         nlohmann::json components_json;
         
-        // Save model components
+        // Save components
         nlohmann::json models_json;
         for (const auto& [id, model_component] : model_components)
         {
             nlohmann::json model_json;
             model_json["enabled"] = model_component->enabled;
-            model_json["param-id"] = model_component->model->param_id;
+            model_json["model-id"] = model_component->model->param_id;
             model_json["shader-id"] = model_component->shader->param_id;
+            model_json["material-id"] = model_component->material->param_id;
             models_json[std::to_string(id)] = model_json;
         }
         if (!models_json.empty())
             components_json["models"] = models_json;
-        
-        nlohmann::json textures_json;
-        for (const auto& [id, texture_component] : texture_components)
-        {
-            nlohmann::json texture_json;
-            texture_json["enabled"] = texture_component->enabled;
-        
-            std::vector<uint32_t> param_ids;
-            for (const auto& texture : texture_component->textures)
-                param_ids.push_back(texture->param_id);
-            texture_json["param-ids"] = param_ids;
-        
-            textures_json[std::to_string(id)] = texture_json;
-        }
-        if (!textures_json.empty())
-            components_json["textures"] = textures_json;
 
         // Save entities
         for (const auto& [id, entity] : entities)
@@ -237,12 +221,6 @@ namespace Bonfire
             {
                 auto& model_component = entity->GetComponent<ModelComponent>();
                 entity_components_json["model_component"] = model_component.id;
-            }
-
-            if (entity->HasComponent<TextureComponent>())
-            {
-                auto& texture_component = entity->GetComponent<TextureComponent>();
-                entity_components_json["texture_component"] = texture_component.id;
             }
         
             entity_json["components"] = entity_components_json;
