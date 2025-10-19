@@ -178,14 +178,29 @@ namespace Bonfire
     	if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_T) == GLFW_PRESS)
     		gizmo_type = ImGuizmo::SCALE;
 
+    	int temp_gizmo_type = gizmo_type;
+    	if (temp_gizmo_type == ImGuizmo::TRANSLATE)
+    		ImGui::PushStyleColor(ImGuiCol_Button, project_interface.highlight_primary);
     	if (ImGui::ImageButton((void*)move_icon->gl_id, ImVec2(20, 20)))
     		gizmo_type = ImGuizmo::TRANSLATE;
+    	if (temp_gizmo_type == ImGuizmo::TRANSLATE)
+    		ImGui::PopStyleColor(1);
+		
     	ImGui::SameLine();
+    	if (temp_gizmo_type == ImGuizmo::ROTATE)
+    		ImGui::PushStyleColor(ImGuiCol_Button, project_interface.highlight_primary);
     	if (ImGui::ImageButton((void*)rotate_icon->gl_id, ImVec2(20, 20)))
     		gizmo_type = ImGuizmo::ROTATE;
+    	if (temp_gizmo_type == ImGuizmo::ROTATE)
+    		ImGui::PopStyleColor(1);
+    	
     	ImGui::SameLine();
+    	if (temp_gizmo_type == ImGuizmo::SCALE)
+    		ImGui::PushStyleColor(ImGuiCol_Button, project_interface.highlight_primary);
     	if (ImGui::ImageButton((void*)resize_icon->gl_id, ImVec2(20, 20)))
     		gizmo_type = ImGuizmo::SCALE;
+    	if (temp_gizmo_type == ImGuizmo::SCALE)
+    		ImGui::PopStyleColor(1);
 
     	ImGui::PopFont();
     	ImGui::Unindent(8.0f);
@@ -200,6 +215,16 @@ namespace Bonfire
 		ImGui::PopFont();
 		ImGui::PushFont(font_body);
 		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
+
+    	if (ImGui::BeginPopupContextWindow())
+    	{
+    		if (ImGui::MenuItem("Create Entity"))
+    		{
+    			CreateEntity();
+    			ImGui::CloseCurrentPopup();
+    		}
+    		ImGui::EndPopup();
+    	}
 		
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
@@ -210,14 +235,16 @@ namespace Bonfire
     	ImGui::Spacing();
 
     	float available_width = ImGui::GetContentRegionAvail().x;
-    	float button_width = available_width * 0.9f;
+    	float available_height = ImGui::GetContentRegionAvail().y;
+    	float button_width = available_width * ((available_width - 25.0f) / available_width);
+    	float button_height = available_height * ((available_width - 5.0f) / available_width);
     	float indent = (available_width - button_width) * 0.5f;
     	
     	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
     	ImGui::PushStyleColor(ImGuiCol_Button, project_interface.background_primary);
     	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, project_interface.background_primary);
     	ImGui::PushStyleColor(ImGuiCol_ButtonActive, project_interface.background_primary);
-    	ImGui::Button("##MoveButton", ImVec2(button_width, 10.0f));
+    	ImGui::Button("##MoveButton", ImVec2(button_width, button_height));
 
     	if (ImGui::BeginDragDropTarget())
     	{
@@ -240,12 +267,16 @@ namespace Bonfire
 		ImGui::Unindent(8.0f);
 		ImGui::End();
 
+    	if (entity_to_create != nullptr)
+    	{
+			CreateEntity(entity_to_create);
+    		entity_to_create = nullptr;
+    	}
     	if (entity_to_delete != nullptr)
     	{
     		DeleteEntity(entity_to_delete);
     		entity_to_delete = nullptr;
     	}
-
     	if (entity_to_reparent != nullptr)
     	{
     		ReparentEntity(entity_to_reparent, reparent_target);
@@ -416,7 +447,7 @@ namespace Bonfire
 				{
 					if (!selected_entity->HasComponent<ModelComponent>())
 					{
-						uint32_t next_id = 1;
+						uint32_t next_id = 100001;
 						if (!scene->GetModelComponents().empty())
 						{
 							auto max_it = std::max_element(
@@ -450,7 +481,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<TextureComponent>())
     				{
-    					uint32_t next_id = 1;
+    					uint32_t next_id = 200001;
     					if (!scene->GetTextureComponents().empty())
     					{
     						auto max_it = std::max_element(
@@ -542,7 +573,7 @@ namespace Bonfire
 				char exe_path[MAX_PATH];
 				GetModuleFileNameA(NULL, exe_path, MAX_PATH);
 				std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
-				std::filesystem::path models_dir = exe_dir / "Assets/Resources/Models";
+				std::filesystem::path models_dir = exe_dir / "Data/Resources/Models";
 				std::string model_file = std::string(MAX_PATH, '\0');
 
 				if (ImGui::Button("+"))
@@ -564,10 +595,10 @@ namespace Bonfire
 						std::filesystem::path absolute_path = model_file;
 						std::string abs_str = absolute_path.string();
 
-						size_t assets_pos = abs_str.find("Assets");
-						if (assets_pos != std::string::npos)
+						size_t data_pos = abs_str.find("Data");
+						if (data_pos != std::string::npos)
 						{
-							new_model_path = abs_str.substr(assets_pos);
+							new_model_path = abs_str.substr(data_pos);
 							std::replace(new_model_path.begin(), new_model_path.end(), '\\', '/');
 						}
 						else
@@ -575,7 +606,7 @@ namespace Bonfire
 
 						Log::Info("File selected at " + new_model_path);
 					
-						uint32_t next_id = 1;
+						uint32_t next_id = 1000;
 						if (!scene->GetModels().empty())
 						{
 							auto max_it = std::max_element(
@@ -593,6 +624,45 @@ namespace Bonfire
 						new_model->param_id = next_id;
 						new_model->name = model_name;
 						new_model->Load();
+
+						for (const auto& mat_texture : new_model->extracted_textures)
+						{
+							bool texture_exists = false;
+							for (const auto& [tex_id, tex] : scene->GetTextures())
+							{
+								if (tex->path == mat_texture.path)
+								{
+									texture_exists = true;
+									break;
+								}
+							}
+
+							if (!texture_exists)
+							{
+								uint32_t tex_next_id = 1000;
+								if (!scene->GetTextures().empty())
+								{
+									auto max_it = std::max_element(
+										scene->GetTextures().begin(),
+										scene->GetTextures().end(),
+										[](const auto& a, const auto& b) { return a.first < b.first; }
+										);
+									tex_next_id = max_it->first + 1;
+								}
+
+								std::filesystem::path tex_path_obj(mat_texture.path);
+								std::string tex_name = tex_path_obj.stem().string();
+								std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(mat_texture.path, mat_texture.type, false);
+								new_texture->param_id = tex_next_id;
+								new_texture->name = tex_name;
+								new_texture->Load();
+								scene->GetTextures().insert_or_assign(tex_next_id, new_texture);
+								param_database->texture_params.insert_or_assign(tex_next_id, TextureParamData(tex_name, mat_texture.type, false, mat_texture.path));
+
+								Log::Info("Loaded texture: " + tex_name + " (" + mat_texture.path + ")");
+							}
+						}
+						
 						scene->GetModels().insert_or_assign(next_id, new_model);
 						param_database->model_params[next_id] = ModelParamData(model_name, new_model_path);
 					}
@@ -642,7 +712,7 @@ namespace Bonfire
 		    	char exe_path[MAX_PATH];
 		    	GetModuleFileNameA(NULL, exe_path, MAX_PATH);
 		    	std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
-		    	std::filesystem::path textures_dir = exe_dir / "Assets/Resources/Textures";
+		    	std::filesystem::path textures_dir = exe_dir / "Data/Resources/Textures";
 		    	std::string texture_file = std::string(MAX_PATH, '\0');
 		    	
 		    	if (ImGui::Button("+"))
@@ -664,10 +734,10 @@ namespace Bonfire
 		    			std::filesystem::path absolute_path = texture_file;
 		    			std::string abs_str = absolute_path.string();
 
-		    			size_t assets_pos = abs_str.find("Assets");
-		    			if (assets_pos != std::string::npos)
+		    			size_t data_pos = abs_str.find("Data");
+		    			if (data_pos != std::string::npos)
 		    			{
-		    				new_texture_path = abs_str.substr(assets_pos);
+		    				new_texture_path = abs_str.substr(data_pos);
 		    				std::replace(new_texture_path.begin(), new_texture_path.end(), '\\', '/');
 		    			}
 		    			else
@@ -675,7 +745,7 @@ namespace Bonfire
 
 		    			Log::Info("File selected at " + new_texture_path);
 					
-		    			uint32_t next_id = 1;
+		    			uint32_t next_id = 200001;
 		    			if (!scene->GetTextures().empty())
 		    			{
 		    				auto max_it = std::max_element(
@@ -787,8 +857,13 @@ namespace Bonfire
     		ImGui::EndDragDropTarget();
     	}
 
-    	if (ImGui::BeginPopupContextItem())
+    	if (ImGui::BeginPopupContextItem("EntityPopupWindow"))
     	{
+    		if (ImGui::MenuItem("Create"))
+    		{
+    			entity_to_create = entity;
+    			ImGui::CloseCurrentPopup();
+    		}
     		if (ImGui::MenuItem("Duplicate"))
     		{
     			DuplicateEntity(entity);

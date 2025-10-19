@@ -171,6 +171,7 @@ namespace Bonfire
 		colors[ImGuiCol_DockingEmptyBg] = background_secondary;
 		colors[ImGuiCol_PlotHistogram] = highlight_primary;
 		colors[ImGuiCol_PlotHistogramHovered] = highlight_secondary;
+		colors[ImGuiCol_DragDropTarget] = highlight_secondary;
 		
 		style->WindowRounding = 0.0f;
 		style->FrameRounding = 0.0f;

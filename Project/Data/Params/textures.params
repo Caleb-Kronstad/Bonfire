@@ -2,19 +2,19 @@
     "1000": {
         "flip": false,
         "name": "Wood",
-        "path": "Assets/Resources/Textures/wood.png",
+        "path": "Data/Resources/Textures/wood.png",
         "type": 0
     },
     "1001": {
         "flip": false,
         "name": "Checkered",
-        "path": "Assets/Resources/Textures/checkered.png",
+        "path": "Data/Resources/Textures/checkered.png",
         "type": 0
     },
     "1002": {
         "flip": false,
         "name": "albinauric",
-        "path": "Assets/Resources/Textures/albinauric.jpg",
+        "path": "Data/Resources/Textures/albinauric.jpg",
         "type": 0
     }
 }

@@ -207,7 +207,7 @@ namespace Bonfire
 		GLFWimage images[1];
 		stbi_set_flip_vertically_on_load(false);
 		int* channels = new int(4);
-		images[0].pixels = stbi_load("Assets/Resources/Textures/bonfire-logo.png", &images[0].width, &images[0].height, channels, 0);
+		images[0].pixels = stbi_load("Data/Resources/Textures/bonfire-logo.png", &images[0].width, &images[0].height, channels, 0);
 		glfwSetWindowIcon(window.GetNativeWindow(), 1, images);
 		stbi_image_free(images[0].pixels);
 

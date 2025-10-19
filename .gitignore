@@ -19,3 +19,8 @@ Engine/Makefile
 Project/Makefile
 
 **/Makefile
+
+Project/Data/Resources/Models/**.fbx
+Project/Data/Resources/Models/**.obj
+!Project/Data/Resources/Models/Cube.obj
+!Project/Data/Resources/Models/Sphere.obj

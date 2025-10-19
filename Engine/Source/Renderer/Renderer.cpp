@@ -26,21 +26,21 @@ namespace Bonfire
 		manipulation_matrix = glm::mat4(1.0f);
 		engine_camera_can_rotate = false;
 
-		param_database = std::make_unique<ParamDatabase>("Assets/Params/models.params", "Assets/Params/textures.params", "Assets/Params/shaders.params");
-		new_model_path = "Assets/Resources/Models/Cube.obj";
-		new_texture_path = "Assets/Resources/Textures/Checkered.png";
-		new_shader_vert_path = "Assets/Resources/Shaders/unlit.vert";
-		new_shader_frag_path = "Assets/Resources/Shaders/unlit.frag";
-		new_shader_geom_path = "Assets/Resources/Shaders/unlit.geom";
+		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params");
+		new_model_path = "Data/Resources/Models/Cube.obj";
+		new_texture_path = "Data/Resources/Textures/Checkered.png";
+		new_shader_vert_path = "Data/Resources/Shaders/unlit.vert";
+		new_shader_frag_path = "Data/Resources/Shaders/unlit.frag";
+		new_shader_geom_path = "Data/Resources/Shaders/unlit.geom";
 
-		move_icon = std::make_unique<Texture>("Assets/Resources/Textures/move-icon.png", TEXTURE_TYPE::DIFFUSE, false);
-		rotate_icon = std::make_unique<Texture>("Assets/Resources/Textures/rotate-icon.png", TEXTURE_TYPE::DIFFUSE, false);
-		resize_icon = std::make_unique<Texture>("Assets/Resources/Textures/resize-icon.png", TEXTURE_TYPE::DIFFUSE, false);
+		move_icon = std::make_unique<Texture>("Data/Resources/Textures/move-icon.png", TEXTURE_TYPE::DIFFUSE, false);
+		rotate_icon = std::make_unique<Texture>("Data/Resources/Textures/rotate-icon.png", TEXTURE_TYPE::DIFFUSE, false);
+		resize_icon = std::make_unique<Texture>("Data/Resources/Textures/resize-icon.png", TEXTURE_TYPE::DIFFUSE, false);
 		move_icon->Load();
 		rotate_icon->Load();
 		resize_icon->Load();
 
-		background_color = RgbaToGlmVec4(22, 22, 22);
+		background_color = RgbaToGlmVec4(project_interface.background_secondary.x, project_interface.background_secondary.y, project_interface.background_secondary.z);
 		viewport_framebuffer = std::make_unique<Framebuffer>(viewport_size.x, viewport_size.y);
 		
 		std::stringstream path_stream;
@@ -49,13 +49,12 @@ namespace Bonfire
 
 		// LOAD FONTS
 		ImGuiIO& io = ImGui::GetIO();
-		font_title = io.Fonts->AddFontFromFileTTF("Assets/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-		font_body = io.Fonts->AddFontFromFileTTF("Assets/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+		font_title = io.Fonts->AddFontFromFileTTF("Data/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+		font_body = io.Fonts->AddFontFromFileTTF("Data/Resources/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
 		
 		// SCENE AND EDITOR LOADING
-		scene = std::make_unique<Scene>("Assets/Scenes/testscene.bonfirescene");
+		scene = std::make_unique<Scene>("Data/Scenes/testscene.bonfirescene");
 		Load();
-		
 		for (auto& [shader_id, shader] : scene->GetShaders())
 		{
 			shader->Use();
@@ -227,6 +226,26 @@ namespace Bonfire
 		}
 	}
 
+	void Renderer::CreateEntity(std::shared_ptr<Entity> parent)
+	{
+		uint32_t next_id = 1000001;
+		if (!scene->GetEntities().empty())
+		{
+			auto max_it = std::max_element(
+			  scene->GetEntities().begin(),
+			  scene->GetEntities().end(),
+			  [](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_id = max_it->first + 1;
+		}
+		std::shared_ptr<Entity> new_entity = std::make_shared<Entity>(next_id);
+		if (parent != nullptr)
+		{
+			new_entity->parent = parent->id;
+			scene->GetEntities().at(parent->id)->AddChild(new_entity->id);
+		}
+		scene->GetEntities().insert_or_assign(next_id, new_entity);
+	}
 	void Renderer::DuplicateEntity(std::shared_ptr<Entity> entity)
 	{
 	    std::function<uint32_t(std::shared_ptr<Entity>)> DuplicateRecursive;
@@ -307,9 +326,9 @@ namespace Bonfire
 			{
 				if (scene->GetEntities().contains(child_id))
 				{
-					uint32_t new_child_id = DuplicateRecursive(scene->GetEntities()[child_id]);
+					uint32_t new_child_id = DuplicateRecursive(scene->GetEntities().at(child_id));
 					duplicated->children.push_back(new_child_id);
-					scene->GetEntities()[new_child_id]->parent = next_entity_id;
+					scene->GetEntities().at(new_child_id)->parent = next_entity_id;
 				}
 			}
 
@@ -320,12 +339,12 @@ namespace Bonfire
 		bool original_is_root = entity->IsRoot();
 		uint32_t new_root_id = DuplicateRecursive(entity);
 
-		scene->GetEntities()[new_root_id]->parent = original_parent;
+		scene->GetEntities().at(new_root_id)->parent = original_parent;
 
 		if (!original_is_root && scene->GetEntities().contains(original_parent))
-			scene->GetEntities()[original_parent]->children.push_back(new_root_id);
+			scene->GetEntities().at(original_parent)->children.push_back(new_root_id);
 
-		selected_entity = scene->GetEntities()[new_root_id];
+		selected_entity = scene->GetEntities().at(new_root_id);
 	}
 
 	void Renderer::DeleteEntity(std::shared_ptr<Entity> entity)

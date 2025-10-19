@@ -51,7 +51,7 @@ namespace Bonfire
             GLint internal_format;
             
             std::string extension = is_png ? ".png" : ".jpg";
-            std::string path = "Assets/Resources/Textures/Skyboxes/" + faces_path + "/" + skybox_faces.at(i) + extension;
+            std::string path = "Data/Resources/Textures/Skyboxes/" + faces_path + "/" + skybox_faces.at(i) + extension;
             
             unsigned char* data = stbi_load(path.c_str(), &width, &height, &nr_components, 0);
             if (data)

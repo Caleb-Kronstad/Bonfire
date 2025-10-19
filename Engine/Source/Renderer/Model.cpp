@@ -28,6 +28,105 @@ namespace Bonfire
         return aabb;
     }
 
+    void Model::ProcessMaterials(const aiScene* scene)
+    {
+        for (unsigned int i = 0; i < scene->mNumMaterials; i++)
+        {
+            aiMaterial* material = scene->mMaterials[i];
+
+            // Extract diffuse textures
+            for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
+            {
+                aiString str;
+                material->GetTexture(aiTextureType_DIFFUSE, j, &str);
+                std::string texture_path = str.C_Str();
+
+                // Convert to relative path if needed
+                std::filesystem::path full_path = std::filesystem::path(directory) / texture_path;
+                if (std::filesystem::exists(full_path))
+                {
+                    std::string abs_str = full_path.string();
+                    size_t data_pos = abs_str.find("Data");
+                    if (data_pos != std::string::npos)
+                    {
+                        texture_path = abs_str.substr(data_pos);
+                      std::replace(texture_path.begin(), texture_path.end(), '\\', '/');
+                    }
+                }
+
+                extracted_textures.push_back({texture_path, TEXTURE_TYPE::DIFFUSE});
+            }
+
+          // Extract specular textures
+            for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_SPECULAR); j++)
+            {
+                aiString str;
+                material->GetTexture(aiTextureType_SPECULAR, j, &str);
+                std::string texture_path = str.C_Str();
+
+                std::filesystem::path full_path = std::filesystem::path(directory) / texture_path;
+                if (std::filesystem::exists(full_path))
+                {
+                    std::string abs_str = full_path.string();
+                    size_t data_pos = abs_str.find("Data");
+                    if (data_pos != std::string::npos)
+                    {
+                        texture_path = abs_str.substr(data_pos);
+                        std::replace(texture_path.begin(), texture_path.end(), '\\', '/');
+                    }
+                }
+
+                extracted_textures.push_back({texture_path, TEXTURE_TYPE::SPECULAR});
+            }
+
+            // Extract normal maps
+            for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_NORMALS); j++)
+            {
+                aiString str;
+                material->GetTexture(aiTextureType_NORMALS, j, &str);
+                std::string texture_path = str.C_Str();
+  
+                std::filesystem::path full_path = std::filesystem::path(directory) / texture_path;
+                if (std::filesystem::exists(full_path))
+                {
+                    std::string abs_str = full_path.string();
+                    size_t data_pos = abs_str.find("Data");
+                    if (data_pos != std::string::npos)
+                    {
+                        texture_path = abs_str.substr(data_pos);
+                        std::replace(texture_path.begin(), texture_path.end(), '\\', '/');
+                    }
+                }
+
+                extracted_textures.push_back({texture_path, TEXTURE_TYPE::NORMAL});
+            }
+
+            // Extract height maps (sometimes used as normal maps)
+            for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_HEIGHT); j++)
+            {
+                aiString str;
+                material->GetTexture(aiTextureType_HEIGHT, j, &str);
+                std::string texture_path = str.C_Str();
+  
+                std::filesystem::path full_path = std::filesystem::path(directory) / texture_path;
+                if (std::filesystem::exists(full_path))
+                {
+                    std::string abs_str = full_path.string();
+                    size_t data_pos = abs_str.find("Data");
+                    if (data_pos != std::string::npos)
+                    {
+                        texture_path = abs_str.substr(data_pos);
+                        std::replace(texture_path.begin(), texture_path.end(), '\\', '/');
+                    }
+                }
+
+                extracted_textures.push_back({texture_path, TEXTURE_TYPE::HEIGHT});
+            }
+        }
+
+        if (!extracted_textures.empty())
+            Log::Info("Extracted " + std::to_string(extracted_textures.size()) + " texture(s) from model materials");
+    }
     
     void Model::Load()
     {
@@ -42,6 +141,7 @@ namespace Bonfire
         this->directory = path.substr(0, path.find_last_of('/'));
 
         ProcessNode(scene->mRootNode, scene);
+        ProcessMaterials(scene);
     }
     void Model::ProcessNode(aiNode* node, const aiScene* scene)
     {

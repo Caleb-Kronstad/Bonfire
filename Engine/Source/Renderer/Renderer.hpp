@@ -35,6 +35,7 @@ namespace Bonfire
 
 		void DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness = 3.0f);
 		void RenderEntityTree(std::shared_ptr<Entity> entity);
+		void CreateEntity(std::shared_ptr<Entity> parent = nullptr);
 		void DuplicateEntity(std::shared_ptr<Entity> entity);
 		void DeleteEntity(std::shared_ptr<Entity> entity);
 		bool IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent);
@@ -50,6 +51,7 @@ namespace Bonfire
 		// scene
 		std::unique_ptr<Scene> scene;
 		std::shared_ptr<Entity> selected_entity;
+		std::shared_ptr<Entity> entity_to_create;
 		std::shared_ptr<Entity> entity_to_delete;
 		std::shared_ptr<Entity> entity_to_reparent;
 		std::shared_ptr<Entity> reparent_target;

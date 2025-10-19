@@ -1,0 +1,20 @@
+{
+    "1000": {
+        "frag-path": "Data/Resources/Shaders/unlit.frag",
+        "geom-path": "None",
+        "name": "Unlit",
+        "vert-path": "Data/Resources/Shaders/unlit.vert"
+    },
+    "1001": {
+        "frag-path": "Data/Resources/Shaders/skybox.frag",
+        "geom-path": "None",
+        "name": "Skybox",
+        "vert-path": "Data/Resources/Shaders/skybox.vert"
+    },
+    "1002": {
+        "frag-path": "Data/Resources/Shaders/pointshadowmap.frag",
+        "geom-path": "Data/Resources/Shaders/pointshadowmap.geom",
+        "name": "Point Shadow Map",
+        "vert-path": "Data/Resources/Shaders/pointshadowmap.vert"
+    }
+}

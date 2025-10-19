@@ -7,6 +7,12 @@
 
 namespace Bonfire
 {
+    struct MaterialTexture
+    {
+        std::string path;
+        TEXTURE_TYPE type;
+    };
+    
     class Model
     {
     public:
@@ -19,7 +25,11 @@ namespace Bonfire
 
         AABB CalculateAABB() const;
 
+    private:
+        void ProcessMaterials(const aiScene* scene);
+
     public:
+        std::vector<MaterialTexture> extracted_textures;
         uint32_t param_id;
         std::string name;
         std::string path;
