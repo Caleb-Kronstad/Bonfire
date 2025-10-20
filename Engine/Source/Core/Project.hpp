@@ -10,6 +10,7 @@
 #include "Core/Layer.hpp"
 
 #include "Renderer/Renderer.hpp"
+#include "Physics/PhysicsSystem.hpp"
 
 namespace Bonfire
 {
@@ -27,6 +28,7 @@ namespace Bonfire
 		static Project& GetInstance() { return *static_project_instance; }
 		static Renderer& GetRenderer() { return *static_renderer; }
 		static Interface& GetInterface() { return *static_interface; }
+		static PhysicsSystem& GetPhysicsSystem() { return *static_physics_system; }
 		const bool& GetProjectRunState() const { return project_running; }
 		const bool& GetEngineRunState() const { return engine_running; }
 		const std::string& GetProjectName() const { return project_name; }
@@ -91,5 +93,6 @@ namespace Bonfire
 		static Renderer* static_renderer;
 		static Interface* static_interface;
 		static Project* static_project_instance;
+		static PhysicsSystem* static_physics_system;
 	};
 }

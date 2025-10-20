@@ -11,7 +11,7 @@ namespace Bonfire
         glm::mat4 GetViewMatrix() const { return glm::lookAt(Position, Position + Front, Up); }
         glm::mat4 GetProjectionMatrix(const float& width, const float& height) const { return glm::perspective(glm::radians(Zoom), width / height, 0.1f, 250.0f); }
         
-        void ProcessKeyboard(MOVEMENT_DIRECTION direction, float deltaTime);
+        void ProcessKeyboard(MovementDirection direction, float deltaTime);
         void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
         void ProcessMouseScroll(float yoffset);
         

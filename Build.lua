@@ -24,6 +24,7 @@ IncludeDir["ASSIMP"] = os.realpath("Engine/Dependencies/assimp/include")
 IncludeDir["GLM"] = os.realpath("Engine/Dependencies/glm/glm")
 IncludeDir["IMGUIZMO"] = os.realpath("Engine/Dependencies/imguizmo")
 IncludeDir["JSON"] = os.realpath("Engine/Dependencies/json")
+IncludeDir["JOLT"] = os.realpath("Engine/Dependencies/jolt")
 
 group "Dependencies"
    include "Engine/Dependencies/glad/Build-GLAD.lua"
@@ -32,6 +33,7 @@ group "Dependencies"
    include "Engine/Dependencies/assimp/Build-ASSIMP.lua"
    include "Engine/Dependencies/glm/Build-GLM.lua"
    include "Engine/Dependencies/imguizmo/Build-IMGUIZMO.lua"
+   include "Engine/Dependencies/jolt/Build-JOLT.lua"
 group ""
 
 group "Engine"

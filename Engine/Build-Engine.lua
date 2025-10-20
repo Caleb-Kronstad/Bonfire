@@ -24,6 +24,7 @@ project "Engine"
         "%{IncludeDir.GLM}",
         "%{IncludeDir.IMGUIZMO}",
         "%{IncludeDir.JSON}",
+        "%{IncludeDir.JOLT}",
         "Source"
     }
 

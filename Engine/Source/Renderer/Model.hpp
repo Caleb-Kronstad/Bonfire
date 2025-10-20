@@ -26,6 +26,6 @@ namespace Bonfire
         std::string path;
         std::string directory;
         std::vector<Mesh> meshes;
-        std::vector<std::pair<std::string, TEXTURE_TYPE>> extracted_texture_paths;
+        std::vector<std::pair<std::string, TextureType>> extracted_texture_paths;
     };
 }

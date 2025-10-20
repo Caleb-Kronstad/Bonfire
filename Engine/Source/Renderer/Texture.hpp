@@ -7,7 +7,7 @@ namespace Bonfire
     class Texture
     {
     public:
-        Texture(std::string path, TEXTURE_TYPE type, bool flip = false);
+        Texture(std::string path, TextureType type, bool flip = false);
 
         void Load();
 
@@ -16,7 +16,7 @@ namespace Bonfire
         std::string name;
         GLuint gl_id;
         bool flip;
-        TEXTURE_TYPE type;
+        TextureType type;
         std::string path;
     };
 }

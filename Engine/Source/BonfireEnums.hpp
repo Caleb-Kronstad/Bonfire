@@ -4,7 +4,7 @@
 
 namespace Bonfire
 {
-    enum class COMPONENT_TYPE : std::uint8_t // also used for params
+    enum class ComponentType : std::uint8_t
     {
         UNKNOWN,
         MODEL,
@@ -14,7 +14,7 @@ namespace Bonfire
         COUNT
     };
 
-    enum class MOVEMENT_DIRECTION : std::uint8_t
+    enum class MovementDirection : std::uint8_t
     {
         FORWARD,
         BACKWARD,
@@ -22,11 +22,25 @@ namespace Bonfire
         RIGHT
     };
 
-    enum class TEXTURE_TYPE : std::uint8_t
+    enum class TextureType : std::uint8_t
     {
         DIFFUSE,
         SPECULAR,
         NORMAL,
         HEIGHT
+    };
+
+    enum class PhysicsBodyType : std::uint8_t
+    {
+        STATIC,
+        DYNAMIC,
+        KINEMATIC
+    };
+
+    enum class PhysicsShapeType : std::uint8_t
+    {
+        BOX,
+        SPHERE,
+        CAPSULE
     };
 }

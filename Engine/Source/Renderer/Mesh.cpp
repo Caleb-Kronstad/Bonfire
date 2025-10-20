@@ -20,16 +20,16 @@ namespace Bonfire
 			std::string texture_type_name = "diffuse";
 			switch (textures[i]->type)
 			{
-			case TEXTURE_TYPE::DIFFUSE:
+			case TextureType::DIFFUSE:
 					texture_type_name = "diffuse";
 					break;
-			case TEXTURE_TYPE::SPECULAR:
+			case TextureType::SPECULAR:
 					texture_type_name = "specular";
 					break;
-			case TEXTURE_TYPE::NORMAL:
+			case TextureType::NORMAL:
 					texture_type_name = "normal";
 					break;
-			case TEXTURE_TYPE::HEIGHT:
+			case TextureType::HEIGHT:
 					texture_type_name = "height";
 					break;
 			default:

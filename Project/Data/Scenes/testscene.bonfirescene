@@ -53,12 +53,32 @@
                 "model-id": 1000,
                 "shader-id": 1001
             }
+        },
+        "physics":
+        {
+            "100001": {
+                "enabled": true,
+                "physics-id": 1000,
+                "physics-enabled": true,
+                "physics-name": "Physics Object",
+                "shape-type": 2,
+                "dimensions": [ 0.0, 0.0, 0.0 ]
+            }, 
+            "100002": {
+                "enabled": true,
+                "physics-id": 1001,
+                "physics-enabled": true,
+                "physics-name": "Physics Object",
+                "shape-type": 0,
+                "dimensions": [ 0.0, 0.0, 0.0 ]
+            }
         }
     },
     "entities": [
         {
             "components": {
-                "model_component": 100001
+                "model_component": 100001,
+                "physics_component": 100002
             },
             "enabled": true,
             "id": 1000001,
@@ -82,7 +102,8 @@
         },
         {
             "components": {
-                "model_component": 100002
+                "model_component": 100002,
+                "physics_component": 100001
             },
             "enabled": true,
             "id": 1000002,

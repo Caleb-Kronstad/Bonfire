@@ -61,7 +61,7 @@ namespace Bonfire
             uint32_t ref(id);
 
             std::string name = value["name"].get<std::string>();
-            TEXTURE_TYPE type = value["type"].get<TEXTURE_TYPE>();
+            TextureType type = value["type"].get<TextureType>();
             bool flip = value["flip"].get<bool>();
             std::string path = value["path"].get<std::string>();
             texture_params[ref] = TextureParamData(name, type, flip, path);

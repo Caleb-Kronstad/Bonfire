@@ -66,7 +66,7 @@ namespace Bonfire
 		return world_aabb;
 	}
 	
-	bool Entity::AddComponent(COMPONENT_TYPE type, std::shared_ptr<Component> component)
+	bool Entity::AddComponent(ComponentType type, std::shared_ptr<Component> component)
 	{
 		if (components.contains(type))
 		{
@@ -76,7 +76,7 @@ namespace Bonfire
 		components.insert_or_assign(type, component);
 		return true;
 	}
-	bool Entity::RemoveComponent(COMPONENT_TYPE type)
+	bool Entity::RemoveComponent(ComponentType type)
 	{
 		if (components.contains(type))
 		{

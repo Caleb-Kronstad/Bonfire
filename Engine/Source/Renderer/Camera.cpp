@@ -14,16 +14,16 @@ namespace Bonfire
         UpdateCameraVectors();
     }
 
-    void Camera::ProcessKeyboard(MOVEMENT_DIRECTION direction, float deltaTime)
+    void Camera::ProcessKeyboard(MovementDirection direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
-        if (direction == MOVEMENT_DIRECTION::FORWARD)
+        if (direction == MovementDirection::FORWARD)
             Position += Front * velocity;
-        if (direction == MOVEMENT_DIRECTION::BACKWARD)
+        if (direction == MovementDirection::BACKWARD)
             Position -= Front * velocity;
-        if (direction == MOVEMENT_DIRECTION::LEFT)
+        if (direction == MovementDirection::LEFT)
             Position -= Right * velocity;
-        if (direction == MOVEMENT_DIRECTION::RIGHT)
+        if (direction == MovementDirection::RIGHT)
             Position += Right * velocity;
     }
     

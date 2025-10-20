@@ -9,15 +9,15 @@ namespace Bonfire {
     class Scene;
     
     template<typename T>
-    COMPONENT_TYPE GetComponentType();
+    ComponentType GetComponentType();
     template<>
-    inline COMPONENT_TYPE GetComponentType<ModelComponent>() { return COMPONENT_TYPE::MODEL; }
+    inline ComponentType GetComponentType<ModelComponent>() { return ComponentType::MODEL; }
     template<>
-    inline COMPONENT_TYPE GetComponentType<LightSourceComponent>() { return COMPONENT_TYPE::LIGHT; }
+    inline ComponentType GetComponentType<LightSourceComponent>() { return ComponentType::LIGHT; }
     template<>
-    inline COMPONENT_TYPE GetComponentType<PhysicsComponent>() { return COMPONENT_TYPE::PHYSICS; }
+    inline ComponentType GetComponentType<PhysicsComponent>() { return ComponentType::PHYSICS; }
     template<>
-    inline COMPONENT_TYPE GetComponentType<AnimationComponent>() { return COMPONENT_TYPE::ANIMATION; }
+    inline ComponentType GetComponentType<AnimationComponent>() { return ComponentType::ANIMATION; }
     
     class Entity
     {
@@ -29,8 +29,8 @@ namespace Bonfire {
 
         void Draw(std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix);
         
-        bool AddComponent(COMPONENT_TYPE type, std::shared_ptr<Component> component);
-        bool RemoveComponent(COMPONENT_TYPE type);
+        bool AddComponent(ComponentType type, std::shared_ptr<Component> component);
+        bool RemoveComponent(ComponentType type);
         template<typename T> T& GetComponent() { return *std::static_pointer_cast<T>(components.at(GetComponentType<T>())); }
         template<typename T> bool HasComponent() const { return components.contains(GetComponentType<T>()); }
         
@@ -56,7 +56,7 @@ namespace Bonfire {
         std::vector<uint32_t> children;
 
     private:
-        std::unordered_map<COMPONENT_TYPE, std::shared_ptr<Component>> components;
+        std::unordered_map<ComponentType, std::shared_ptr<Component>> components;
     };
 
 }

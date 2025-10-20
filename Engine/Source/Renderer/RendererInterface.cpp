@@ -9,15 +9,14 @@ namespace Bonfire
     void Renderer::OnInterfaceUpdate()
 	{
 		Project& project = Project::GetInstance();
-		Interface& project_interface = project.GetInterface();
+		Interface& project_interface = Project::GetInterface();
 		Window& project_window = project.GetWindow();
-		ImVec4& highlight_color = project_interface.highlight_primary;
-    	ImVec4& inactive_color = project_interface.background_tertiary;
 		
 		// -- VIEWPORT --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Viewport");
-		DrawActiveTitleLine(highlight_color, inactive_color);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
+    	
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
 			ImGui::SetWindowFocus();
@@ -130,7 +129,7 @@ namespace Bonfire
 		// -- PROJECT SETTINGS --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Project Settings", nullptr);
-		DrawActiveTitleLine(highlight_color, inactive_color);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
 		ImGui::Indent(8.0f); // Add left padding for content
 		ImGui::Spacing(); // Add top spacing
 		ImGui::PopFont();
@@ -150,7 +149,7 @@ namespace Bonfire
 		// -- CONSOLE --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Console", nullptr);
-		DrawActiveTitleLine(highlight_color, inactive_color);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
@@ -174,7 +173,7 @@ namespace Bonfire
     	
     	ImGui::PushFont(font_title);
     	ImGui::Begin("Toolbar", nullptr, toolbar_flags);
-    	DrawActiveTitleLine(highlight_color, inactive_color);
+    	DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
     	ImGui::PopFont();
@@ -218,7 +217,7 @@ namespace Bonfire
 		// -- HIERARCHY --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Hierarchy", nullptr);
-		DrawActiveTitleLine(highlight_color, inactive_color);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
@@ -238,7 +237,7 @@ namespace Bonfire
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
 			if (entity->IsRoot())
-				RenderEntityTree(entity);
+				DrawEntityTree(entity);
 		}
 
     	ImGui::Spacing();
@@ -296,7 +295,7 @@ namespace Bonfire
 		// -- DETAILS --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Details", nullptr);
-		DrawActiveTitleLine(highlight_color, inactive_color);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
@@ -552,7 +551,7 @@ namespace Bonfire
 							std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, default_material);
 
 							scene->GetModelComponents().insert_or_assign(next_id, new_component);
-							selected_entity->AddComponent(COMPONENT_TYPE::MODEL, new_component);
+							selected_entity->AddComponent(ComponentType::MODEL, new_component);
 						}
 						else
 							Log::Warning("No models available");
@@ -601,7 +600,7 @@ namespace Bonfire
 
     					scene->GetLightSourceComponents().insert_or_assign(next_id, new_component);
     					scene->GetPointLights().insert_or_assign(next_light_id, new_light);
-    					selected_entity->AddComponent(COMPONENT_TYPE::LIGHT, new_component);
+    					selected_entity->AddComponent(ComponentType::LIGHT, new_component);
     				}
 				    else
 				    {
@@ -648,7 +647,7 @@ namespace Bonfire
 		// -- PARAM EDITOR --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Param Editor", nullptr);
-		DrawActiveTitleLine(highlight_color, inactive_color);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
 		ImGui::Indent(8.0f);
 		ImGui::Spacing();
 		ImGui::PopFont();
@@ -842,7 +841,7 @@ namespace Bonfire
 		                        bool is_selected = (current_index == n);
 		                        if (ImGui::Selectable(texture_type_names[n], is_selected))
 		                        {
-		                            texture_data.type = static_cast<TEXTURE_TYPE>(n);
+		                            texture_data.type = static_cast<TextureType>(n);
 		                        }
 		                        
 		                        if (is_selected)
@@ -909,12 +908,12 @@ namespace Bonfire
 		    			std::filesystem::path path_obj(new_texture_path);
 		    			std::string texture_name = path_obj.stem().string();
 					
-		    			std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(new_texture_path, TEXTURE_TYPE::DIFFUSE, false);
+		    			std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(new_texture_path, TextureType::DIFFUSE, false);
 		    			new_texture->param_id = next_id;
 		    			new_texture->name = texture_name;
 		    			new_texture->Load();
 		    			scene->GetTextures().insert_or_assign(next_id, new_texture);
-		    			param_database->texture_params[next_id] = TextureParamData(texture_name, TEXTURE_TYPE::DIFFUSE, false, new_texture_path);
+		    			param_database->texture_params[next_id] = TextureParamData(texture_name, TextureType::DIFFUSE, false, new_texture_path);
 		    		}
 		    		else
 		    			Log::Info("File operation cancelled");
@@ -1006,7 +1005,34 @@ namespace Bonfire
 		ImGui::End();
 	}
 
-	void Renderer::RenderEntityTree(std::shared_ptr<Entity> entity)
+	void DrawViewport()
+    {
+	    
+    }
+
+	void DrawGizmos()
+    {
+	    
+    }
+
+	void DrawToolbar()
+    {
+	    
+    }
+
+	void DrawProjectSettings()
+    {
+	    
+    }
+
+	void DrawHierarchy()
+    {
+	    
+    }
+
+	
+	
+	void Renderer::DrawEntityTree(std::shared_ptr<Entity> entity)
     {
     	ImGui::PushID(&entity->id);
     	
@@ -1089,7 +1115,7 @@ namespace Bonfire
     		for (uint32_t child_id : entity->children)
     		{
     			if (scene->GetEntities().contains(child_id))
-    				RenderEntityTree(scene->GetEntities()[child_id]);
+    				DrawEntityTree(scene->GetEntities()[child_id]);
     		}
     		ImGui::TreePop();
     	}

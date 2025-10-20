@@ -44,7 +44,7 @@ namespace Bonfire
         {
             aiMaterial* material = scene->mMaterials[i];
 
-            auto extractTextures = [&](aiTextureType ai_type, TEXTURE_TYPE engine_type) {
+            auto extractTextures = [&](aiTextureType ai_type, TextureType engine_type) {
                 for (unsigned int j = 0; j < material->GetTextureCount(ai_type); j++)
                 {
                     aiString str;
@@ -66,10 +66,10 @@ namespace Bonfire
                 }
             };
 
-            extractTextures(aiTextureType_DIFFUSE, TEXTURE_TYPE::DIFFUSE);
-            extractTextures(aiTextureType_SPECULAR, TEXTURE_TYPE::SPECULAR);
-            extractTextures(aiTextureType_NORMALS, TEXTURE_TYPE::NORMAL);
-            extractTextures(aiTextureType_HEIGHT, TEXTURE_TYPE::HEIGHT);
+            extractTextures(aiTextureType_DIFFUSE, TextureType::DIFFUSE);
+            extractTextures(aiTextureType_SPECULAR, TextureType::SPECULAR);
+            extractTextures(aiTextureType_NORMALS, TextureType::NORMAL);
+            extractTextures(aiTextureType_HEIGHT, TextureType::HEIGHT);
         }
         ProcessNode(scene->mRootNode, scene);
 

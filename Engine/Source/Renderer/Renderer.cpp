@@ -33,9 +33,9 @@ namespace Bonfire
 		new_shader_frag_path = "Data/Resources/Shaders/unlit.frag";
 		new_shader_geom_path = "Data/Resources/Shaders/unlit.geom";
 
-		move_icon = std::make_unique<Texture>("Data/Resources/Textures/move-icon.png", TEXTURE_TYPE::DIFFUSE, false);
-		rotate_icon = std::make_unique<Texture>("Data/Resources/Textures/rotate-icon.png", TEXTURE_TYPE::DIFFUSE, false);
-		resize_icon = std::make_unique<Texture>("Data/Resources/Textures/resize-icon.png", TEXTURE_TYPE::DIFFUSE, false);
+		move_icon = std::make_unique<Texture>("Data/Resources/Textures/move-icon.png", TextureType::DIFFUSE, false);
+		rotate_icon = std::make_unique<Texture>("Data/Resources/Textures/rotate-icon.png", TextureType::DIFFUSE, false);
+		resize_icon = std::make_unique<Texture>("Data/Resources/Textures/resize-icon.png", TextureType::DIFFUSE, false);
 		move_icon->Load();
 		rotate_icon->Load();
 		resize_icon->Load();
@@ -79,13 +79,13 @@ namespace Bonfire
 		if (viewport_focused)
 		{
 			if (glfwGetKey(glfw_window, InputCode::W) == GLFW_PRESS)
-				scene->GetEngineCamera()->ProcessKeyboard(MOVEMENT_DIRECTION::FORWARD, deltaTime);
+				scene->GetEngineCamera()->ProcessKeyboard(MovementDirection::FORWARD, deltaTime);
 			if (glfwGetKey(glfw_window, InputCode::S) == GLFW_PRESS)
-				scene->GetEngineCamera()->ProcessKeyboard(MOVEMENT_DIRECTION::BACKWARD, deltaTime);
+				scene->GetEngineCamera()->ProcessKeyboard(MovementDirection::BACKWARD, deltaTime);
 			if (glfwGetKey(glfw_window, InputCode::A) == GLFW_PRESS)
-				scene->GetEngineCamera()->ProcessKeyboard(MOVEMENT_DIRECTION::LEFT, deltaTime);
+				scene->GetEngineCamera()->ProcessKeyboard(MovementDirection::LEFT, deltaTime);
 			if (glfwGetKey(glfw_window, InputCode::D) == GLFW_PRESS)
-				scene->GetEngineCamera()->ProcessKeyboard(MOVEMENT_DIRECTION::	RIGHT, deltaTime);
+				scene->GetEngineCamera()->ProcessKeyboard(MovementDirection::	RIGHT, deltaTime);
 		}
 		// ---
 
@@ -325,8 +325,8 @@ namespace Bonfire
 				);
 
 				scene->GetModelComponents().insert_or_assign(next_comp_id, new_component);
-				duplicated->RemoveComponent(COMPONENT_TYPE::MODEL);
-				duplicated->AddComponent(COMPONENT_TYPE::MODEL, new_component);
+				duplicated->RemoveComponent(ComponentType::MODEL);
+				duplicated->AddComponent(ComponentType::MODEL, new_component);
 			}
 			if (ent->HasComponent<LightSourceComponent>())
                 {
@@ -401,8 +401,8 @@ namespace Bonfire
                         );
 
                         scene->GetLightSourceComponents().insert_or_assign(next_comp_id, new_component);
-                        duplicated->RemoveComponent(COMPONENT_TYPE::LIGHT);
-                        duplicated->AddComponent(COMPONENT_TYPE::LIGHT, new_component);
+                        duplicated->RemoveComponent(ComponentType::LIGHT);
+                        duplicated->AddComponent(ComponentType::LIGHT, new_component);
                 }
 			
 			scene->GetEntities().insert_or_assign(next_entity_id, duplicated);

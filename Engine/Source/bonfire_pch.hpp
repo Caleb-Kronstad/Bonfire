@@ -26,6 +26,7 @@
 #include <mutex>
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <array>
 #include <map>
@@ -60,6 +61,22 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+#include <Jolt/Jolt.h>
+#include <Jolt/Core/Factory.h>
+#include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/PhysicsSettings.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Body/Body.h>
+#include <Jolt/Physics/Body/BodyLockInterface.h>
+#include <Jolt/Physics/Body/MassProperties.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyActivationListener.h>
+#include <Jolt/RegisterTypes.h>
 // ------------------------------
 
 // --- Windows Specific ---------

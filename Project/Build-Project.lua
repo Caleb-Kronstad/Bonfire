@@ -23,7 +23,8 @@ project "Project"
         "%{IncludeDir.ASSIMP}",
         "%{IncludeDir.GLM}",
         "%{IncludeDir.IMGUIZMO}",
-        "%{IncludeDir.JSON}"
+        "%{IncludeDir.JSON}",
+        "%{IncludeDir.JOLT}"
     }
 
     links {
@@ -33,7 +34,8 @@ project "Project"
         "IMGUI",
         "ASSIMP",
         "GLM",
-        "IMGUIZMO"
+        "IMGUIZMO",
+        "JOLT"
     }
 
     targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")

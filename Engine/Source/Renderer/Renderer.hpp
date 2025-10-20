@@ -33,8 +33,16 @@ namespace Bonfire
 		bool Load();
 		bool Save();
 
+		void DrawViewport();
+		void DrawGizmos();
+		void DrawToolbar();
+		void DrawProjectSettings();
+		void DrawHierarchy();
+		void DrawDetails();
+		void DrawParamEditor();
+
 		void DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness = 3.0f);
-		void RenderEntityTree(std::shared_ptr<Entity> entity);
+		void DrawEntityTree(std::shared_ptr<Entity> entity);
 		void CreateEntity(std::shared_ptr<Entity> parent = nullptr);
 		void DuplicateEntity(std::shared_ptr<Entity> entity);
 		void DeleteEntity(std::shared_ptr<Entity> entity);

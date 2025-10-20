@@ -2,6 +2,8 @@
 #include "Scene.hpp"
 
 #include "Core/Utility.hpp"
+#include "Core/Project.hpp"
+#include "Physics/PhysicsSystem.hpp"
 
 namespace Bonfire
 {
@@ -216,6 +218,46 @@ namespace Bonfire
                     }
                 }
             }
+
+            if (components.contains("physics"))
+            {
+                for (const auto& [physics_component_id, physics_data] : components["physics"].items())
+                {
+                    PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+                    
+                    uint32_t id = std::stoul(physics_component_id);
+                    bool enabled = physics_data["enabled"].get<bool>();
+
+                    uint32_t physics_id = physics_data["physics-id"].get<uint32_t>();
+                    bool physics_enabled = physics_data["physics-enabled"].get<bool>();
+                    std::string physics_name = physics_data["physics-name"].get<std::string>();
+                    PhysicsBodyType body_type = static_cast<PhysicsBodyType>(physics_data["body-type"].get<uint8_t>());
+                    PhysicsShapeType shape_type = static_cast<PhysicsShapeType>(physics_data["shape-type"].get<uint8_t>());
+
+                    auto dims_array = physics_data["dimensions"].get<std::vector<float>>();
+                    glm::vec3 dimensions(dims_array[0], dims_array[1], dims_array[2]);
+
+                    std::shared_ptr<PhysicsObject> physics_object;
+
+                    if (shape_type == PhysicsShapeType::BOX)
+                        physics_object = physics_system.CreateBoxBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions, body_type);
+                    else if (shape_type == PhysicsShapeType::SPHERE)
+                        physics_object = physics_system.CreateSphereBody(glm::vec3(0.0f), dimensions.x, body_type);
+                    else if (shape_type == PhysicsShapeType::CAPSULE)
+                        physics_object = physics_system.CreateCapsuleBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions.x, dimensions.y, body_type);
+
+                    if (physics_object)
+                    {
+                        physics_object->id = physics_id;
+                        physics_object->enabled = physics_enabled;
+                        physics_object->SetEnabled(enabled);
+                        physics_object->name = physics_name;
+
+                        std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(id, enabled, physics_object);
+                        physics_components.insert_or_assign(id, physics_component);
+                    }
+                }
+            }
             
             for (auto& [id, light_component] : light_source_components)
             {
@@ -255,12 +297,17 @@ namespace Bonfire
                 if (entity_components.contains("model_component"))
                 {
                     uint32_t model_id = entity_components["model_component"].get<uint32_t>();
-                    entity->AddComponent(COMPONENT_TYPE::MODEL, model_components.at(model_id));
+                    entity->AddComponent(ComponentType::MODEL, model_components.at(model_id));
                 }
                 if (entity_components.contains("light_source_component"))
                 {
                     uint32_t light_id = entity_components["light_source_component"].get<uint32_t>();
-                    entity->AddComponent(COMPONENT_TYPE::LIGHT, light_source_components.at(light_id));
+                    entity->AddComponent(ComponentType::LIGHT, light_source_components.at(light_id));
+                }
+                if (entity_components.contains("physics_component"))
+                {
+                    uint32_t physics_id = entity_components["physics_component"].get<uint32_t>();
+                    entity->AddComponent(ComponentType::PHYSICS, physics_components.at(physics_id));
                 }
 
                 entities.insert_or_assign(id, entity);
@@ -353,6 +400,25 @@ namespace Bonfire
         if (!lights_json.empty())
             components_json["light_sources"] = lights_json;
 
+        nlohmann::json physics_json;
+        for (const auto& [id, physics_component] : physics_components)
+        {
+            nlohmann::json phys_json;
+            phys_json["enabled"] = physics_component->enabled;
+            phys_json["physics-id"] = physics_component->physics_object->id;
+            phys_json["physics-enabled"] = physics_component->physics_object->enabled;
+            phys_json["physics-name"] = physics_component->physics_object->name;
+            phys_json["body-type"] = physics_component->physics_object->GetBodyType();
+
+            auto shape_data = physics_component->physics_object->GetShapeData();
+            phys_json["shape-type"] = shape_data.type;
+            phys_json["dimensions"] = {shape_data.dimensions.x, shape_data.dimensions.y, shape_data.dimensions.z};
+
+            physics_json[std::to_string(id)] = phys_json;
+        }
+        if (!physics_json.empty())
+            components_json["physics"] = physics_json;
+
         // Save entities
         for (const auto& [id, entity] : entities)
         {
@@ -371,13 +437,18 @@ namespace Bonfire
             nlohmann::json entity_components_json;
             if (entity->HasComponent<ModelComponent>())
             {
-                auto& model_component = entity->GetComponent<ModelComponent>();
+                ModelComponent& model_component = entity->GetComponent<ModelComponent>();
                 entity_components_json["model_component"] = model_component.id;
             }
             if (entity->HasComponent<LightSourceComponent>())
             {
-                auto& light_source_component = entity->GetComponent<LightSourceComponent>();
+                LightSourceComponent& light_source_component = entity->GetComponent<LightSourceComponent>();
                 entity_components_json["light_source_component"] = light_source_component.id;
+            }
+            if (entity->HasComponent<PhysicsComponent>())
+            {
+                PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
+                entity_components_json["physics_component"] = physics_component.id;
             }
         
             entity_json["components"] = entity_components_json;

@@ -15,12 +15,12 @@ namespace Bonfire
     struct TextureParamData
     {
         std::string name;
-        TEXTURE_TYPE type;
+        TextureType type;
         bool flip;
         std::string path;
 
-        TextureParamData() { name = "Texture"; type = TEXTURE_TYPE::DIFFUSE; flip = false; path = ""; }
-        TextureParamData(const std::string& name, const TEXTURE_TYPE& type, const bool& flip, const std::string& path) : name(name), type(type), flip(flip), path(path) {}
+        TextureParamData() { name = "Texture"; type = TextureType::DIFFUSE; flip = false; path = ""; }
+        TextureParamData(const std::string& name, const TextureType& type, const bool& flip, const std::string& path) : name(name), type(type), flip(flip), path(path) {}
     };
     struct MaterialParamData
     {

@@ -8,6 +8,7 @@ namespace Bonfire
 	Project* Project::static_project_instance = nullptr;
 	Renderer* Project::static_renderer = nullptr;
 	Interface* Project::static_interface = nullptr;
+	PhysicsSystem* Project::static_physics_system = nullptr;
 
 	Project::Project(std::string projectName)
 	{
@@ -15,6 +16,7 @@ namespace Bonfire
 		static_project_instance = this;
 		static_renderer = new Renderer();
 		static_interface = new Interface();
+		static_physics_system = new PhysicsSystem();
 
 		window = Window(WindowProperties(1280, 720, 0, 0, project_name));
 		/*unsigned int viewportWidth = window.GetWidth() * viewportSizeAdjust;
@@ -57,6 +59,7 @@ namespace Bonfire
 		glfwSetFramebufferSizeCallback(window.GetNativeWindow(), FramebufferSizeCallbackDispatch);
 
 		static_interface->OnAttach();
+		static_physics_system->OnAttach();
 		static_renderer->OnAttach();
 		for (const auto& layer : layers)
 			layer->OnAttach();
@@ -66,6 +69,7 @@ namespace Bonfire
 			TickDeltaTime();
 
 			// Update Project
+			static_physics_system->OnUpdate();
 			static_renderer->OnUpdate();
 			for (const auto& layer : layers)
 				layer->OnUpdate();
@@ -88,10 +92,12 @@ namespace Bonfire
 		for (const auto& layer : layers)
 			layer->OnDetach();
 		static_renderer->OnDetach();
+		static_physics_system->OnDetach();
 		static_interface->OnDetach();
 		glfwDestroyWindow(window.GetNativeWindow());
 		glfwTerminate();
 		delete static_interface;
+		delete static_physics_system;
 		delete static_renderer;
 		delete static_project_instance;
 	}
