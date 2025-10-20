@@ -17,6 +17,29 @@
         }
     ],
     "components": {
+        "light_sources": {
+            "100001": {
+                "color": [
+                    255.0,
+                    255.0,
+                    255.0
+                ],
+                "enabled": true,
+                "light-enabled": true,
+                "light-id": 1000,
+                "light-type": "point",
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
         "models": {
             "100001": {
                 "enabled": true,
@@ -79,6 +102,30 @@
                 1.25,
                 1.25,
                 1.25
+            ]
+        },
+        {
+            "components": {
+                "light_source_component": 100001
+            },
+            "enabled": true,
+            "id": 1000003,
+            "name": "Light",
+            "parent": 0,
+            "position": [
+                0.0,
+                0.019943952560424805,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
             ]
         }
     ]

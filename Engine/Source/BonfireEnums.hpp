@@ -8,6 +8,7 @@ namespace Bonfire
     {
         UNKNOWN,
         MODEL,
+        LIGHT,
         PHYSICS,
         ANIMATION,
         COUNT

@@ -95,16 +95,27 @@ namespace Bonfire
 		glm::mat4 projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_size.x, viewport_size.y);
 		glm::mat4 view = scene->GetEngineCamera()->GetViewMatrix();
 
-		if (!scene->GetPointLights().empty())
+		bool shadow_rendered = false;
+		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			glm::vec3& test_shadow_light_pos = scene->GetPointLights().begin()->second->position;
-			scene->GetShadowMap()->Load(test_shadow_light_pos);
-			scene->GetShadowMap()->Set(test_shadow_light_pos);
-			for (auto& [entity_id, entity] : scene->GetEntities())
+			if (!shadow_rendered && entity->HasComponent<LightSourceComponent>())
 			{
-				entity->Draw(scene->GetShadowMap()->point_shadow_map_shader, *scene, manipulation_matrix, view, projection);
+				LightSourceComponent& light_source_component = entity->GetComponent<LightSourceComponent>();
+				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
+				{
+					scene->GetShadowMap()->Load(point_light->position);
+					scene->GetShadowMap()->Set(point_light->position);
+
+					for (auto& [shadow_entity_id, shadow_entity] : scene->GetEntities())
+					{
+						shadow_entity->Draw(scene->GetShadowMap()->point_shadow_map_shader, *scene, manipulation_matrix, view, projection);
+					}
+
+					scene->GetShadowMap()->Reset(true);
+					shadow_rendered = true; 
+					break;
+				}
 			}
-			scene->GetShadowMap()->Reset(true);
 		}
 		
 		viewport_framebuffer->Bind();
@@ -317,6 +328,83 @@ namespace Bonfire
 				duplicated->RemoveComponent(COMPONENT_TYPE::MODEL);
 				duplicated->AddComponent(COMPONENT_TYPE::MODEL, new_component);
 			}
+			if (ent->HasComponent<LightSourceComponent>())
+                {
+                        auto& original_component = ent->GetComponent<LightSourceComponent>();
+
+                        // Generate new component ID
+                        uint32_t next_comp_id = 100001;
+                        if (!scene->GetLightSourceComponents().empty())
+                        {
+                                auto max_comp = std::max_element(
+                                        scene->GetLightSourceComponents().begin(),
+                                        scene->GetLightSourceComponents().end(),
+                                        [](const auto& a, const auto& b) { return a.first < b.first; }
+                                );
+                                next_comp_id = max_comp->first + 1;
+                        }
+
+                        uint32_t next_light_id = 1000;
+
+                        std::shared_ptr<LightSource> new_light_source;
+
+                        if (auto point_light = std::dynamic_pointer_cast<PointLight>(original_component.light_source))
+                        {
+                                if (!scene->GetPointLights().empty())
+                                {
+                                        auto max_light = std::max_element(
+                                                scene->GetPointLights().begin(),
+                                                scene->GetPointLights().end(),
+                                                [](const auto& a, const auto& b) { return a.first < b.first; }
+                                        );
+                                        next_light_id = max_light->first + 1;
+                                }
+
+                                std::shared_ptr<PointLight> new_point_light = std::make_shared<PointLight>();
+                                new_point_light->id = next_light_id;
+                                new_point_light->enabled = point_light->enabled;
+                                new_point_light->position = point_light->position;
+                                new_point_light->color = point_light->color;
+                                new_point_light->scale = point_light->scale;
+
+                                new_light_source = new_point_light;
+                                scene->GetPointLights().insert_or_assign(next_light_id, new_point_light);
+                        }
+                        else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(original_component.light_source))
+                        {
+                                if (!scene->GetSpotLights().empty())
+                                {
+                                        auto max_light = std::max_element(
+                                                scene->GetSpotLights().begin(),
+                                                scene->GetSpotLights().end(),
+                                                [](const auto& a, const auto& b) { return a.first < b.first; }
+                                        );
+                                        next_light_id = max_light->first + 1;
+                                }
+
+                                std::shared_ptr<SpotLight> new_spot_light = std::make_shared<SpotLight>();
+                                new_spot_light->id = next_light_id;
+                                new_spot_light->enabled = spot_light->enabled;
+                                new_spot_light->position = spot_light->position;
+                                new_spot_light->color = spot_light->color;
+                                new_spot_light->scale = spot_light->scale;
+                                new_spot_light->direction = spot_light->direction;
+
+                                new_light_source = new_spot_light;
+                                scene->GetSpotLights().insert_or_assign(next_light_id, new_spot_light);
+                        }
+
+                        std::shared_ptr<LightSourceComponent> new_component = std::make_shared<LightSourceComponent>(
+                                next_comp_id,
+                                original_component.enabled,
+                                new_light_source
+                        );
+
+                        scene->GetLightSourceComponents().insert_or_assign(next_comp_id, new_component);
+                        duplicated->RemoveComponent(COMPONENT_TYPE::LIGHT);
+                        duplicated->AddComponent(COMPONENT_TYPE::LIGHT, new_component);
+                }
+			
 			scene->GetEntities().insert_or_assign(next_entity_id, duplicated);
 
 			for (uint32_t child_id : original_children)
@@ -362,6 +450,19 @@ namespace Bonfire
 			{
 				auto& model_component = ent->GetComponent<ModelComponent>();
 				scene->GetModelComponents().erase(model_component.id);
+			}
+			if (ent->HasComponent<LightSourceComponent>())
+			{
+				auto& light_source_component = ent->GetComponent<LightSourceComponent>();
+				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
+				{
+					scene->GetPointLights().erase(point_light->id);
+				}
+				if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
+				{
+					scene->GetSpotLights().erase(spot_light->id);
+				}
+				scene->GetLightSourceComponents().erase(light_source_component.id);
 			}
 			if (ent->HasComponent<PhysicsComponent>())
 			{

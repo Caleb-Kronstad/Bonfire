@@ -69,6 +69,15 @@ namespace Bonfire
     			selected_entity->position = translation;
     			selected_entity->rotation = glm::degrees(rotation);
     			selected_entity->scale = scale;
+
+    			if (selected_entity->HasComponent<LightSourceComponent>())
+    			{
+    				LightSourceComponent& light_source_component = selected_entity->GetComponent<LightSourceComponent>();
+    				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
+    					point_light->position = translation;
+    				else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
+    					spot_light->position = translation;
+    			}
     		}
     	}
 
@@ -311,7 +320,17 @@ namespace Bonfire
     		ImGui::Spacing();
 		
     		ImGui::PushItemWidth(200.0f);
-    		ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000);
+    		if (ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000))
+    		{
+    			if (selected_entity->HasComponent<LightSourceComponent>())
+    			{
+    				LightSourceComponent& light_source_component = selected_entity->GetComponent<LightSourceComponent>();
+    				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
+    					point_light->position = selected_entity->position;
+    				else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
+    					spot_light->position = selected_entity->position;
+    			}
+    		}
     		ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000);
     		ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360);
     		ImGui::PopItemWidth();
@@ -325,6 +344,8 @@ namespace Bonfire
     			ImGui::Checkbox("##Enabled", &model_component.enabled);
     			ImGui::SameLine();
 				ImGui::Text("Model Component");
+    			ImGui::SameLine();
+    			ImGui::Text(std::to_string(model_component.id).c_str());
 				ImGui::Spacing();
 
     			ImGui::Checkbox("Casts Shadow", &model_component.model->casts_shadow);
@@ -382,6 +403,108 @@ namespace Bonfire
     				ImGui::EndPopup();
     			}
 			}
+
+    		if (selected_entity->HasComponent<LightSourceComponent>())
+    		{
+				LightSourceComponent& light_source_component = selected_entity->GetComponent<LightSourceComponent>();
+    			
+    			ImGui::Separator();
+
+    			ImGui::Separator();
+    			ImGui::Checkbox("##Enabled", &light_source_component.enabled);
+    			ImGui::SameLine();
+    			ImGui::Text("Light Source Component");
+    			ImGui::SameLine();
+    			ImGui::Text(std::to_string(light_source_component.id).c_str());
+    			ImGui::Spacing();
+    			
+    			if (ImGui::Button(light_source_component.light_source->name.c_str(), ImVec2(100, 22)))
+    				ImGui::OpenPopup("ChangeLightSourceComponentLightSource");
+    			ImGui::SameLine(); ImGui::Text("Light Source Type");
+
+    			if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
+    			{
+    				ImGui::Spacing();
+    				ImGui::Text("Point Light Properties");
+    				ImGui::PushItemWidth(200.0f);
+    				ImGui::ColorEdit3("Color", (float*)&point_light->color);
+    				ImGui::DragFloat3("Scale", (float*)&point_light->scale, drag_step, 0.0f, 100.0f);
+    				ImGui::PopItemWidth();
+    			}
+    			else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
+    			{
+    				ImGui::Spacing();
+    				ImGui::Text("Spot Light Properties");
+    				ImGui::PushItemWidth(200.0f);
+    				ImGui::ColorEdit3("Color", (float*)&spot_light->color);
+    				ImGui::DragFloat3("Scale", (float*)&spot_light->scale, drag_step, 0.0f, 100.0f);
+    				ImGui::DragFloat3("Direction", (float*)&spot_light->direction, drag_step, -1.0f, 1.0f);
+    				ImGui::PopItemWidth();
+    			}
+
+    			if (ImGui::BeginPopup("ChangeLightSourceComponentLightSource"))
+    			{
+    				auto old_light = light_source_component.light_source;
+					glm::vec3 preserved_color = glm::vec3(255.0f);
+					glm::vec3 preserved_position = glm::vec3(0.0f);
+					glm::vec3 preserved_scale = glm::vec3(1.0f);
+					glm::vec3 preserved_direction = glm::vec3(0.0f);
+
+					if (auto point_light = std::dynamic_pointer_cast<PointLight>(old_light))
+					{
+						preserved_color = point_light->color;
+						preserved_position = point_light->position;
+						preserved_scale = point_light->scale;
+					}
+					else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(old_light))
+					{
+					    preserved_color = spot_light->color;
+					    preserved_position = spot_light->position;
+					    preserved_scale = spot_light->scale;
+					    preserved_direction = spot_light->direction;
+					}
+    				
+					if (ImGui::MenuItem("Point Light"))
+					{
+						if (auto current_type = std::dynamic_pointer_cast<PointLight>(old_light))
+							ImGui::CloseCurrentPopup();
+						if (auto old_spot = std::dynamic_pointer_cast<SpotLight>(old_light))
+							scene->GetSpotLights().erase(old_spot->id);
+
+						std::shared_ptr<PointLight> new_light = std::make_shared<PointLight>();
+						new_light->color = preserved_color;
+						new_light->position = preserved_position;
+						new_light->scale = preserved_scale;
+						new_light->id = old_light->id;
+						new_light->enabled = old_light->enabled;
+						light_source_component.light_source = new_light;
+
+						scene->GetPointLights().insert_or_assign(new_light->id, new_light);
+						ImGui::CloseCurrentPopup();
+					}
+					if (ImGui::MenuItem("Spot Light"))
+					{
+						if (auto current_type = std::dynamic_pointer_cast<SpotLight>(old_light))
+							ImGui::CloseCurrentPopup();
+						if (auto old_point = std::dynamic_pointer_cast<PointLight>(old_light))
+							scene->GetPointLights().erase(old_point->id);
+
+						std::shared_ptr<SpotLight> new_light = std::make_shared<SpotLight>();
+						new_light->color = preserved_color;
+						new_light->position = preserved_position;
+						new_light->scale = preserved_scale;
+						new_light->direction = preserved_direction;
+						new_light->id = old_light->id;
+						new_light->enabled = old_light->enabled;
+						light_source_component.light_source = new_light;
+
+						scene->GetSpotLights().insert_or_assign(new_light->id, new_light);
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::EndPopup();
+    			}
+    		}
+    		
 			// PHYSICS COMPONENT
 			if (selected_entity->HasComponent<PhysicsComponent>())
 			{
@@ -440,6 +563,52 @@ namespace Bonfire
 						ImGui::CloseCurrentPopup();
 					}
 				}
+
+    			if (ImGui::MenuItem("Light Source Component"))
+    			{
+    				if (!selected_entity->HasComponent<LightSourceComponent>())
+    				{
+    					uint32_t next_id = 100001;
+    					if (!scene->GetLightSourceComponents().empty())
+    					{
+    						auto max_it = std::max_element(
+								scene->GetLightSourceComponents().begin(),
+								scene->GetLightSourceComponents().end(),
+								[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+    						next_id = max_it->first + 1;
+    					}
+
+    					uint32_t next_light_id = 1000;
+    					if (!scene->GetPointLights().empty())
+    					{
+    						auto max_it = std::max_element(
+								scene->GetPointLights().begin(),
+								scene->GetPointLights().end(),
+								[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+    						next_light_id = max_it->first + 1;
+    					}
+    					
+    					std::shared_ptr<PointLight> new_light = std::make_shared<PointLight>();
+    					new_light->id = next_light_id;
+    					new_light->position = selected_entity->position;
+    					new_light->color = glm::vec3(255.0f, 255.0f, 255.0f);
+    					new_light->scale = glm::vec3(1.0f);
+    					new_light->enabled = true;
+
+    					std::shared_ptr<LightSourceComponent> new_component = std::make_shared<LightSourceComponent>(next_id, true, new_light);
+
+    					scene->GetLightSourceComponents().insert_or_assign(next_id, new_component);
+    					scene->GetPointLights().insert_or_assign(next_light_id, new_light);
+    					selected_entity->AddComponent(COMPONENT_TYPE::LIGHT, new_component);
+    				}
+				    else
+				    {
+					    Log::Warning("Entity already has light source component");
+				    	ImGui::CloseCurrentPopup();
+				    }
+    			}
     			
     			if (ImGui::MenuItem("Physics Component"))
     			{

@@ -9,7 +9,7 @@ namespace Bonfire
     {
         shader.SetFloat("material.shininess", shininess);
 
-        if (directional_light)
+        if (directional_light != nullptr)
         {
             shader.SetVec3("directional_light.direction", directional_light->direction);
             shader.SetVec3("directional_light.ambient", directional_light->color / 255.0f * 0.2f);
@@ -169,6 +169,61 @@ namespace Bonfire
                 }
             }
             // ADD OTHER COMPONENT TYPES
+            if (components.contains("light_sources"))
+            {
+                for (const auto& [light_component_id, light_data] : components["light_sources"].items())
+                {
+                    uint32_t id = std::stoul(light_component_id);
+                    bool enabled = light_data["enabled"].get<bool>();
+                    std::string light_type = light_data["light-type"].get<std::string>();
+                    std::shared_ptr<LightSource> light_source;
+                    
+                    if (light_type == "point")
+                    {
+                        auto color_array = light_data["color"].get<std::vector<float>>();
+                        auto position_array = light_data["position"].get<std::vector<float>>();
+                        auto scale_array = light_data["scale"].get<std::vector<float>>();
+                        glm::vec3 color(color_array[0], color_array[1], color_array[2]);
+                        glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+                        glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
+
+                        std::shared_ptr<PointLight> point_light = std::make_shared<PointLight>(color, position, scale);
+                        point_light->id = light_data["light-id"].get<uint32_t>();
+                        point_light->enabled = light_data["light-enabled"].get<bool>();
+                        light_source = point_light;
+                    }
+                    else if (light_type == "spot")
+                    {
+                        auto color_array = light_data["color"].get<std::vector<float>>();
+                        auto position_array = light_data["position"].get<std::vector<float>>();
+                        auto scale_array = light_data["scale"].get<std::vector<float>>();
+                        auto direction_array = light_data["direction"].get<std::vector<float>>();
+                        glm::vec3 color(color_array[0], color_array[1], color_array[2]);
+                        glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+                        glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
+                        glm::vec3 direction(direction_array[0], direction_array[1], direction_array[2]);
+
+                        std::shared_ptr<SpotLight> spot_light = std::make_shared<SpotLight>(color, position, scale, direction);
+                        spot_light->id = light_data["light-id"].get<uint32_t>();
+                        spot_light->enabled = light_data["light-enabled"].get<bool>();
+                        light_source = spot_light;
+                    }
+
+                    if (light_source)
+                    {
+                        std::shared_ptr<LightSourceComponent> light_component = std::make_shared<LightSourceComponent>(id, enabled, light_source);
+                        light_source_components.insert_or_assign(id, light_component);
+                    }
+                }
+            }
+            
+            for (auto& [id, light_component] : light_source_components)
+            {
+                if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_component->light_source))
+                    point_lights.insert_or_assign(point_light->id, point_light);
+                else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_component->light_source))
+                    spot_lights.insert_or_assign(spot_light->id, spot_light);
+            }
         }
 
         // Load entities
@@ -202,6 +257,11 @@ namespace Bonfire
                     uint32_t model_id = entity_components["model_component"].get<uint32_t>();
                     entity->AddComponent(COMPONENT_TYPE::MODEL, model_components.at(model_id));
                 }
+                if (entity_components.contains("light_source_component"))
+                {
+                    uint32_t light_id = entity_components["light_source_component"].get<uint32_t>();
+                    entity->AddComponent(COMPONENT_TYPE::LIGHT, light_source_components.at(light_id));
+                }
 
                 entities.insert_or_assign(id, entity);
             }
@@ -229,10 +289,6 @@ namespace Bonfire
                 lit_shader = shader;
         }
         shadow_map->Generate(point_shadow_map_shader, lit_shader, "Data/Resources/Textures/checkered.png");
-        
-        std::shared_ptr<PointLight> test_point_light = std::make_shared<PointLight>();
-        test_point_light->id = 1000;
-        point_lights.insert_or_assign(test_point_light->id, test_point_light);
 
         Log::Info("Loaded scene from " + path);
         return true;
@@ -268,6 +324,35 @@ namespace Bonfire
         if (!models_json.empty())
             components_json["models"] = models_json;
 
+        nlohmann::json lights_json;
+        for (const auto& [id, light_component] : light_source_components)
+        {
+            nlohmann::json light_json;
+            light_json["enabled"] = light_component->enabled;
+            light_json["light-id"] = light_component->light_source->id;
+            light_json["light-enabled"] = light_component->light_source->enabled;
+
+            if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_component->light_source))
+            {
+                light_json["light-type"] = "point";
+                light_json["color"] = {point_light->color.x, point_light->color.y, point_light->color.z};
+                light_json["position"] = {point_light->position.x, point_light->position.y, point_light->position.z};
+                light_json["scale"] = {point_light->scale.x, point_light->scale.y, point_light->scale.z};
+            }
+            else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_component->light_source))
+            {
+                light_json["light-type"] = "spot";
+                light_json["color"] = {spot_light->color.x, spot_light->color.y, spot_light->color.z};
+                light_json["position"] = {spot_light->position.x, spot_light->position.y, spot_light->position.z};
+                light_json["scale"] = {spot_light->scale.x, spot_light->scale.y, spot_light->scale.z};
+                light_json["direction"] = {spot_light->direction.x, spot_light->direction.y, spot_light->direction.z};
+            }
+
+            lights_json[std::to_string(id)] = light_json;
+        }
+        if (!lights_json.empty())
+            components_json["light_sources"] = lights_json;
+
         // Save entities
         for (const auto& [id, entity] : entities)
         {
@@ -288,6 +373,11 @@ namespace Bonfire
             {
                 auto& model_component = entity->GetComponent<ModelComponent>();
                 entity_components_json["model_component"] = model_component.id;
+            }
+            if (entity->HasComponent<LightSourceComponent>())
+            {
+                auto& light_source_component = entity->GetComponent<LightSourceComponent>();
+                entity_components_json["light_source_component"] = light_source_component.id;
             }
         
             entity_json["components"] = entity_components_json;
