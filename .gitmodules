@@ -13,6 +13,3 @@
 [submodule "glfw"]
 	path = Engine/Dependencies/glfw
 	url = https://github.com/Caleb-Kronstad/glfw
-[submodule "Engine/Dependencies/jolt"]
-	path = Engine/Dependencies/jolt
-	url = https://github.com/jrouwe/JoltPhysics
