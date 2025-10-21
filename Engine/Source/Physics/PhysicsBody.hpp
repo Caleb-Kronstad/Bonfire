@@ -32,8 +32,8 @@ namespace Bonfire
         bool IsEnabled() const;
 
         JPH::BodyID GetBodyID() const { return body_id; }
-        PhysicsBodyType GetBodyType() const { return body_type; }
-        PhysicsShapeData GetShapeData() const { return shape_data; }
+        PhysicsBodyType& GetBodyType() { return body_type; }
+        PhysicsShapeData& GetShapeData() { return shape_data; }
 
         glm::vec3 GetPosition() const;
         glm::quat GetRotation() const;
