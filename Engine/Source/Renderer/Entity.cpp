@@ -43,12 +43,39 @@ namespace Bonfire
 		{
 			if (!shader->updated_this_frame)
 			{
-				
+				// i dont remember whats supposed to be here
 			}
 		}
 		
 		shader->SetMat4("model", manipulation_matrix);
 		model_component.model->Draw(*shader, model_component.material);
+	}
+
+	void Entity::UpdateComponents(PhysicsSystem& physics_system)
+	{
+		if (HasComponent<LightSourceComponent>())
+		{
+			LightSourceComponent& light_source_component = GetComponent<LightSourceComponent>();
+			if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
+			{
+				point_light->position = position;
+				point_light->scale = scale;
+			}
+			else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
+			{
+				spot_light->position = position;
+				spot_light->scale = scale;
+			}
+		}
+		if (HasComponent<PhysicsComponent>())
+		{
+			PhysicsComponent& physics_component = GetComponent<PhysicsComponent>();
+			std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
+                
+			physics_body->SetPosition(position);
+			physics_body->SetRotation(glm::quat(glm::radians(rotation)));
+			physics_body->SetScale(scale);
+		}
 	}
 
 

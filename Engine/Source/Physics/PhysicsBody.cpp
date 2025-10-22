@@ -1,30 +1,89 @@
 ﻿#include "bonfire_pch.hpp"
-#include "PhysicsObject.hpp"
+#include "PhysicsBody.hpp"
 
 #include "Core/Project.hpp"
 
 namespace Bonfire
 {
-    PhysicsObject::PhysicsObject(JPH::BodyID body_id, PhysicsBodyType body_type, PhysicsShapeData shape_data)
+    PhysicsBody::PhysicsBody(JPH::BodyID body_id, PhysicsBodyType body_type, PhysicsShapeData shape_data)
         : body_id(body_id), body_type(body_type), shape_data(shape_data)
     {
     }
 
-    void PhysicsObject::SetPosition(const glm::vec3& position)
+    PhysicsBody::~PhysicsBody()
+    {
+        auto& physics_system = Project::GetPhysicsSystem();
+        JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
+
+        if (body_interface.IsAdded(body_id))
+        {
+            body_interface.RemoveBody(body_id);
+            body_interface.DestroyBody(body_id);
+        }
+    }
+
+
+    void PhysicsBody::SetPosition(const glm::vec3& position)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetPosition(body_id, JPH::Vec3(position.x, position.y, position.z), JPH::EActivation::DontActivate);
     }
 
-    void PhysicsObject::SetRotation(const glm::quat& rotation)
+    void PhysicsBody::SetRotation(const glm::quat& rotation)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetRotation(body_id, JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w), JPH::EActivation::DontActivate);
     }
 
-    glm::vec3 PhysicsObject::GetPosition() const
+    void PhysicsBody::SetScale(const glm::vec3& scale)
+    {
+        auto& physics_system = Project::GetPhysicsSystem();
+        JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
+
+        JPH::Ref<JPH::Shape> new_shape;
+
+        switch (shape_data.type)
+        {
+        case PhysicsShapeType::BOX:
+            {
+                glm::vec3 scaled_half_extents = scale;
+                shape_data.dimensions = scaled_half_extents;
+    
+                if (scaled_half_extents.x <= 0 || scaled_half_extents.y <= 0 || scaled_half_extents.z <= 0)
+                {
+                    Log::Error("Box dimensions must be positive");
+                    return;
+                }
+    
+                JPH::BoxShapeSettings shape_settings(JPH::Vec3(scaled_half_extents.x, scaled_half_extents.y, scaled_half_extents.z), 0.01f);
+                auto shape_result = shape_settings.Create();
+    
+                new_shape = shape_result.Get();
+                break;
+            }
+        case PhysicsShapeType::SPHERE:
+            {
+                float scaled_radius = shape_data.dimensions.x * (glm::max)((glm::max)(scale.x, scale.y), scale.z);
+                JPH::SphereShapeSettings shape_settings(scaled_radius);
+                new_shape = shape_settings.Create().Get();
+                break;
+            }
+        case PhysicsShapeType::CAPSULE:
+            {
+                float scaled_radius = shape_data.dimensions.x * (glm::max)(scale.x, scale.z);
+                float scaled_half_height = shape_data.dimensions.y * scale.y;
+                JPH::CapsuleShapeSettings shape_settings(scaled_half_height, scaled_radius);
+                new_shape = shape_settings.Create().Get();
+                break;
+            }
+        }
+
+        body_interface.SetShape(body_id, new_shape.GetPtr(), true, JPH::EActivation::DontActivate);
+    }
+
+    glm::vec3 PhysicsBody::GetPosition() const
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
@@ -32,7 +91,7 @@ namespace Bonfire
         return glm::vec3(pos.GetX(), pos.GetY(), pos.GetZ());
     }
 
-    glm::quat PhysicsObject::GetRotation() const
+    glm::quat PhysicsBody::GetRotation() const
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
@@ -40,14 +99,14 @@ namespace Bonfire
         return glm::quat(rot.GetW(), rot.GetX(), rot.GetY(), rot.GetZ());
     }
 
-    void PhysicsObject::SetLinearVelocity(const glm::vec3& velocity)
+    void PhysicsBody::SetLinearVelocity(const glm::vec3& velocity)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetLinearVelocity(body_id, JPH::Vec3(velocity.x, velocity.y, velocity.z));
     }
 
-    glm::vec3 PhysicsObject::GetLinearVelocity() const
+    glm::vec3 PhysicsBody::GetLinearVelocity() const
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
@@ -55,14 +114,14 @@ namespace Bonfire
         return glm::vec3(vel.GetX(), vel.GetY(), vel.GetZ());
     }
 
-    void PhysicsObject::SetAngularVelocity(const glm::vec3& angular_velocity)
+    void PhysicsBody::SetAngularVelocity(const glm::vec3& angular_velocity)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetAngularVelocity(body_id, JPH::Vec3(angular_velocity.x, angular_velocity.y, angular_velocity.z));
     }
 
-    glm::vec3 PhysicsObject::GetAngularVelocity() const
+    glm::vec3 PhysicsBody::GetAngularVelocity() const
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
@@ -70,28 +129,28 @@ namespace Bonfire
         return glm::vec3(vel.GetX(), vel.GetY(), vel.GetZ());
     }
 
-    void PhysicsObject::AddForce(const glm::vec3& force)
+    void PhysicsBody::AddForce(const glm::vec3& force)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.AddForce(body_id, JPH::Vec3(force.x, force.y, force.z));
     }
 
-    void PhysicsObject::AddImpulse(const glm::vec3& impulse)
+    void PhysicsBody::AddImpulse(const glm::vec3& impulse)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.AddImpulse(body_id, JPH::Vec3(impulse.x, impulse.y, impulse.z));
     }
 
-    void PhysicsObject::AddTorque(const glm::vec3& torque)
+    void PhysicsBody::AddTorque(const glm::vec3& torque)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.AddTorque(body_id, JPH::Vec3(torque.x, torque.y, torque.z));
     }
 
-    void PhysicsObject::SetMass(float mass)
+    void PhysicsBody::SetMass(float mass)
     {
         if (body_type != PhysicsBodyType::DYNAMIC || mass <= 0.0f)
             return;
@@ -107,28 +166,28 @@ namespace Bonfire
         }
     }
 
-    void PhysicsObject::SetFriction(float friction)
+    void PhysicsBody::SetFriction(float friction)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetFriction(body_id, friction);
     }
 
-    void PhysicsObject::SetRestitution(float restitution)
+    void PhysicsBody::SetRestitution(float restitution)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetRestitution(body_id, restitution);
     }
 
-    void PhysicsObject::SetGravityFactor(float factor)
+    void PhysicsBody::SetGravityFactor(float factor)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetGravityFactor(body_id, factor);
     }
 
-    void PhysicsObject::SetEnabled(bool enabled)
+    void PhysicsBody::SetEnabled(bool enabled)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
@@ -138,7 +197,7 @@ namespace Bonfire
             body_interface.DeactivateBody(body_id);
     }
 
-    bool PhysicsObject::IsEnabled() const
+    bool PhysicsBody::IsEnabled() const
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();

@@ -34,9 +34,9 @@ namespace Bonfire
 		bool Save();
 
 		void DrawViewport();
-		void DrawGizmos();
 		void DrawToolbar();
 		void DrawProjectSettings();
+		void DrawConsole();
 		void DrawHierarchy();
 		void DrawDetails();
 		void DrawParamEditor();
@@ -58,6 +58,7 @@ namespace Bonfire
 
 		// scene
 		std::unique_ptr<Scene> scene;
+		std::unique_ptr<Scene> temp_scene;
 		std::shared_ptr<Entity> selected_entity;
 		std::shared_ptr<Entity> entity_to_create;
 		std::shared_ptr<Entity> entity_to_delete;
@@ -80,6 +81,7 @@ namespace Bonfire
 		glm::vec2 viewport_size = { 1280, 720 };
 		bool viewport_focused = false;
 
+		std::unique_ptr<Texture> play_icon;
 		std::unique_ptr<Texture> move_icon;
 		std::unique_ptr<Texture> rotate_icon;
 		std::unique_ptr<Texture> resize_icon;

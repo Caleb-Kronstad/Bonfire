@@ -23,7 +23,126 @@ namespace Bonfire
 			engine_camera_can_rotate = true;
 			glfwSetInputMode(project_window.GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
-		viewport_focused = ImGui::IsWindowFocused();
+
+    	DrawViewport();
+    	
+    	ImGui::End();
+
+		// -- PROJECT SETTINGS --
+		ImGui::PushFont(font_title);
+		ImGui::Begin("Project Settings", nullptr);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing(); 
+		ImGui::PopFont();
+		ImGui::PushFont(font_body);
+
+		DrawProjectSettings();
+		
+		ImGui::PopFont();
+		ImGui::Unindent(8.0f);
+		ImGui::End();
+
+		// -- CONSOLE --
+		ImGui::PushFont(font_title);
+		ImGui::Begin("Console", nullptr);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+		ImGui::PopFont();
+		ImGui::PushFont(font_body);
+		
+		DrawConsole();
+		
+		ImGui::PopFont();
+		ImGui::Unindent(8.0f);
+		ImGui::End();
+
+    	// -- Toolbar --
+    	ImGuiWindowFlags toolbar_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
+    	
+    	ImGui::PushFont(font_title);
+    	ImGui::Begin("Toolbar", nullptr, toolbar_flags);
+    	DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
+    	ImGui::Indent(8.0f);
+    	ImGui::Spacing();
+    	ImGui::PopFont();
+    	ImGui::PushFont(font_body);
+
+    	DrawToolbar();
+
+    	ImGui::PopFont();
+    	ImGui::Unindent(8.0f);
+    	ImGui::End();
+
+		// -- HIERARCHY --
+		ImGui::PushFont(font_title);
+		ImGui::Begin("Hierarchy", nullptr);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+		ImGui::PopFont();
+		ImGui::PushFont(font_body);
+		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
+
+    	DrawHierarchy();
+		
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+		ImGui::Unindent(8.0f);
+		ImGui::End();
+
+    	if (entity_to_create != nullptr)
+    	{
+			CreateEntity(entity_to_create);
+    		entity_to_create = nullptr;
+    	}
+    	if (entity_to_delete != nullptr)
+    	{
+    		DeleteEntity(entity_to_delete);
+    		entity_to_delete = nullptr;
+    	}
+    	if (entity_to_reparent != nullptr)
+    	{
+    		ReparentEntity(entity_to_reparent, reparent_target);
+    		entity_to_reparent = nullptr;
+    		reparent_target = nullptr;
+    	}
+
+		// -- DETAILS --
+		ImGui::PushFont(font_title);
+		ImGui::Begin("Details", nullptr);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+		ImGui::PopFont();
+		ImGui::PushFont(font_body);
+		
+		DrawDetails();
+    	
+		ImGui::PopFont();
+		ImGui::Unindent(8.0f);
+		ImGui::End();
+
+		// -- PARAM EDITOR --
+		ImGui::PushFont(font_title);
+		ImGui::Begin("Param Editor", nullptr);
+		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
+		ImGui::Indent(8.0f);
+		ImGui::Spacing();
+		ImGui::PopFont();
+		ImGui::PushFont(font_body);
+
+		DrawParamEditor();
+		
+		ImGui::PopFont();
+		ImGui::Unindent(8.0f);
+		ImGui::End();
+	}
+
+	void Renderer::DrawViewport()
+    {
+    	viewport_focused = ImGui::IsWindowFocused();
 		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
 		
 		if (!FloatEquals(viewport_panel_size.x, viewport_size.x) || !FloatEquals(viewport_panel_size.y, viewport_size.y))
@@ -68,15 +187,7 @@ namespace Bonfire
     			selected_entity->position = translation;
     			selected_entity->rotation = glm::degrees(rotation);
     			selected_entity->scale = scale;
-
-    			if (selected_entity->HasComponent<LightSourceComponent>())
-    			{
-    				LightSourceComponent& light_source_component = selected_entity->GetComponent<LightSourceComponent>();
-    				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
-    					point_light->position = translation;
-    				else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
-    					spot_light->position = translation;
-    			}
+    			selected_entity->UpdateComponents(Project::GetPhysicsSystem());
     		}
     	}
 
@@ -123,68 +234,49 @@ namespace Bonfire
     		else
     			selected_entity = nullptr;
     	}
+    }
+
+	void Renderer::DrawToolbar()
+    {
+    	Project& project = Project::GetInstance();
+    	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+		Interface& project_interface = Project::GetInterface();
+    	Window& project_window = project.GetWindow();
     	
-    	ImGui::End();
-
-		// -- PROJECT SETTINGS --
-		ImGui::PushFont(font_title);
-		ImGui::Begin("Project Settings", nullptr);
-		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
-		ImGui::Indent(8.0f); // Add left padding for content
-		ImGui::Spacing(); // Add top spacing
-		ImGui::PopFont();
-		ImGui::PushFont(font_body);
-
-		std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
-		ImGui::Text(delta_time.c_str());
-		
-		ImGui::PushItemWidth(100.0f);
-		ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
-		ImGui::PopItemWidth();
-		
-		ImGui::PopFont();
-		ImGui::Unindent(8.0f);
-		ImGui::End();
-
-		// -- CONSOLE --
-		ImGui::PushFont(font_title);
-		ImGui::Begin("Console", nullptr);
-		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
-		ImGui::Indent(8.0f);
-		ImGui::Spacing();
-		ImGui::PopFont();
-		ImGui::PushFont(font_body);
-		
-		std::vector<std::string> lines = console_capture->GetLines();
-		for (const std::string& line : lines)
-		{
-			auto [color, text] = ParseAnsiLine(line);
-			ImGui::PushTextWrapPos(0.0f);
-			ImGui::TextColored(color, "%s", text.c_str());
-    		ImGui::PopTextWrapPos();
-		}
-		
-		ImGui::PopFont();
-		ImGui::Unindent(8.0f);
-		ImGui::End();
-
-    	// -- Toolbar --
-    	ImGuiWindowFlags toolbar_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
-    	
-    	ImGui::PushFont(font_title);
-    	ImGui::Begin("Toolbar", nullptr, toolbar_flags);
-    	DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
-    	ImGui::Indent(8.0f);
-    	ImGui::Spacing();
-    	ImGui::PopFont();
-    	ImGui::PushFont(font_body);
-
     	if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_E) == GLFW_PRESS)
     		gizmo_type = ImGuizmo::TRANSLATE;
     	if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_R) == GLFW_PRESS)
     		gizmo_type = ImGuizmo::ROTATE;
     	if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_T) == GLFW_PRESS)
     		gizmo_type = ImGuizmo::SCALE;
+
+    	bool project_running = project.GetProjectRunState();
+    	if (project_running)
+    		ImGui::PushStyleColor(ImGuiCol_Button, project_interface.highlight_primary);
+    	if (ImGui::ImageButton((void*)play_icon->gl_id, ImVec2(20, 20)))
+    	{
+    		// play
+    		if (!project.GetProjectRunState())
+    		{
+    			Log::Info("Running...");
+    			scene->SaveScene(*param_database);
+    			project.SetProjectRunState(true);
+    			physics_system.paused = false;
+    			selected_entity = nullptr;
+    		}
+    		// stop playing
+    		else if (project.GetProjectRunState())
+    		{
+    			Log::Info("Stopping...");
+    			physics_system.paused = true;
+    			project.SetProjectRunState(false);
+    			scene->LoadScene(*param_database);
+    		}
+    	}
+    	if (project_running)
+    		ImGui::PopStyleColor(1);
+
+    	ImGui::SameLine();
 
     	int temp_gizmo_type = gizmo_type;
     	if (temp_gizmo_type == ImGuizmo::TRANSLATE)
@@ -209,21 +301,36 @@ namespace Bonfire
     		gizmo_type = ImGuizmo::SCALE;
     	if (temp_gizmo_type == ImGuizmo::SCALE)
     		ImGui::PopStyleColor(1);
+    }
 
-    	ImGui::PopFont();
-    	ImGui::Unindent(8.0f);
-    	ImGui::End();
+	void Renderer::DrawProjectSettings()
+    {
+		Project& project = Project::GetInstance();
+    	
+    	std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
+    	ImGui::Text(delta_time.c_str());
+		
+    	ImGui::PushItemWidth(100.0f);
+    	ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
+    	ImGui::PopItemWidth();
+    }
 
-		// -- HIERARCHY --
-		ImGui::PushFont(font_title);
-		ImGui::Begin("Hierarchy", nullptr);
-		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
-		ImGui::Indent(8.0f);
-		ImGui::Spacing();
-		ImGui::PopFont();
-		ImGui::PushFont(font_body);
-		ImGui::PushStyleColor(ImGuiCol_Header, project_interface.background_primary);
+	void Renderer::DrawConsole()
+    {
+    	std::vector<std::string> lines = console_capture->GetLines();
+    	for (const std::string& line : lines)
+    	{
+    		auto [color, text] = ParseAnsiLine(line);
+    		ImGui::PushTextWrapPos(0.0f);
+    		ImGui::TextColored(color, "%s", text.c_str());
+    		ImGui::PopTextWrapPos();
+    	}
+    }
 
+	void Renderer::DrawHierarchy()
+    {
+		Interface& project_interface = Project::GetInterface();
+    	
     	if (ImGui::BeginPopupContextWindow())
     	{
     		if (ImGui::MenuItem("Create Entity"))
@@ -234,11 +341,11 @@ namespace Bonfire
     		ImGui::EndPopup();
     	}
 		
-		for (auto& [entity_id, entity] : scene->GetEntities())
-		{
-			if (entity->IsRoot())
-				DrawEntityTree(entity);
-		}
+    	for (auto& [entity_id, entity] : scene->GetEntities())
+    	{
+    		if (entity->IsRoot())
+    			DrawEntityTree(entity);
+    	}
 
     	ImGui::Spacing();
 
@@ -269,39 +376,13 @@ namespace Bonfire
     		ImGui::EndDragDropTarget();
     	}
     	ImGui::PopStyleColor(3);
-		
-		ImGui::PopStyleColor();
-		ImGui::PopFont();
-		ImGui::Unindent(8.0f);
-		ImGui::End();
+    }
 
-    	if (entity_to_create != nullptr)
-    	{
-			CreateEntity(entity_to_create);
-    		entity_to_create = nullptr;
-    	}
-    	if (entity_to_delete != nullptr)
-    	{
-    		DeleteEntity(entity_to_delete);
-    		entity_to_delete = nullptr;
-    	}
-    	if (entity_to_reparent != nullptr)
-    	{
-    		ReparentEntity(entity_to_reparent, reparent_target);
-    		entity_to_reparent = nullptr;
-    		reparent_target = nullptr;
-    	}
-
-		// -- DETAILS --
-		ImGui::PushFont(font_title);
-		ImGui::Begin("Details", nullptr);
-		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
-		ImGui::Indent(8.0f);
-		ImGui::Spacing();
-		ImGui::PopFont();
-		ImGui::PushFont(font_body);
-		
-    	if (selected_entity == nullptr)
+	void Renderer::DrawDetails()
+    {
+    	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+    	
+	    if (selected_entity == nullptr)
     	{
     		ImGui::Text("No Entity Selected");
     	}
@@ -320,18 +401,11 @@ namespace Bonfire
 		
     		ImGui::PushItemWidth(200.0f);
     		if (ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000))
-    		{
-    			if (selected_entity->HasComponent<LightSourceComponent>())
-    			{
-    				LightSourceComponent& light_source_component = selected_entity->GetComponent<LightSourceComponent>();
-    				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
-    					point_light->position = selected_entity->position;
-    				else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
-    					spot_light->position = selected_entity->position;
-    			}
-    		}
-    		ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000);
-    		ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360);
+    			selected_entity->UpdateComponents(physics_system);
+    		if (ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000))
+    			selected_entity->UpdateComponents(physics_system);
+    		if (ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360))
+    			selected_entity->UpdateComponents(physics_system);
     		ImGui::PopItemWidth();
 
 			// MODEL COMPONENT
@@ -507,8 +581,60 @@ namespace Bonfire
 			// PHYSICS COMPONENT
 			if (selected_entity->HasComponent<PhysicsComponent>())
 			{
+				PhysicsComponent& physics_component = selected_entity->GetComponent<PhysicsComponent>();
+				
 				ImGui::Separator();
 				
+				ImGui::Separator();
+				ImGui::Checkbox("##Enabled", &physics_component.enabled);
+				ImGui::SameLine();
+				ImGui::Text("Physics Component");
+				ImGui::SameLine();
+				ImGui::Text(std::to_string(physics_component.id).c_str());
+				ImGui::Spacing();
+				
+				int selected_body_type = static_cast<int>(physics_component.physics_body->GetBodyType());
+				int selected_shape_type = static_cast<int>(physics_component.physics_body->GetShapeData().type);
+				PhysicsShapeData current_shape_data = physics_component.physics_body->GetShapeData();
+
+				const char* body_type_names[] = { "STATIC", "DYNAMIC", "KINEMATIC" };
+				const char* shape_type_names[] = { "BOX", "SPHERE", "CAPSULE" };
+
+				bool body_type_changed = ImGui::Combo("Body Type", &selected_body_type, body_type_names,
+				IM_ARRAYSIZE(body_type_names));
+				bool shape_type_changed = ImGui::Combo("Shape Type", &selected_shape_type, shape_type_names,
+				IM_ARRAYSIZE(shape_type_names));
+
+				if (body_type_changed || shape_type_changed)
+				{
+					PhysicsBodyType new_body_type = static_cast<PhysicsBodyType>(selected_body_type);
+					PhysicsShapeType new_shape_type = static_cast<PhysicsShapeType>(selected_shape_type);
+
+					glm::vec3 position = physics_component.physics_body->GetPosition();
+					glm::quat rotation = physics_component.physics_body->GetRotation();
+					uint32_t id = physics_component.physics_body->id;
+					bool enabled = physics_component.physics_body->enabled;
+					std::string name = physics_component.physics_body->name;
+					glm::vec3 dimensions = current_shape_data.dimensions;
+
+					std::shared_ptr<PhysicsBody> new_physics_body;
+
+					if (new_shape_type == PhysicsShapeType::BOX)
+						new_physics_body = physics_system.CreateBoxBody(position, rotation, dimensions, new_body_type);
+					else if (new_shape_type == PhysicsShapeType::SPHERE)
+						new_physics_body = physics_system.CreateSphereBody(position, dimensions.x, new_body_type);
+					else if (new_shape_type == PhysicsShapeType::CAPSULE)
+						new_physics_body = physics_system.CreateCapsuleBody(position, rotation, dimensions.x, dimensions.y, new_body_type);
+
+					new_physics_body->id = id;
+					new_physics_body->enabled = enabled;
+					new_physics_body->name = name;
+					new_physics_body->SetEnabled(enabled);
+
+					physics_component.physics_body = new_physics_body;
+				}
+
+				selected_entity->UpdateComponents(physics_system);
 			}
 
 			// ANIMATION COMPONENT
@@ -613,7 +739,42 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<PhysicsComponent>())
     				{
-						Log::Warning("Physics component not yet implemented");
+    					uint32_t next_id = 100001;
+    					if (!scene->GetPhysicsComponents().empty())
+    					{
+    						auto max_it = std::max_element(
+								scene->GetPhysicsComponents().begin(),
+								scene->GetPhysicsComponents().end(),
+								[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+    						next_id = max_it->first + 1;
+    					}
+    					
+    					uint32_t next_po_id = 1000;
+    					if (!scene->GetPhysicsComponents().empty())
+    					{
+    						auto max_it = std::max_element(
+								scene->GetPhysicsComponents().begin(),
+								scene->GetPhysicsComponents().end(),
+								[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+    						next_po_id = max_it->first + 1;
+    					}
+
+    					std::string physics_name = "Physics Object";
+    					PhysicsBodyType body_type = PhysicsBodyType::DYNAMIC;
+    					PhysicsShapeType shape_type = PhysicsShapeType::BOX;
+    					glm::vec3 dimensions = selected_entity->scale / 2.0f;
+
+    					std::shared_ptr<PhysicsBody> physics_body = physics_system.CreateBoxBody(selected_entity->position, glm::quat(glm::radians(selected_entity->rotation)), dimensions, body_type);
+    					physics_body->id = next_po_id;
+    					physics_body->enabled = true;
+    					physics_body->SetEnabled(true);
+    					physics_body->name = physics_name;
+
+    					std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body);
+    					scene->GetPhysicsComponents().insert_or_assign(next_id, physics_component);
+    					selected_entity->AddComponent(ComponentType::PHYSICS, physics_component);
     				}
     				else
     				{
@@ -640,20 +801,13 @@ namespace Bonfire
 			ImGui::PopID();
     	}
 		
-		ImGui::PopFont();
-		ImGui::Unindent(8.0f);
-		ImGui::End();
+    }
 
-		// -- PARAM EDITOR --
-		ImGui::PushFont(font_title);
-		ImGui::Begin("Param Editor", nullptr);
-		DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
-		ImGui::Indent(8.0f);
-		ImGui::Spacing();
-		ImGui::PopFont();
-		ImGui::PushFont(font_body);
-
-		if (ImGui::BeginTabBar("ParamEditorTabs"))
+	void Renderer::DrawParamEditor()
+    {
+		Interface& project_interface = Project::GetInterface();
+    	
+	    if (ImGui::BeginTabBar("ParamEditorTabs"))
 		{
 			ImGui::PushStyleColor(ImGuiCol_TabActive, project_interface.highlight_primary);
 			ImGui::PushStyleColor(ImGuiCol_TabHovered, project_interface.highlight_secondary);
@@ -935,6 +1089,7 @@ namespace Bonfire
 						ImGui::Text("Textures");
 
 						std::shared_ptr<Texture> texture_to_remove = nullptr;
+						
 						for (auto& texture_data : material_data->textures)
 						{
 							ImGui::PushID(&texture_data);
@@ -999,38 +1154,7 @@ namespace Bonfire
 			ImGui::EndTabBar();
 			ImGui::PopStyleColor(4);
 		}
-		
-		ImGui::PopFont();
-		ImGui::Unindent(8.0f);
-		ImGui::End();
-	}
-
-	void DrawViewport()
-    {
-	    
     }
-
-	void DrawGizmos()
-    {
-	    
-    }
-
-	void DrawToolbar()
-    {
-	    
-    }
-
-	void DrawProjectSettings()
-    {
-	    
-    }
-
-	void DrawHierarchy()
-    {
-	    
-    }
-
-	
 	
 	void Renderer::DrawEntityTree(std::shared_ptr<Entity> entity)
     {
@@ -1075,11 +1199,9 @@ namespace Bonfire
     		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_NODE"))
     		{
     			uint32_t dragged_entity_id = *(const uint32_t*)payload->Data;
-
     			if (scene->GetEntities().contains(dragged_entity_id))
     			{
     				std::shared_ptr<Entity> dragged_entity = scene->GetEntities().at(dragged_entity_id);
-
     				if (dragged_entity->id != entity->id && !IsDescendentOf(dragged_entity, entity))
     				{
     					entity_to_reparent = dragged_entity;

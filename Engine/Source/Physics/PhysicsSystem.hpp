@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "Core/Layer.hpp"
-#include "PhysicsObject.hpp"
+#include "PhysicsBody.hpp"
 
 namespace Bonfire
 {
@@ -43,6 +43,46 @@ namespace Bonfire
     public:
         virtual bool ShouldCollide(JPH::ObjectLayer object1, JPH::ObjectLayer object2) const override;
     };
+
+    class ContactListener : public JPH::ContactListener
+    {
+    public:
+        virtual JPH::ValidateResult OnContactValidate(
+            const JPH::Body &inBody1,
+            const JPH::Body &inBody2,
+            JPH::RVec3Arg inBaseOffset,
+            const JPH::CollideShapeResult &inCollisionResult) override
+        {
+           // VALIDATE COLLISION
+            return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
+        }
+
+        virtual void OnContactAdded(
+            const JPH::Body &inBody1,
+            const JPH::Body &inBody2,
+            const JPH::ContactManifold &inManifold,
+            JPH::ContactSettings &ioSettings) override
+        {
+            // COLLISION STARTED
+        }
+
+        virtual void OnContactPersisted(
+            const JPH::Body &inBody1,
+            const JPH::Body &inBody2,
+            const JPH::ContactManifold &inManifold,
+            JPH::ContactSettings &ioSettings) override
+        {
+            
+        }
+
+        virtual void OnContactRemoved(const JPH::SubShapeIDPair &inSubShapePair) override
+        {
+            // COLLISION ENDED
+        }
+    };
+
+
+
     
     class PhysicsSystem : Layer
     {
@@ -54,55 +94,59 @@ namespace Bonfire
         void OnDetach() override;
         void OnUpdate() override;
 
-        std::shared_ptr<PhysicsObject> CreateBoxBody(
-              const glm::vec3& position,
-              const glm::quat& rotation,
-              const glm::vec3& half_extents,
-              PhysicsBodyType body_type,
-              float mass = 1.0f,
-              float friction = 0.5f,
-              float restitution = 0.0f
-          );
+        std::shared_ptr<PhysicsBody> CreateBoxBody(
+            const glm::vec3& position,
+            const glm::quat& rotation,
+            const glm::vec3& half_extents,
+            PhysicsBodyType body_type,
+            float mass = 1.0f,
+            float friction = 0.5f,
+            float restitution = 0.0f
+        );
 
-          std::shared_ptr<PhysicsObject> CreateSphereBody(
-              const glm::vec3& position,
-              float radius,
-              PhysicsBodyType body_type,
-              float mass = 1.0f,
-              float friction = 0.5f,
-              float restitution = 0.0f
-          );
+        std::shared_ptr<PhysicsBody> CreateSphereBody(
+            const glm::vec3& position,
+            float radius,
+            PhysicsBodyType body_type,
+            float mass = 1.0f,
+            float friction = 0.5f,
+            float restitution = 0.0f
+        );
 
-          std::shared_ptr<PhysicsObject> CreateCapsuleBody(
-              const glm::vec3& position,
-              const glm::quat& rotation,
-              float radius,
-              float half_height,
-              PhysicsBodyType body_type,
-              float mass = 1.0f,
-              float friction = 0.5f,
-              float restitution = 0.0f
-          );
+        std::shared_ptr<PhysicsBody> CreateCapsuleBody(
+            const glm::vec3& position,
+            const glm::quat& rotation,
+            float radius,
+            float half_height,
+            PhysicsBodyType body_type,
+            float mass = 1.0f,
+            float friction = 0.5f,
+            float restitution = 0.0f
+        );
 
-          void DestroyBody(std::shared_ptr<PhysicsObject> physics_object);
-          void SetGravity(const glm::vec3& gravity);
-        
-          glm::vec3 GetGravity() const;
-          JPH::BodyInterface& GetBodyInterface() { return jolt_physics_system->GetBodyInterface(); }
-          const JPH::BodyInterface& GetBodyInterface() const { return jolt_physics_system->GetBodyInterface(); }
-          JPH::BodyLockInterface& GetBodyLockInterface() { return jolt_physics_system->GetBodyLockInterface(); }
+        void DestroyBody(std::shared_ptr<PhysicsBody> physics_object);
+        void SetGravity(const glm::vec3& gravity);
 
-      private:
-          std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;
-          std::unique_ptr<JPH::JobSystemThreadPool> job_system;
-          std::unique_ptr<BPLayerInterfaceImpl> broad_phase_layer_interface;
-          std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> object_vs_broad_phase_layer_filter;
-          std::unique_ptr<ObjectLayerPairFilterImpl> object_layer_pair_filter;
-          std::unique_ptr<JPH::PhysicsSystem> jolt_physics_system;
+        glm::vec3 GetGravity() const;
+        JPH::BodyInterface& GetBodyInterface() { return jolt_physics_system->GetBodyInterface(); }
+        const JPH::BodyInterface& GetBodyInterface() const { return jolt_physics_system->GetBodyInterface(); }
+        const JPH::BodyLockInterface& GetBodyLockInterface() const { return jolt_physics_system->GetBodyLockInterface(); }
 
-          const unsigned int max_bodies = 10240;
-          const unsigned int num_body_mutexes = 0;
-          const unsigned int max_body_pairs = 10240;
-          const unsigned int max_contact_constraints = 10240;
+    public:
+        bool paused = true;
+ 
+        private:
+            std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;
+            std::unique_ptr<JPH::JobSystemThreadPool> job_system;
+            std::unique_ptr<BPLayerInterfaceImpl> broad_phase_layer_interface;
+            std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> object_vs_broad_phase_layer_filter;
+            std::unique_ptr<ObjectLayerPairFilterImpl> object_layer_pair_filter;
+            std::unique_ptr<JPH::PhysicsSystem> jolt_physics_system;
+            std::unique_ptr<ContactListener> contact_listener;
+
+            const unsigned int max_bodies = 10240;
+            const unsigned int num_body_mutexes = 0;
+            const unsigned int max_body_pairs = 10240;
+            const unsigned int max_contact_constraints = 10240;
     };
 }

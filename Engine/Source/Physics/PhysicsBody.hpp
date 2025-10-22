@@ -8,14 +8,15 @@ namespace Bonfire
         glm::vec3 dimensions;
     };
         
-    class PhysicsObject
+    class PhysicsBody
     {
     public:
-        PhysicsObject(JPH::BodyID body_id, PhysicsBodyType body_type, PhysicsShapeData shape_data);
-        ~PhysicsObject() = default;
+        PhysicsBody(JPH::BodyID body_id, PhysicsBodyType body_type, PhysicsShapeData shape_data);
+        ~PhysicsBody();
 
         void SetPosition(const glm::vec3& position);
         void SetRotation(const glm::quat& rotation);
+        void SetScale(const glm::vec3& scale);
         void SetLinearVelocity(const glm::vec3& velocity);
         void SetAngularVelocity(const glm::vec3& angular_velocity);
 

@@ -64,7 +64,16 @@ namespace Bonfire
         models.clear();
         textures.clear();
         shaders.clear();
+        materials.clear();
+        point_lights.clear();
+        spot_lights.clear();
         model_components.clear();
+        light_source_components.clear();
+        physics_components.clear();
+        directional_light = nullptr;
+        engine_camera = nullptr;
+        skybox = nullptr;
+        shadow_map = nullptr;
 
         // LOAD COMPONENT TYPES FROM PARAM DATABASE
         for (auto& [model_id, model_data] : param_database.model_params)
@@ -237,23 +246,23 @@ namespace Bonfire
                     auto dims_array = physics_data["dimensions"].get<std::vector<float>>();
                     glm::vec3 dimensions(dims_array[0], dims_array[1], dims_array[2]);
 
-                    std::shared_ptr<PhysicsObject> physics_object;
+                    std::shared_ptr<PhysicsBody> physics_body;
 
                     if (shape_type == PhysicsShapeType::BOX)
-                        physics_object = physics_system.CreateBoxBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions, body_type);
+                        physics_body = physics_system.CreateBoxBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions, body_type);
                     else if (shape_type == PhysicsShapeType::SPHERE)
-                        physics_object = physics_system.CreateSphereBody(glm::vec3(0.0f), dimensions.x, body_type);
+                        physics_body = physics_system.CreateSphereBody(glm::vec3(0.0f), dimensions.x, body_type);
                     else if (shape_type == PhysicsShapeType::CAPSULE)
-                        physics_object = physics_system.CreateCapsuleBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions.x, dimensions.y, body_type);
+                        physics_body = physics_system.CreateCapsuleBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions.x, dimensions.y, body_type);
 
-                    if (physics_object)
+                    if (physics_body)
                     {
-                        physics_object->id = physics_id;
-                        physics_object->enabled = physics_enabled;
-                        physics_object->SetEnabled(enabled);
-                        physics_object->name = physics_name;
+                        physics_body->id = physics_id;
+                        physics_body->enabled = physics_enabled;
+                        physics_body->SetEnabled(enabled);
+                        physics_body->name = physics_name;
 
-                        std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(id, enabled, physics_object);
+                        std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(id, enabled, physics_body);
                         physics_components.insert_or_assign(id, physics_component);
                     }
                 }
@@ -319,6 +328,18 @@ namespace Bonfire
                 {
                     entities.at(entity->parent)->AddChild(id);
                 }
+            }
+        }
+
+        for (auto& [id, entity] : entities)
+        {
+            if (entity->HasComponent<PhysicsComponent>())
+            {
+                PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
+                std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
+                
+                physics_body->SetPosition(entity->position);
+                physics_body->SetRotation(glm::quat(glm::radians(entity->rotation)));
             }
         }
         
@@ -405,12 +426,12 @@ namespace Bonfire
         {
             nlohmann::json phys_json;
             phys_json["enabled"] = physics_component->enabled;
-            phys_json["physics-id"] = physics_component->physics_object->id;
-            phys_json["physics-enabled"] = physics_component->physics_object->enabled;
-            phys_json["physics-name"] = physics_component->physics_object->name;
-            phys_json["body-type"] = physics_component->physics_object->GetBodyType();
+            phys_json["physics-id"] = physics_component->physics_body->id;
+            phys_json["physics-enabled"] = physics_component->physics_body->enabled;
+            phys_json["physics-name"] = physics_component->physics_body->name;
+            phys_json["body-type"] = physics_component->physics_body->GetBodyType();
 
-            auto shape_data = physics_component->physics_object->GetShapeData();
+            auto shape_data = physics_component->physics_body->GetShapeData();
             phys_json["shape-type"] = shape_data.type;
             phys_json["dimensions"] = {shape_data.dimensions.x, shape_data.dimensions.y, shape_data.dimensions.z};
 
@@ -479,4 +500,5 @@ namespace Bonfire
         Log::Info("Saved scene to " + path);
         return true;
     }
+
 }

@@ -45,6 +45,10 @@ project "Engine"
         pchheader "bonfire_pch.hpp"
         pchsource "Source/bonfire_pch.cpp"
         defines {
+            "DEBUG",
+            "JPH_PROFILE_ENABLED",
+            "JPH_DEBUG_RENDERER",
+            "JPH_ENABLE_ASSERTS",
             "BONFIRE_PLATFORM_WINDOWS",
             "BONFIRE_BUILD_DLL",
             "_CRT_SECURE_NO_WARNINGS"

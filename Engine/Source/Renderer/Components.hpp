@@ -5,7 +5,7 @@
 #include "Shader.hpp"
 #include "Material.hpp"
 #include "Lighting.hpp"
-#include "Physics/PhysicsObject.hpp"
+#include "Physics/PhysicsBody.hpp"
 
 namespace Bonfire
 {
@@ -49,14 +49,14 @@ namespace Bonfire
 
     struct PhysicsComponent : Component
     {
-        std::shared_ptr<PhysicsObject> physics_object;
+        std::shared_ptr<PhysicsBody> physics_body;
         
         PhysicsComponent() {}
-        PhysicsComponent(uint32_t id, bool enabled, std::shared_ptr<PhysicsObject> physics_object)
+        PhysicsComponent(uint32_t id, bool enabled, std::shared_ptr<PhysicsBody> physics_body)
         {
             this->id = id;
             this->enabled = enabled;
-            this->physics_object = physics_object;
+            this->physics_body = physics_body;
         }
     };
 

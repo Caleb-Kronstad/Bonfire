@@ -18,7 +18,7 @@
 #include "Interface/Interface.hpp"
 
 // Physics
-#include "Physics/PhysicsObject.hpp"
+#include "Physics/PhysicsBody.hpp"
 #include "Physics/PhysicsSystem.hpp"
 
 // Renderer

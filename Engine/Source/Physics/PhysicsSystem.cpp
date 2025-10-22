@@ -1,6 +1,8 @@
 ﻿#include "bonfire_pch.hpp"
 #include "PhysicsSystem.hpp"
 
+#include "Core/Project.hpp"
+
 namespace Bonfire
 {
     BPLayerInterfaceImpl::BPLayerInterfaceImpl()
@@ -19,17 +21,17 @@ namespace Bonfire
         return object_to_broad_phase[layer];
     }
 
-    #if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
-        const char* BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer layer) const
+#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
+    const char* BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer layer) const
+    {
+        switch ((JPH::BroadPhaseLayer::Type)layer)
         {
-            switch ((JPH::BroadPhaseLayer::Type)layer)
-            {
-            case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::NON_MOVING: return "NON_MOVING";
-            case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::MOVING: return "MOVING";
-            default: return "INVALID";
-            }
+        case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::NON_MOVING: return "NON_MOVING";
+        case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::MOVING: return "MOVING";
+        default: return "INVALID";
         }
-    #endif
+    }
+#endif
 
     bool ObjectVsBroadPhaseLayerFilterImpl::ShouldCollide(JPH::ObjectLayer layer1, JPH::BroadPhaseLayer layer2) const
     {
@@ -108,9 +110,11 @@ namespace Bonfire
             *object_layer_pair_filter
         );
 
+        contact_listener = std::make_unique<ContactListener>();
+        jolt_physics_system->SetContactListener(contact_listener.get());
         jolt_physics_system->SetGravity(JPH::Vec3(0.0f, -9.81f, 0.0f));
 
-        Log::Info("Jolt Physics initialized successfully!");
+        Log::Info("Jolt Physics initialized successfully");
     }
 
     void PhysicsSystem::OnDetach()
@@ -130,17 +134,18 @@ namespace Bonfire
         job_system.reset();
         temp_allocator.reset();
 
-        Log::Info("Jolt Physics shut down successfully!");
+        Log::Info("Jolt Physics shut down successfully");
     }
 
     void PhysicsSystem::OnUpdate()
     {
+        if (paused) return;
         float delta_time = Project::GetInstance().GetDeltaTime();
         const int collision_steps = 1;
         jolt_physics_system->Update(delta_time, collision_steps, temp_allocator.get(), job_system.get());
     }
 
-    std::shared_ptr<PhysicsObject> PhysicsSystem::CreateBoxBody(
+    std::shared_ptr<PhysicsBody> PhysicsSystem::CreateBoxBody(
         const glm::vec3& position,
         const glm::quat& rotation,
         const glm::vec3& half_extents,
@@ -193,10 +198,10 @@ namespace Bonfire
         shape_data.type = PhysicsShapeType::BOX;
         shape_data.dimensions = half_extents;
 
-        return std::make_shared<PhysicsObject>(body->GetID(), body_type, shape_data);
+        return std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
     }
 
-    std::shared_ptr<PhysicsObject> PhysicsSystem::CreateSphereBody(
+    std::shared_ptr<PhysicsBody> PhysicsSystem::CreateSphereBody(
         const glm::vec3& position,
         float radius,
         PhysicsBodyType body_type,
@@ -247,10 +252,10 @@ namespace Bonfire
         shape_data.type = PhysicsShapeType::SPHERE;
         shape_data.dimensions = glm::vec3(radius, 0.0f, 0.0f);
 
-        return std::make_shared<PhysicsObject>(body->GetID(), body_type, shape_data);
+        return std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
     }
 
-    std::shared_ptr<PhysicsObject> PhysicsSystem::CreateCapsuleBody(
+    std::shared_ptr<PhysicsBody> PhysicsSystem::CreateCapsuleBody(
         const glm::vec3& position,
         const glm::quat& rotation,
         float radius,
@@ -302,4 +307,8 @@ namespace Bonfire
 
         PhysicsShapeData shape_data;
         shape_data.type = PhysicsShapeType::CAPSULE;
-        shape_data.dimensions = glm::vec
+        shape_data.dimensions = glm::vec3(radius, half_height, 0.0f);
+
+        return std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
+    }
+}

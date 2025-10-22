@@ -61,16 +61,18 @@
                 "physics-id": 1000,
                 "physics-enabled": true,
                 "physics-name": "Physics Object",
-                "shape-type": 2,
-                "dimensions": [ 0.0, 0.0, 0.0 ]
+                "body-type": 1,
+                "shape-type": 1,
+                "dimensions": [ 1.0, 0.0, 0.0 ]
             }, 
             "100002": {
                 "enabled": true,
                 "physics-id": 1001,
                 "physics-enabled": true,
                 "physics-name": "Physics Object",
+                "body-type": 0,
                 "shape-type": 0,
-                "dimensions": [ 0.0, 0.0, 0.0 ]
+                "dimensions": [ 2.5, 0.125, 2.5 ]
             }
         }
     },

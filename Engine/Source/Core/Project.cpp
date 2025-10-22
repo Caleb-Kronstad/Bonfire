@@ -69,7 +69,8 @@ namespace Bonfire
 			TickDeltaTime();
 
 			// Update Project
-			static_physics_system->OnUpdate();
+			if (project_running)
+				static_physics_system->OnUpdate();
 			static_renderer->OnUpdate();
 			for (const auto& layer : layers)
 				layer->OnUpdate();

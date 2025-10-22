@@ -11,6 +11,7 @@ namespace Bonfire
     {
     public:
         Scene(const std::string& path) : path(path) {}
+        Scene(const Scene& other);
 
         bool LoadScene(ParamDatabase& param_database);
         bool SaveScene(ParamDatabase& param_database);
@@ -21,7 +22,6 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<Texture>>& GetTextures() { return textures; }
         std::unordered_map<uint32_t, std::shared_ptr<Material>>& GetMaterials() { return materials; }
         std::unordered_map<uint32_t, std::shared_ptr<Shader>>& GetShaders() { return shaders; }
-        std::unordered_map<uint32_t, std::shared_ptr<PhysicsObject>>& GetPhysicsObjects() { return physics_objects; }
         std::unordered_map<uint32_t, std::shared_ptr<PointLight>>& GetPointLights() { return point_lights; }
         std::unordered_map<uint32_t, std::shared_ptr<SpotLight>>& GetSpotLights() { return spot_lights; }
         std::unique_ptr<DirectionalLight>& GetDirectionalLight() { return directional_light; }
@@ -40,7 +40,6 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<Texture>> textures;
         std::unordered_map<uint32_t, std::shared_ptr<Material>> materials;
         std::unordered_map<uint32_t, std::shared_ptr<Shader>> shaders;
-        std::unordered_map<uint32_t, std::shared_ptr<PhysicsObject>> physics_objects;
         std::unordered_map<uint32_t, std::shared_ptr<PointLight>> point_lights;
         std::unordered_map<uint32_t, std::shared_ptr<SpotLight>> spot_lights;
         std::unordered_map<uint32_t, std::shared_ptr<ModelComponent>> model_components;
