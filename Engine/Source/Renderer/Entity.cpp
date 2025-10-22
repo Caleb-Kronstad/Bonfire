@@ -31,8 +31,8 @@ namespace Bonfire
 			{
 				shader->SetVec3("view_pos", scene.GetEngineCamera()->Position);
 				shader->SetFloat("far_plane", scene.GetShadowMap()->far_plane);
-				shader->SetMat4("lightSpaceMatrix", glm::mat4(1.0f));
-				shader->SetBool("reverseNormals", false);
+				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
+				shader->SetBool("reverse_normals", false);
 				scene.UpdateLightSources(*shader);
 				scene.GetShadowMap()->Draw();
 				scene.GetShadowMap()->updated_this_frame = true;
@@ -45,6 +45,10 @@ namespace Bonfire
 			{
 				// i dont remember whats supposed to be here
 			}
+		}
+		if (shader->name == "Shadow Map")
+		{
+				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
 		}
 		
 		shader->SetMat4("model", manipulation_matrix);

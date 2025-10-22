@@ -109,7 +109,19 @@ namespace Bonfire
 		
 		glm::mat4 projection = scene->GetEngineCamera()->GetProjectionMatrix(viewport_size.x, viewport_size.y);
 		glm::mat4 view = scene->GetEngineCamera()->GetViewMatrix();
+		
+		if (scene->GetDirectionalLight() != nullptr && scene->GetDirectionalLight()->enabled)
+		{
+			scene->GetShadowMap()->LoadDirectional(scene->GetDirectionalLight()->direction);
+			scene->GetShadowMap()->SetDirectional();
 
+			for (auto& [shadow_entity_id, shadow_entity] : scene->GetEntities())
+				shadow_entity->Draw(scene->GetShadowMap()->shadow_map_shader, *scene, manipulation_matrix, view, projection);
+
+			scene->GetShadowMap()->Reset(false);
+			glViewport(0, 0, viewport_size.x, viewport_size.y);
+		}
+		
 		bool shadow_rendered = false;
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
@@ -122,9 +134,7 @@ namespace Bonfire
 					scene->GetShadowMap()->Set(point_light->position);
 
 					for (auto& [shadow_entity_id, shadow_entity] : scene->GetEntities())
-					{
 						shadow_entity->Draw(scene->GetShadowMap()->point_shadow_map_shader, *scene, manipulation_matrix, view, projection);
-					}
 
 					scene->GetShadowMap()->Reset(true);
 					shadow_rendered = true; 

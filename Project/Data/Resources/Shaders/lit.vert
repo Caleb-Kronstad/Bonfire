@@ -13,14 +13,14 @@ out VERT_OUT {
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 lightSpaceMatrix;
-uniform bool reverseNormals;
+uniform mat4 light_space_matrix;
+uniform bool reverse_normals;
 
 void main()
 {
     vert_out.FragPos = vec3(model * vec4(aPos, 1.0));
     vert_out.Normal = transpose(inverse(mat3(model))) * aNormal;
     vert_out.TexCoords = aTexCoords;
-    vert_out.FragPosLightSpace = lightSpaceMatrix * vec4(vert_out.FragPos, 1.0);
+    vert_out.FragPosLightSpace = light_space_matrix * vec4(vert_out.FragPos, 1.0);
     gl_Position = projection * view * model * vec4(aPos, 1.0f);
 }

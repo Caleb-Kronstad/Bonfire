@@ -2,18 +2,18 @@
     "cameras": [
         {
             "id": 1100001,
-            "pitch": -15.60000228881836,
+            "pitch": -17.099992752075195,
             "position": [
-                7.397220134735107,
-                2.4464685916900635,
-                7.860079765319824
+                10.769987106323242,
+                4.120542526245117,
+                -7.143296718597412
             ],
             "up": [
                 0.0,
                 1.0,
                 0.0
             ],
-            "yaw": -854.8036499023438
+            "yaw": -920.2028198242188
         }
     ],
     "components": {
@@ -30,8 +30,8 @@
                 "light-type": "point",
                 "position": [
                     0.0,
-                    0.0,
-                    0.0
+                    2.7406373023986816,
+                    -0.060891032218933105
                 ],
                 "scale": [
                     1.0,
@@ -43,7 +43,7 @@
         "models": {
             "100001": {
                 "enabled": true,
-                "material-id": 1001,
+                "material-id": 1000,
                 "model-id": 1001,
                 "shader-id": 1001
             },
@@ -54,25 +54,32 @@
                 "shader-id": 1001
             }
         },
-        "physics":
-        {
+        "physics": {
             "100001": {
-                "enabled": true,
-                "physics-id": 1000,
-                "physics-enabled": true,
-                "physics-name": "Physics Object",
                 "body-type": 1,
-                "shape-type": 1,
-                "dimensions": [ 1.0, 0.0, 0.0 ]
-            }, 
-            "100002": {
+                "dimensions": [
+                    1.0,
+                    0.0,
+                    0.0
+                ],
                 "enabled": true,
-                "physics-id": 1001,
                 "physics-enabled": true,
+                "physics-id": 1000,
                 "physics-name": "Physics Object",
+                "shape-type": 1
+            },
+            "100002": {
                 "body-type": 0,
-                "shape-type": 0,
-                "dimensions": [ 2.5, 0.125, 2.5 ]
+                "dimensions": [
+                    50.0,
+                    0.2499999701976776,
+                    50.0
+                ],
+                "enabled": true,
+                "physics-enabled": true,
+                "physics-id": 1001,
+                "physics-name": "Physics Object",
+                "shape-type": 0
             }
         }
     },
@@ -93,13 +100,13 @@
             ],
             "rotation": [
                 0.0,
-                0.0,
+                -0.0,
                 0.0
             ],
             "scale": [
-                5.0,
-                0.25,
-                5.0
+                50.0,
+                0.2499999701976776,
+                50.0
             ]
         },
         {
@@ -112,9 +119,9 @@
             "name": "Sphere Object",
             "parent": 0,
             "position": [
-                0.0,
-                2.23188853263855,
-                0.0
+                -3.936561107635498,
+                2.7220029830932617,
+                -4.282571792602539
             ],
             "rotation": [
                 0.0,
@@ -137,8 +144,8 @@
             "parent": 0,
             "position": [
                 0.0,
-                0.019943952560424805,
-                0.0
+                2.7406373023986816,
+                -0.060891032218933105
             ],
             "rotation": [
                 0.0,

@@ -173,6 +173,7 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 view_di
 {
     // directional light calculations
     vec3 light_direction = normalize(light.direction - frag_in.FragPos);
+    //vec3 light_direction = normalize(-light.direction);
     vec3 color = texture(material.diffuse, frag_in.TexCoords).rgb;
 
     // diffuse

@@ -313,6 +313,13 @@ namespace Bonfire
     	ImGui::PushItemWidth(100.0f);
     	ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
     	ImGui::PopItemWidth();
+
+    	ImGui::Separator();
+    	ImGui::PushItemWidth(300.0f);
+    	ImGui::Text("Directional Light");
+    	ImGui::SliderFloat3("Direction", (float*)&scene->GetDirectionalLight()->direction, -360.0f, 360.0f);
+    	ImGui::SliderFloat3("Color", (float*)&scene->GetDirectionalLight()->color, 0.0f, 255.0f);
+    	ImGui::PopItemWidth();
     }
 
 	void Renderer::DrawConsole()
@@ -500,8 +507,7 @@ namespace Bonfire
     				ImGui::Spacing();
     				ImGui::Text("Point Light Properties");
     				ImGui::PushItemWidth(200.0f);
-    				ImGui::ColorEdit3("Color", (float*)&point_light->color);
-    				ImGui::DragFloat3("Scale", (float*)&point_light->scale, drag_step, 0.0f, 100.0f);
+    				ImGui::SliderFloat3("Color", (float*)&point_light->color, 0.0f, 255.0f);
     				ImGui::PopItemWidth();
     			}
     			else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
@@ -509,7 +515,7 @@ namespace Bonfire
     				ImGui::Spacing();
     				ImGui::Text("Spot Light Properties");
     				ImGui::PushItemWidth(200.0f);
-    				ImGui::ColorEdit3("Color", (float*)&spot_light->color);
+    				ImGui::SliderFloat3("Color", (float*)&spot_light->color, 0.0f, 255.0f);
     				ImGui::DragFloat3("Scale", (float*)&spot_light->scale, drag_step, 0.0f, 100.0f);
     				ImGui::DragFloat3("Direction", (float*)&spot_light->direction, drag_step, -1.0f, 1.0f);
     				ImGui::PopItemWidth();

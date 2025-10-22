@@ -347,6 +347,7 @@ namespace Bonfire
         shadow_map = std::make_unique<ShadowMap>();
         std::shared_ptr<Shader> point_shadow_map_shader;
         std::shared_ptr<Shader> lit_shader;
+        std::shared_ptr<Shader> shadow_map_shader;
         for (auto& [shader_id, shader] : shaders)
         {
             if (shader->name == "Skybox")
@@ -355,8 +356,12 @@ namespace Bonfire
                 point_shadow_map_shader = shader;
             else if (shader->name == "Lit")
                 lit_shader = shader;
+            else if (shader->name == "Shadow Map")
+                shadow_map_shader = shader;
         }
-        shadow_map->Generate(point_shadow_map_shader, lit_shader, "Data/Resources/Textures/checkered.png");
+        shadow_map->Generate(point_shadow_map_shader, shadow_map_shader, lit_shader, "Data/Resources/Textures/checkered.png");
+
+        directional_light = std::make_unique<DirectionalLight>();
 
         Log::Info("Loaded scene from " + path);
         return true;

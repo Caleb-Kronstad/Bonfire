@@ -4,9 +4,10 @@
 namespace Bonfire
 {
 	
-	void ShadowMap::Generate(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> lit_shader, const std::string& path)
+	void ShadowMap::Generate(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> shadow_map_shader, std::shared_ptr<Shader> lit_shader, const std::string& path)
 	{
 		this->point_shadow_map_shader = point_shadow_map_shader;
+		this->shadow_map_shader = shadow_map_shader;
 		this->lit_shader = lit_shader;
 		map_texture = LoadTexture(path.c_str());
 
@@ -29,7 +30,27 @@ namespace Bonfire
 		glReadBuffer(GL_NONE);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		glGenFramebuffers(1, &directional_frame_buffer);
+		glGenTextures(1, &directional_shadow_map);
+
+		glBindTexture(GL_TEXTURE_2D, directional_shadow_map);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
+		NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, directional_frame_buffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, directional_shadow_map, 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		this->lit_shader->Use();
+		this->lit_shader->SetInt("shadow_map", 0);
 		this->lit_shader->SetInt("point_shadow_map", 1);
 	}
 
@@ -52,6 +73,23 @@ namespace Bonfire
 
 	}
 
+	void ShadowMap::LoadDirectional(glm::vec3& light_dir)
+	{
+		float near_plane = 1.0f, far_plane = 100.0f;
+		glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		glm::vec3 light_pos = -light_dir * 10.0f;
+		glm::mat4 light_view = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		light_space_matrix = light_projection * light_view;
+	}
+
+	void ShadowMap::SetDirectional()
+	{
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, directional_frame_buffer);
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
+
+
 	void ShadowMap::Set(glm::vec3& light_pos)
 	{
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -68,7 +106,7 @@ namespace Bonfire
 	void ShadowMap::Draw()
 	{
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, map_texture);
+		glBindTexture(GL_TEXTURE_2D, directional_shadow_map);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, shadow_cubemap);
 	}
