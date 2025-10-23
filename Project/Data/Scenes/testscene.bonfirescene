@@ -2,18 +2,18 @@
     "cameras": [
         {
             "id": 1100001,
-            "pitch": -11.49994945526123,
+            "pitch": -7.599943161010742,
             "position": [
-                10.196748733520508,
-                4.979635238647461,
-                -5.116482734680176
+                -5.909096717834473,
+                4.312806606292725,
+                -3.083235025405884
             ],
             "up": [
                 0.0,
                 1.0,
                 0.0
             ],
-            "yaw": -893.7015380859375
+            "yaw": -918.50341796875
         }
     ],
     "components": {
@@ -25,6 +25,7 @@
                     255.0
                 ],
                 "enabled": true,
+                "intensity": 1.0,
                 "light-enabled": true,
                 "light-id": 1000,
                 "light-type": "point",
@@ -58,6 +59,12 @@
                 "material-id": 1001,
                 "model-id": 1001,
                 "shader-id": 1001
+            },
+            "100004": {
+                "enabled": true,
+                "material-id": 1000,
+                "model-id": 1002,
+                "shader-id": 1000
             }
         },
         "physics": {
@@ -99,6 +106,19 @@
                 "physics-id": 100003,
                 "physics-name": "Physics Object",
                 "shape-type": 0
+            },
+            "100004": {
+                "body-type": 1,
+                "dimensions": [
+                    0.9999887347221375,
+                    1.0,
+                    0.0
+                ],
+                "enabled": true,
+                "physics-enabled": true,
+                "physics-id": 100004,
+                "physics-name": "Physics Object",
+                "shape-type": 2
             }
         }
     },
@@ -214,6 +234,31 @@
                 1.0,
                 1.4574801921844482,
                 3.267794132232666
+            ]
+        },
+        {
+            "components": {
+                "model_component": 100004,
+                "physics_component": 100004
+            },
+            "enabled": true,
+            "id": 1000005,
+            "name": "Entity",
+            "parent": 0,
+            "position": [
+                -14.529061317443848,
+                1.0771763324737549,
+                -0.006761208642274141
+            ],
+            "rotation": [
+                -90.09479522705078,
+                89.63256072998047,
+                -90.09053039550781
+            ],
+            "scale": [
+                0.9999957084655762,
+                1.0,
+                0.9999356269836426
             ]
         }
     ]

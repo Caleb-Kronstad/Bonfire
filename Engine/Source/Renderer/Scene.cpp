@@ -397,10 +397,10 @@ namespace Bonfire
 
         nlohmann::json camera_json;
         camera_json["id"] = engine_camera->id;
-        camera_json["yaw"] = engine_camera->Yaw;
-        camera_json["pitch"] = engine_camera->Pitch;
-        camera_json["position"] = {engine_camera->Position.x, engine_camera->Position.y, engine_camera->Position.z};
-        camera_json["up"] = {engine_camera->WorldUp.x, engine_camera->WorldUp.y, engine_camera->WorldUp.z};
+        camera_json["yaw"] = engine_camera->yaw;
+        camera_json["pitch"] = engine_camera->pitch;
+        camera_json["position"] = {engine_camera->position.x, engine_camera->position.y, engine_camera->position.z};
+        camera_json["up"] = {engine_camera->world_up.x, engine_camera->world_up.y, engine_camera->world_up.z};
         camera_array.push_back(camera_json);
 
         nlohmann::json directional_light_json;

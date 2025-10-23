@@ -72,22 +72,31 @@ namespace Bonfire
 			if (project_running)
 				static_physics_system->OnUpdate();
 			static_renderer->OnUpdate();
-			for (const auto& layer : layers)
-				layer->OnUpdate();
+			if (project_running)
+			{
+				for (const auto& layer : layers)
+					layer->OnUpdate();
+			}
 
 			// Update Interface
 			static_interface->Begin();
 			static_interface->OnUpdate();
 			static_renderer->OnInterfaceUpdate();
-			for (const auto& layer : layers)
-				layer->OnInterfaceUpdate();
+			if (project_running)
+			{
+				for (const auto& layer : layers)
+					layer->OnInterfaceUpdate();
+			}
 			static_interface->End();
 
 			glfwSwapBuffers(window.GetNativeWindow());
 			glfwPollEvents();
 			
 			if (glfwWindowShouldClose(window.GetNativeWindow()))
+			{
 				engine_running = false;
+				project_running = false;
+			}
 		}
 
 		for (const auto& layer : layers)

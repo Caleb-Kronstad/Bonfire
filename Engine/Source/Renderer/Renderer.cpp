@@ -5,6 +5,7 @@
 
 namespace Bonfire
 {
+	
 	Renderer::Renderer()
 	{
 		project_path = std::filesystem::current_path().generic_string();
@@ -24,7 +25,6 @@ namespace Bonfire
 		console_capture->StartCapture();
 		
 		manipulation_matrix = glm::mat4(1.0f);
-		engine_camera_can_rotate = false;
 
 		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params", "Data/Params/materials.params");
 		new_model_path = "Data/Resources/Models/Cube.obj";
@@ -110,7 +110,7 @@ namespace Bonfire
 		// --- TESTING - IMPROVE IMPLEMENTATION AT LATER TIME ---
 		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)
 			return;
-		if (viewport_focused)
+		if (viewport_focused && !project.GetProjectRunState())
 		{
 			if (glfwGetKey(glfw_window, InputCode::W) == GLFW_PRESS)
 				scene->GetEngineCamera()->ProcessKeyboard(MovementDirection::FORWARD, deltaTime);
@@ -209,29 +209,39 @@ namespace Bonfire
 		{
 		case InputType::KeyPressed:
 			{
-				const auto keyInput = dynamic_cast<KeyPressedInput&>(input);
+				const auto key_input = dynamic_cast<KeyPressedInput&>(input);
 
 				// -- actions here --
-
-				// maximize window
-				if (keyInput.GetKeyCode() == InputCode::F11)
+				if (key_input.GetKeyCode() == InputCode::LeftControl)
 				{
-					glfwMaximizeWindow(window.GetNativeWindow());
+					scene->GetEngineCamera()->movement_disabled = true;
+					CTRL_DOWN = true;
+				}
+
+				if (key_input.GetKeyCode() == InputCode::D)
+				{
+					if (CTRL_DOWN && selected_entity != nullptr && viewport_focused)
+						DuplicateEntity(selected_entity);
 				}
 				
 				break;
 			}
 		case InputType::KeyReleased:
 			{
-				const auto keyInput = dynamic_cast<KeyReleasedInput&>(input);
+				const auto key_input = dynamic_cast<KeyReleasedInput&>(input);
 
 				// -- actions here --
+				if (key_input.GetKeyCode() == InputCode::LeftControl)
+				{
+					scene->GetEngineCamera()->movement_disabled = false;
+					CTRL_DOWN = false;
+				}
 				
 				break;
 			}
 		case InputType::KeyTyped:
 			{
-				const auto keyInput = dynamic_cast<KeyTypedInput&>(input);
+				const auto key_input = dynamic_cast<KeyTypedInput&>(input);
 
 				// -- actions here --
 
@@ -239,16 +249,16 @@ namespace Bonfire
 			}
 		case InputType::MouseButtonPressed:
 			{
-				const auto mouseInput = dynamic_cast<MouseButtonPressedInput&>(input);
+				const auto mouse_input = dynamic_cast<MouseButtonPressedInput&>(input);
 				
 				// -- actions here --
 
 				// enable engine camera rotation
-				if (mouseInput.GetMouseButton() == InputCode::Button1)
+				if (mouse_input.GetMouseButton() == InputCode::Button1)
 				{
 					if (viewport_focused)
 					{
-						engine_camera_can_rotate = true;
+						scene->GetEngineCamera()->mouse_disabled = false;
 						glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 					}
 				}
@@ -257,14 +267,14 @@ namespace Bonfire
 			}
 		case InputType::MouseButtonReleased:
 			{
-				const auto mouseInput = dynamic_cast<MouseButtonReleasedInput&>(input);
+				const auto mouse_input = dynamic_cast<MouseButtonReleasedInput&>(input);
 				
 				// -- actions here --
 
 				// disable engine camera rotation
-				if (mouseInput.GetMouseButton() == InputCode::Button1)
+				if (mouse_input.GetMouseButton() == InputCode::Button1)
 				{
-					engine_camera_can_rotate = false;
+					scene->GetEngineCamera()->mouse_disabled = true;
 					glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 				}
 				
@@ -272,37 +282,37 @@ namespace Bonfire
 			}
 		case InputType::MouseMoved:
 			{
-				const auto mouseInput = dynamic_cast<MouseMovedInput&>(input);
+				const auto mouse_input = dynamic_cast<MouseMovedInput&>(input);
 
 				// -- actions here --
 
 				// move engine camera based on mouse position and movement
-				const float x_position = mouseInput.GetX();
-				const float y_position = mouseInput.GetY();
+				const float x_position = mouse_input.GetX();
+				const float y_position = mouse_input.GetY();
 
-				if (scene->GetEngineCamera()->firstMouse)
+				if (scene->GetEngineCamera()->first_mouse)
 				{
-					scene->GetEngineCamera()->lastX = x_position;
-					scene->GetEngineCamera()->lastY = y_position;
-					scene->GetEngineCamera()->firstMouse = false;
+					scene->GetEngineCamera()->last_x = x_position;
+					scene->GetEngineCamera()->last_y = y_position;
+					scene->GetEngineCamera()->first_mouse = false;
 				}
 
-				const float x_offset = x_position - scene->GetEngineCamera()->lastX;
-				const float y_offset = y_position - scene->GetEngineCamera()->lastY;
+				const float x_offset = x_position - scene->GetEngineCamera()->last_x;
+				const float y_offset = y_position - scene->GetEngineCamera()->last_y;
 
-				scene->GetEngineCamera()->lastX = x_position;
-				scene->GetEngineCamera()->lastY = y_position;
+				scene->GetEngineCamera()->last_x = x_position;
+				scene->GetEngineCamera()->last_y = y_position;
 
-				if (engine_camera_can_rotate)
-					scene->GetEngineCamera()->ProcessMouseMovement(x_offset, y_offset);
+				scene->GetEngineCamera()->ProcessMouseMovement(x_offset, y_offset);
 				
 				break;
 			}
 		case InputType::MouseScrolled:
 			{
-				const auto mouseInput = dynamic_cast<MouseScrolledInput&>(input);
+				const auto mouse_input = dynamic_cast<MouseScrolledInput&>(input);
 
 				// -- actions here --
+				scene->GetEngineCamera()->ProcessMouseScroll(mouse_input.GetYOffset());
 				
 				break;
 			}

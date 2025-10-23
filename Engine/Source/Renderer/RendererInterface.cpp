@@ -20,7 +20,7 @@ namespace Bonfire
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
 			ImGui::SetWindowFocus();
-			engine_camera_can_rotate = true;
+			scene->GetEngineCamera()->mouse_disabled = false;
 			glfwSetInputMode(project_window.GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 
@@ -30,7 +30,7 @@ namespace Bonfire
 
     	// -- DEBUG --
     	ImGui::PushFont(font_title);
-    	ImGui::Begin("Debug", nullptr);
+    	ImGui::Begin("Debug##1", nullptr);
     	DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing(); 
@@ -39,7 +39,7 @@ namespace Bonfire
     	
     	std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
     	std::string frame_time = "Frame Time: " + std::to_string(project.GetDeltaTime() * 1000.0f);
-    	std::string frame_rate = "Frame Rate: " + std::to_string(1.0f / project.GetDeltaTime());
+    	std::string frame_rate = "Frame Rate: " + std::to_string(std::lround((1.0f / project.GetDeltaTime())));
     	ImGui::Text(delta_time.c_str());
     	ImGui::Text(frame_time.c_str());
     	ImGui::Text(frame_rate.c_str());
@@ -191,7 +191,7 @@ namespace Bonfire
 
     	if (selected_entity != nullptr && gizmo_type != -1)
     	{
-    		ImGuizmo::SetOrthographic(scene->GetEngineCamera()->isOrthographic);
+    		ImGuizmo::SetOrthographic(scene->GetEngineCamera()->is_orthographic);
     		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
     		ImGuizmo::SetRect(viewport_min.x, viewport_min.y, viewport_width, viewport_height);
     		const glm::mat4& camera_view = scene->GetEngineCamera()->GetViewMatrix();
@@ -213,7 +213,9 @@ namespace Bonfire
     			DecomposeTransform(local_transform, translation, rotation, scale);
     			selected_entity->position = translation;
     			selected_entity->rotation = glm::degrees(rotation);
-    			selected_entity->scale = scale;
+    			selected_entity->scale.x = (std::max)(scale.x, 0.01f);
+    			selected_entity->scale.y = (std::max)(scale.y, 0.01f);
+    			selected_entity->scale.z = (std::max)(scale.z, 0.01f);
     			selected_entity->UpdateComponents(Project::GetPhysicsSystem());
     		}
     	}
@@ -431,11 +433,11 @@ namespace Bonfire
     		ImGui::Spacing();
 		
     		ImGui::PushItemWidth(200.0f);
-    		if (ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000, 1000))
+    		if (ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000.0f, 1000.0f))
     			selected_entity->UpdateComponents(physics_system);
-    		if (ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0, 1000))
+    		if (ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0.01f, 1000.0f))
     			selected_entity->UpdateComponents(physics_system);
-    		if (ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0, 360))
+    		if (ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0.0f, 360.0f))
     			selected_entity->UpdateComponents(physics_system);
     		ImGui::PopItemWidth();
 

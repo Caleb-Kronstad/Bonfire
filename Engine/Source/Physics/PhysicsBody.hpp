@@ -19,6 +19,7 @@ namespace Bonfire
         void SetScale(const glm::vec3& scale);
         void SetLinearVelocity(const glm::vec3& velocity);
         void SetAngularVelocity(const glm::vec3& angular_velocity);
+        void SetAllowedDOFS(bool translation_x, bool translation_y, bool translation_z, bool rotation_x, bool rotation_y, bool rotation_z);
 
         void AddForce(const glm::vec3& force);
         void AddImpulse(const glm::vec3& impulse);
@@ -40,6 +41,7 @@ namespace Bonfire
         glm::quat GetRotation() const;
         glm::vec3 GetLinearVelocity() const;
         glm::vec3 GetAngularVelocity() const;
+        float GetMass() const;
 
     public:
         uint32_t id = 0;

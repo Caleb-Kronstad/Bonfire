@@ -22,7 +22,29 @@ namespace Bonfire
         }
     }
 
+    void PhysicsBody::SetAllowedDOFS(bool translation_x, bool translation_y, bool translation_z, bool rotation_x, bool rotation_y, bool rotation_z)
+    {
+        if (body_type != PhysicsBodyType::DYNAMIC) return;
 
+        auto& physics_system = Project::GetPhysicsSystem();
+        JPH::BodyLockWrite lock(physics_system.GetBodyLockInterface(), body_id);
+        if (lock.Succeeded())
+        {
+            JPH::Body& body = lock.GetBody();
+
+            JPH::EAllowedDOFs allowed_dofs = JPH::EAllowedDOFs::None;
+            if (translation_x && translation_y && translation_z && rotation_x && rotation_y && rotation_z)
+                allowed_dofs = JPH::EAllowedDOFs::All;
+            else if (translation_x && translation_y && translation_z && !rotation_x && !rotation_y && !rotation_z)
+                allowed_dofs = JPH::EAllowedDOFs::TranslationX | JPH::EAllowedDOFs::TranslationY | JPH::EAllowedDOFs::TranslationZ;
+            else if (translation_x && translation_y && translation_z && !rotation_x && rotation_y && !rotation_z)
+                allowed_dofs = JPH::EAllowedDOFs::Plane2D;
+
+            JPH::MassProperties mass_properties = body.GetShape()->GetMassProperties();
+            body.GetMotionProperties()->SetMassProperties(allowed_dofs, mass_properties);
+        }
+    }
+    
     void PhysicsBody::SetPosition(const glm::vec3& position)
     {
         auto& physics_system = Project::GetPhysicsSystem();
@@ -152,8 +174,7 @@ namespace Bonfire
 
     void PhysicsBody::SetMass(float mass)
     {
-        if (body_type != PhysicsBodyType::DYNAMIC || mass <= 0.0f)
-            return;
+        if (body_type != PhysicsBodyType::DYNAMIC || mass <= 0.0f) return;
 
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyLockWrite lock(physics_system.GetBodyLockInterface(), body_id);
@@ -162,9 +183,25 @@ namespace Bonfire
             JPH::Body& body = lock.GetBody();
             JPH::MassProperties mass_properties = body.GetShape()->GetMassProperties();
             mass_properties.ScaleToMass(mass);
-            body.GetMotionProperties()->SetMassProperties(JPH::EAllowedDOFs::All, mass_properties);
+            JPH::EAllowedDOFs current_dofs = body.GetMotionProperties()->GetAllowedDOFs();
+            body.GetMotionProperties()->SetMassProperties(current_dofs, mass_properties);
         }
     }
+
+    float PhysicsBody::GetMass() const
+    {
+        if (body_type != PhysicsBodyType::DYNAMIC) return 0.0f;
+
+        auto& physics_system = Project::GetPhysicsSystem();
+        JPH::BodyLockRead lock(physics_system.GetBodyLockInterface(), body_id);
+        if (lock.Succeeded())
+        {
+            const JPH::Body& body = lock.GetBody();
+            return 1.0f / body.GetMotionProperties()->GetInverseMass();
+        }
+        return 0.0f;
+    }
+
 
     void PhysicsBody::SetFriction(float friction)
     {

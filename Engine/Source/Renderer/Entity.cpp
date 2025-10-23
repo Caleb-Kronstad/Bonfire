@@ -29,7 +29,7 @@ namespace Bonfire
 		{
 			if (!shader->updated_this_frame && !scene.GetShadowMap()->updated_this_frame)
 			{
-				shader->SetVec3("view_pos", scene.GetEngineCamera()->Position);
+				shader->SetVec3("view_pos", scene.GetEngineCamera()->position);
 				shader->SetFloat("far_plane", scene.GetShadowMap()->far_plane);
 				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
 				shader->SetBool("reverse_normals", false);

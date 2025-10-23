@@ -18,6 +18,8 @@
 
 namespace Bonfire
 {
+	inline bool CTRL_DOWN = false;
+	
 	class Renderer : public Layer
 	{
 	public:
@@ -49,12 +51,10 @@ namespace Bonfire
 		bool IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent);
 		void ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent);
 
-	private:
+		// CHANGE TO PRIVATE LATER AND ADD GETTERS
+	public:
 		std::string project_path;
 		glm::mat4 manipulation_matrix;
-
-		// camera
-		bool engine_camera_can_rotate;
 
 		// scene
 		std::unique_ptr<Scene> scene;
