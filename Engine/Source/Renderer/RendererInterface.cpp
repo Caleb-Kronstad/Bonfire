@@ -28,6 +28,33 @@ namespace Bonfire
     	
     	ImGui::End();
 
+    	// -- DEBUG --
+    	ImGui::PushFont(font_title);
+    	ImGui::Begin("Debug", nullptr);
+    	DrawActiveTitleLine(project_interface.highlight_primary, project_interface.background_tertiary);
+    	ImGui::Indent(8.0f);
+    	ImGui::Spacing(); 
+    	ImGui::PopFont();
+    	ImGui::PushFont(font_body);
+    	
+    	std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
+    	std::string frame_time = "Frame Time: " + std::to_string(project.GetDeltaTime() * 1000.0f);
+    	std::string frame_rate = "Frame Rate: " + std::to_string(1.0f / project.GetDeltaTime());
+    	ImGui::Text(delta_time.c_str());
+    	ImGui::Text(frame_time.c_str());
+    	ImGui::Text(frame_rate.c_str());
+
+    	const char* debug_type_names[] = { "DEFAULT", "WIREFRAME", "POINT" };
+    	int current_debug_type = static_cast<int>(debug_type);
+    	if (ImGui::Combo("Debug Mode", &current_debug_type, debug_type_names, IM_ARRAYSIZE(debug_type_names)))
+    	{
+    		debug_type = static_cast<DebugType>(current_debug_type);
+    	}
+    	
+    	ImGui::PopFont();
+    	ImGui::Unindent(8.0f);
+    	ImGui::End();
+
 		// -- PROJECT SETTINGS --
 		ImGui::PushFont(font_title);
 		ImGui::Begin("Project Settings", nullptr);
@@ -306,9 +333,6 @@ namespace Bonfire
 	void Renderer::DrawProjectSettings()
     {
 		Project& project = Project::GetInstance();
-    	
-    	std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
-    	ImGui::Text(delta_time.c_str());
 		
     	ImGui::PushItemWidth(100.0f);
     	ImGui::DragFloat("DragStep", &drag_step, 0.1f, 0.0f, 100.0f);
@@ -507,6 +531,7 @@ namespace Bonfire
     				ImGui::Spacing();
     				ImGui::Text("Point Light Properties");
     				ImGui::PushItemWidth(200.0f);
+    				ImGui::SliderFloat("Intensity", &point_light->intensity, 0.0f, 10.0f);
     				ImGui::SliderFloat3("Color", (float*)&point_light->color, 0.0f, 255.0f);
     				ImGui::PopItemWidth();
     			}
@@ -528,12 +553,14 @@ namespace Bonfire
 					glm::vec3 preserved_position = glm::vec3(0.0f);
 					glm::vec3 preserved_scale = glm::vec3(1.0f);
 					glm::vec3 preserved_direction = glm::vec3(0.0f);
+    				float preserved_intensity = 1.0f;
 
 					if (auto point_light = std::dynamic_pointer_cast<PointLight>(old_light))
 					{
 						preserved_color = point_light->color;
 						preserved_position = point_light->position;
 						preserved_scale = point_light->scale;
+						preserved_intensity = point_light->intensity;
 					}
 					else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(old_light))
 					{
@@ -554,6 +581,7 @@ namespace Bonfire
 						new_light->color = preserved_color;
 						new_light->position = preserved_position;
 						new_light->scale = preserved_scale;
+						new_light->intensity = preserved_intensity;
 						new_light->id = old_light->id;
 						new_light->enabled = old_light->enabled;
 						light_source_component.light_source = new_light;
@@ -726,6 +754,7 @@ namespace Bonfire
     					new_light->position = selected_entity->position;
     					new_light->color = glm::vec3(255.0f, 255.0f, 255.0f);
     					new_light->scale = glm::vec3(1.0f);
+    					new_light->intensity = 1.0f;
     					new_light->enabled = true;
 
     					std::shared_ptr<LightSourceComponent> new_component = std::make_shared<LightSourceComponent>(next_id, true, new_light);
@@ -850,7 +879,7 @@ namespace Bonfire
 					ofn.nMaxFile = model_file.size();
 					ofn.lpstrInitialDir = models_dir.string().c_str();
 					ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
-					ofn.lpstrFilter = "Model Files\0*.obj;*.fbx;*.dae\0Obj Files\0*.obj\0FBX Files\0*.fbx\0DAE Files\0*.dae\0All Files\0*.*\0";
+					ofn.lpstrFilter = "Model Files\0*.obj;*.fbx;*.dae;*.gltf;*.glb\0Obj Files\0*.obj\0FBX Files\0*.fbx\0DAE Files\0*.dae\0glTF Files\0*.gltf;*.glb\0All Files\0*.*\0";
 					ofn.lpstrTitle = "Select model file";
 
 					if (GetOpenFileNameA(&ofn))

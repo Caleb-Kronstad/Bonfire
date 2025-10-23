@@ -43,4 +43,11 @@ namespace Bonfire
         SPHERE,
         CAPSULE
     };
+
+    enum class DebugType : std::uint8_t
+    {
+        DEFAULT,
+        WIREFRAME,
+        POINT
+    };
 }

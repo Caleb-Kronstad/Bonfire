@@ -25,9 +25,9 @@ namespace Bonfire
             std::string number = std::to_string(i);
 
             shader.SetVec3("point_lights[" + number + "].position", point_light->position);
-            shader.SetVec3("point_lights[" + number + "].ambient", point_light->color / 255.0f * 0.1f);
-            shader.SetVec3("point_lights[" + number + "].diffuse", point_light->color / 255.0f);
-            shader.SetVec3("point_lights[" + number + "].specular", point_light->color / 255.0f);
+            shader.SetVec3("point_lights[" + number + "].ambient", point_light->color / 255.0f * 0.1f * point_light->intensity);
+            shader.SetVec3("point_lights[" + number + "].diffuse", point_light->color / 255.0f * point_light->intensity);
+            shader.SetVec3("point_lights[" + number + "].specular", point_light->color / 255.0f * point_light->intensity);
 
             shader.SetFloat("point_lights[" + number + "].constant", 1.0f);
             shader.SetFloat("point_lights[" + number + "].linear", 0.09f);
@@ -224,6 +224,8 @@ namespace Bonfire
                         std::shared_ptr<PointLight> point_light = std::make_shared<PointLight>(color, position, scale);
                         point_light->id = light_data["light-id"].get<uint32_t>();
                         point_light->enabled = light_data["light-enabled"].get<bool>();
+                        if (light_data.contains("intensity"))
+                            point_light->intensity = light_data["intensity"].get<float>();
                         light_source = point_light;
                     }
                     else if (light_type == "spot")
@@ -436,6 +438,7 @@ namespace Bonfire
                 light_json["color"] = {point_light->color.x, point_light->color.y, point_light->color.z};
                 light_json["position"] = {point_light->position.x, point_light->position.y, point_light->position.z};
                 light_json["scale"] = {point_light->scale.x, point_light->scale.y, point_light->scale.z};
+                light_json["intensity"] = point_light->intensity;
             }
             else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_component->light_source))
             {

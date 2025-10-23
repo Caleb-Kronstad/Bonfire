@@ -75,6 +75,27 @@ namespace Bonfire
 		Window& project_window = project.GetWindow();
 		GLFWwindow* glfw_window = project_window.GetNativeWindow();
 		
+		const float deltaTime = project.GetDeltaTime();
+
+		switch (debug_type)
+		{
+			case DebugType::DEFAULT:
+			{
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				break;
+			}
+			case DebugType::WIREFRAME:
+			{
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				break;
+			}
+			case DebugType::POINT:
+			{
+				glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+				break;
+			}
+		}
+		
 		if (project.GetProjectRunState())
 		{
 			if (physics_system.paused) 
@@ -85,8 +106,6 @@ namespace Bonfire
 			if (!physics_system.paused)
 				physics_system.paused = true;
 		}
-		
-		const float deltaTime = project.GetDeltaTime();
 
 		// --- TESTING - IMPROVE IMPLEMENTATION AT LATER TIME ---
 		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)

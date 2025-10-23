@@ -86,6 +86,8 @@ namespace Bonfire
 		std::unique_ptr<Texture> rotate_icon;
 		std::unique_ptr<Texture> resize_icon;
 
+		DebugType debug_type = DebugType::DEFAULT;
+
 		// fonts
 		ImFont* font_title;
 		ImFont* font_body;
