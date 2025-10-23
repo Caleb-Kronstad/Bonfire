@@ -8,7 +8,13 @@ namespace Bonfire
     {
         Setup();
     }
-
+	Mesh::~Mesh()
+	{
+    	glDeleteVertexArrays(1, &vertex_array);
+    	glDeleteBuffers(1, &vertex_buffer);
+    	glDeleteBuffers(1, &element_buffer);
+	}
+	
     void Mesh::Draw(Shader& shader, std::shared_ptr<Material> material)
     {
 		const auto& textures = material->textures;
@@ -73,6 +79,39 @@ namespace Bonfire
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords));
         
 		glBindVertexArray(0);
+    }
+
+	Mesh::Mesh(Mesh&& other) noexcept
+	  : vertices(std::move(other.vertices)),
+		indices(std::move(other.indices)),
+		vertex_array(other.vertex_array),
+		vertex_buffer(other.vertex_buffer),
+		element_buffer(other.element_buffer)
+    {
+    	other.vertex_array = 0;
+    	other.vertex_buffer = 0;
+    	other.element_buffer = 0;
+    }
+
+	Mesh& Mesh::operator=(Mesh&& other) noexcept
+    {
+    	if (this != &other)
+    	{
+    		glDeleteVertexArrays(1, &vertex_array);
+    		glDeleteBuffers(1, &vertex_buffer);
+    		glDeleteBuffers(1, &element_buffer);
+
+    		vertices = std::move(other.vertices);
+    		indices = std::move(other.indices);
+    		vertex_array = other.vertex_array;
+    		vertex_buffer = other.vertex_buffer;
+    		element_buffer = other.element_buffer;
+
+    		other.vertex_array = 0;
+    		other.vertex_buffer = 0;
+    		other.element_buffer = 0;
+    	}
+    	return *this;
     }
 
 }

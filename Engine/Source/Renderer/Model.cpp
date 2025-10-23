@@ -11,7 +11,7 @@ namespace Bonfire
     }
     void Model::Draw(Shader& shader, std::shared_ptr<Material> material)
     {
-        for (Mesh mesh : meshes)
+        for (Mesh& mesh : meshes)
         {
             mesh.Draw(shader, material);
         }

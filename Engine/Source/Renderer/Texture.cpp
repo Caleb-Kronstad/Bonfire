@@ -8,6 +8,11 @@ namespace Bonfire
     {
         gl_id = 0;
     }
+    Texture::~Texture()
+    {
+        if (gl_id != 0)
+            glDeleteTextures(1, &gl_id);
+    }
 
     void Texture::Load()
     {

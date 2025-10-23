@@ -3,6 +3,16 @@
 
 namespace Bonfire
 {
+    Skybox::~Skybox()
+    {
+        if (vertex_array != 0)
+            glDeleteVertexArrays(1, &vertex_array);
+        if (vertex_buffer != 0)
+            glDeleteBuffers(1, &vertex_buffer);
+        if (skybox_texture != 0)
+            glDeleteTextures(1, &skybox_texture);
+    }
+    
     void Skybox::Load(std::shared_ptr<Shader> skybox_shader, bool is_png)
     {
         this->skybox_shader = skybox_shader;

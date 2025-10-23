@@ -139,9 +139,9 @@ namespace Bonfire
         }
         for (const auto& camera_json : json["cameras"])
         {
-            uint32_t id = camera_json["id"];
-            float yaw = camera_json["yaw"];
-            float pitch = camera_json["pitch"];
+            uint32_t id = camera_json["id"].get<uint32_t>();
+            float yaw = camera_json["yaw"].get<float>();
+            float pitch = camera_json["pitch"].get<float>();
             
             auto position_array = camera_json["position"].get<std::vector<float>>();
             auto up_array = camera_json["up"].get<std::vector<float>>();
@@ -150,6 +150,29 @@ namespace Bonfire
             glm::vec3 up(up_array[0], up_array[1], up_array[2]);
 
             engine_camera = std::make_unique<Camera>(id, position, up, yaw, pitch);
+        }
+
+        // Load directional light
+        if (!json.contains("directional_light"))
+        {
+            directional_light = std::make_unique<DirectionalLight>();
+            directional_light->id = 1000001;
+        }
+        else
+        {
+            nlohmann::json dir_light_json = json["directional_light"];
+            uint32_t id = dir_light_json["id"].get<uint32_t>();
+            std::string name = dir_light_json["name"].get<std::string>();
+        
+            auto direction_array = dir_light_json["direction"].get<std::vector<float>>();
+            auto color_array = dir_light_json["color"].get<std::vector<float>>();
+
+            glm::vec3 direction(direction_array[0], direction_array[1], direction_array[2]);
+            glm::vec3 color(color_array[0], color_array[1], color_array[2]);
+
+            directional_light = std::make_unique<DirectionalLight>(color, direction);
+            directional_light->id = id;
+            directional_light->name = name;
         }
 
         // Load components
@@ -344,7 +367,6 @@ namespace Bonfire
         }
         
         skybox = std::make_unique<Skybox>("S3");
-        shadow_map = std::make_unique<ShadowMap>();
         std::shared_ptr<Shader> point_shadow_map_shader;
         std::shared_ptr<Shader> lit_shader;
         std::shared_ptr<Shader> shadow_map_shader;
@@ -359,9 +381,7 @@ namespace Bonfire
             else if (shader->name == "Shadow Map")
                 shadow_map_shader = shader;
         }
-        shadow_map->Generate(point_shadow_map_shader, shadow_map_shader, lit_shader, "Data/Resources/Textures/checkered.png");
-
-        directional_light = std::make_unique<DirectionalLight>();
+        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, lit_shader, "Data/Resources/Textures/checkered.png");
 
         Log::Info("Loaded scene from " + path);
         return true;
@@ -381,8 +401,13 @@ namespace Bonfire
         camera_json["up"] = {engine_camera->WorldUp.x, engine_camera->WorldUp.y, engine_camera->WorldUp.z};
         camera_array.push_back(camera_json);
 
-        nlohmann::json components_json;
+        nlohmann::json directional_light_json;
+        directional_light_json["id"] = directional_light->id;
+        directional_light_json["name"] = directional_light->name;
+        directional_light_json["color"] = {directional_light->color.x, directional_light->color.y, directional_light->color.z};
+        directional_light_json["direction"] = {directional_light->direction.x, directional_light->direction.y, directional_light->direction.z};
         
+        nlohmann::json components_json;
         // Save components
         nlohmann::json models_json;
         for (const auto& [id, model_component] : model_components)
@@ -426,6 +451,7 @@ namespace Bonfire
         if (!lights_json.empty())
             components_json["light_sources"] = lights_json;
 
+        // save physics components
         nlohmann::json physics_json;
         for (const auto& [id, physics_component] : physics_components)
         {
@@ -482,6 +508,7 @@ namespace Bonfire
         }
 
         json["cameras"] = camera_array;
+        json["directional_light"] = directional_light_json;
         json["components"] = components_json;
         json["entities"] = entities_array;
 

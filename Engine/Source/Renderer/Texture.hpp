@@ -8,6 +8,7 @@ namespace Bonfire
     {
     public:
         Texture(std::string path, TextureType type, bool flip = false);
+        ~Texture();
 
         void Load();
 

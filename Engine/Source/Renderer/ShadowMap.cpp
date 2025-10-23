@@ -3,8 +3,7 @@
 
 namespace Bonfire
 {
-	
-	void ShadowMap::Generate(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> shadow_map_shader, std::shared_ptr<Shader> lit_shader, const std::string& path)
+	ShadowMap::ShadowMap(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> shadow_map_shader, std::shared_ptr<Shader> lit_shader, const std::string& path)
 	{
 		this->point_shadow_map_shader = point_shadow_map_shader;
 		this->shadow_map_shader = shadow_map_shader;
@@ -52,6 +51,20 @@ namespace Bonfire
 		this->lit_shader->Use();
 		this->lit_shader->SetInt("shadow_map", 0);
 		this->lit_shader->SetInt("point_shadow_map", 1);
+	}
+
+	ShadowMap::~ShadowMap()
+	{
+		if (frame_buffer != 0)
+			glDeleteFramebuffers(1, &frame_buffer);
+		if (directional_frame_buffer != 0)
+			glDeleteFramebuffers(1, &directional_frame_buffer);
+		if (shadow_cubemap != 0)
+			glDeleteTextures(1, &shadow_cubemap);
+		if (directional_shadow_map != 0)
+			glDeleteTextures(1, &directional_shadow_map);
+		if (map_texture != 0)
+			glDeleteTextures(1, &map_texture);
 	}
 
 	void ShadowMap::Load(glm::vec3& light_pos)

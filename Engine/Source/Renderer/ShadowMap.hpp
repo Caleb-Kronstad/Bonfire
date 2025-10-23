@@ -7,7 +7,8 @@ namespace Bonfire
     class ShadowMap
     {
     public:
-        void Generate(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> shadow_map_shader, std::shared_ptr<Shader> lit_shader, const std::string& path);
+        ShadowMap(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> shadow_map_shader, std::shared_ptr<Shader> lit_shader, const std::string& path);
+        ~ShadowMap();
         void Load(glm::vec3& light_pos);
         void LoadDirectional(glm::vec3& light_dir);
         void SetDirectional();

@@ -61,6 +61,7 @@ namespace Bonfire
             skybox_texture = 0;
             skybox_faces = {"px","nx","py","ny","pz","nz"};
         }
+        ~Skybox();
 
         void Load(std::shared_ptr<Shader> skybox_shader, bool is_png = false);
         void Draw(const glm::mat4& camera_view_matrix, const glm::mat4& camera_projection_matrix);

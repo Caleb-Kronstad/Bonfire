@@ -7,6 +7,12 @@ namespace Bonfire
 		: param_id(id), name(name), vPath(vertexPath), fPath(fragmentPath), gPath(geometryPath)
 	{
 	}
+	Shader::~Shader()
+	{
+		if (m_ShaderID != 0)
+			glDeleteProgram(m_ShaderID);
+	}
+
 
 	void Shader::Load()
 	{

@@ -6,7 +6,8 @@ namespace Bonfire
 	{
 	public:
 		Shader(const uint32_t& id = 0, const std::string& name = "New Shader", const std::string& vertexPath = "None", const std::string& fragmentPath = "None", const std::string& geometryPath = "None");
-
+		~Shader();
+		
 		void Load();
 		void Use();
 
