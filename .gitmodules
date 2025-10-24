@@ -16,3 +16,6 @@
 [submodule "jolt"]
 	path = Engine/Dependencies/jolt
 	url = https://github.com/Caleb-Kronstad/JoltPhysics
+[submodule "Engine/Dependencies/asio"]
+	path = Engine/Dependencies/asio
+	url = https://github.com/Caleb-Kronstad/asio
