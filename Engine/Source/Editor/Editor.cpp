@@ -6,7 +6,8 @@
 
 namespace Bonfire
 {
-    Editor::Editor()
+    Editor::Editor(const std::string& config_path)
+	    : config_path(config_path)
     {
 		project_path = std::filesystem::current_path().generic_string();
     }
@@ -42,14 +43,14 @@ namespace Bonfire
     	glfwSetWindowIcon(glfw_window, 1, images);
     	stbi_image_free(images[0].pixels);
     	
-    	font_title = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-    	font_body = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    	//font_title = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    	//font_body = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     	
-    	new_model_path = "Data/Editor/Defaults/Models/Cube.obj";
-    	new_texture_path = "Data/Editor/Defaults/Textures/default.png";
-    	new_shader_vert_path = "Data/Editor/Defaults/Shaders/unlit.vert";
-    	new_shader_frag_path = "Data/Editor/Defaults/Shaders/unlit.frag";
-    	new_shader_geom_path = "Data/Editor/Defaults/Shaders/unlit.geom";
+    	default_model_path = "Data/Editor/Defaults/Models/Cube.obj";
+    	default_texture_path = "Data/Editor/Defaults/Textures/default.png";
+    	default_shader_vert_path = "Data/Editor/Defaults/Shaders/unlit.vert";
+    	default_shader_frag_path = "Data/Editor/Defaults/Shaders/unlit.frag";
+    	default_shader_geom_path = "Data/Editor/Defaults/Shaders/unlit.geom";
 
     	play_icon = std::make_unique<Texture>("Data/Editor/Icons/play-icon.png", TextureType::DIFFUSE, false);
     	move_icon = std::make_unique<Texture>("Data/Editor/Icons/move-icon.png", TextureType::DIFFUSE, false);
@@ -59,10 +60,10 @@ namespace Bonfire
     	move_icon->Load();
     	rotate_icon->Load();
     	resize_icon->Load();
-
-    	engine_camera = std::make_unique<Camera>(10);
     	
     	selected_entity = nullptr;
+
+    	LoadEditorConfig();
     }
     void Editor::OnDetach()
     {
@@ -233,5 +234,116 @@ namespace Bonfire
 		case InputType::None:
 				break;
 		}
+    }
+
+	bool Editor::LoadEditorConfig()
+    {
+    	Project& project = Project::GetInstance();
+    	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+    	Window& project_window = project.GetWindow();
+    	Renderer& renderer = project.GetRenderer();
+    	Scene& scene = renderer.GetScene();
+    	ParamDatabase& param_database = renderer.GetParamDatabase();
+    	
+    	std::ifstream file(config_path);
+    	if (!file.is_open())
+    	{
+    		Log::Error("Failed to open editor config file: " + config_path);
+    		return false;
+    	}
+
+    	nlohmann::json json;
+    	try
+    	{
+    		file >> json;
+    	}
+    	catch (const nlohmann::json::exception& e)
+    	{
+    		Log::Error("Failed to parse editor config JSON: " + std::string(e.what()));
+    		return false;
+    	}
+
+    	if (!json.contains("DATA-TYPE"))
+    	{
+    		Log::Error("Unknown data type when trying to load .bonfire scene file at " + config_path);
+    		return false;
+    	}
+    	std::string data_type = json["DATA-TYPE"]["type"].get<std::string>();
+    	if (data_type != "EDITOR CONFIG")
+    	{
+    		Log::Error("Found incorrect data type associated with .bonfire editor config file at " + config_path + " ... " + data_type + " data type found");
+    		return false;
+    	}
+
+    	if (!json.contains("camera"))
+    	{
+    		engine_camera = std::make_unique<Camera>(1);
+    		Log::Warning("Editor config could not find camera -- Setting to default");
+    	}
+    	nlohmann::json camera_json = json["camera"];
+    	float yaw = camera_json["yaw"].get<float>();
+    	float pitch = camera_json["pitch"].get<float>();
+    	auto position_array = camera_json["position"].get<std::vector<float>>();
+    	auto up_array = camera_json["up"].get<std::vector<float>>();
+    	glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+    	glm::vec3 up(up_array[0], up_array[1], up_array[2]);
+    	float speed = camera_json["speed"].get<float>();
+    	float sensitivity = camera_json["sensitivity"].get<float>();
+
+    	engine_camera_speed = speed;
+    	engine_camera_turn_sensitivity = sensitivity;
+    	engine_camera = std::make_unique<Camera>(1, position, up, yaw, pitch);
+
+    	if (!json.contains("editor-settings"))
+    	{
+    		drag_step = 1.0f;
+    		Log::Warning("Editor config could not find editor settings -- Setting to default");
+    	}
+    	nlohmann::json editor_settings_json = json["editor-settings"];
+    	float drag = editor_settings_json["drag-step"].get<float>();
+    	drag_step = drag;
+
+    	Log::Info("Editor config loaded successfully");
+    	return true;
+    }
+
+	bool Editor::SaveEditorConfig()
+    {
+    	nlohmann::json json;
+
+    	nlohmann::json camera_json;
+    	camera_json["yaw"] = engine_camera->yaw;
+    	camera_json["pitch"] = engine_camera->pitch;
+    	camera_json["position"] = {engine_camera->position.x, engine_camera->position.y, engine_camera->position.z};
+    	camera_json["up"] = {engine_camera->GetWorldUpVector().x, engine_camera->GetWorldUpVector().y, engine_camera->GetWorldUpVector().z};
+    	camera_json["speed"] = engine_camera_speed;
+    	camera_json["sensitivity"] = engine_camera_turn_sensitivity;
+
+    	nlohmann::json settings_json;
+    	settings_json["drag-step"] = drag_step;
+
+    	json["DATA-TYPE"]["type"] = "EDITOR CONFIG";
+    	json["camera"] = camera_json;
+    	json["editor-settings"] = settings_json;
+
+    	std::ofstream file(config_path);
+    	if (!file.is_open())
+    	{
+    		Log::Error("Failed to open editor config file for writing: " + config_path);
+    		return false;
+    	}
+
+    	try
+    	{
+    		file << json.dump(4);
+    	}
+    	catch (const nlohmann::json::exception& e)
+    	{
+    		Log::Error("Failed to write editor config JSON: " + std::string(e.what()));
+    		return false;
+    	}
+
+    	Log::Info("Saved editor config to " + config_path);
+    	return true;
     }
 }

@@ -137,8 +137,16 @@ namespace Bonfire
 	    {
 	        if (ImGui::BeginMenu("File"))
 	        {
-	            if (ImGui::MenuItem("Reload", "Ctrl+L")) { renderer.Load(); }
-	            if (ImGui::MenuItem("Save", "Ctrl+S")) { renderer.Save(); }
+	            if (ImGui::MenuItem("Reload", "Ctrl+L"))
+	            {
+	            	LoadEditorConfig();
+		            renderer.Load();
+	            }
+	            if (ImGui::MenuItem("Save", "Ctrl+S"))
+	            {
+	            	SaveEditorConfig();
+		            renderer.Save();
+	            }
 	            ImGui::Separator();
 	            if (ImGui::MenuItem("Exit", "Alt+F4")) { project.SetEngineRunState(false); }
 	            ImGui::EndMenu();
@@ -178,7 +186,7 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-		ImGui::PushFont(font_title);
+		
 		editor_viewport_visible = ImGui::Begin("Viewport");
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	
@@ -201,7 +209,7 @@ namespace Bonfire
 			}
 		}
 
-		ImGui::PopFont();
+		
 
 		ImGui::Image((void*)(intptr_t)renderer.GetEditorViewportFramebuffer().GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
     	ImVec2 viewport_min = ImGui::GetItemRectMin();
@@ -294,7 +302,7 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-		ImGui::PushFont(font_title);
+		
 		project_viewport_visible = ImGui::Begin("Project Name Here");
 		DrawActiveTitleLine(highlight_primary, background_tertiary);
     	
@@ -311,7 +319,7 @@ namespace Bonfire
 			}
 		}
 
-		ImGui::PopFont();
+		
 
 		ImGui::Image((void*)(intptr_t)renderer.GetProjectViewportFramebuffer().GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
 		ImVec2 viewport_min = ImGui::GetItemRectMin();
@@ -329,13 +337,13 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-    	ImGui::PushFont(font_title);
+    	
     	ImGui::Begin("Debug Info", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing(); 
-    	ImGui::PopFont();
-    	ImGui::PushFont(font_body);
+    	
+    	
     	
     	std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
     	std::string frame_time = "Frame Time: " + std::to_string(project.GetDeltaTime() * 1000.0f);
@@ -351,7 +359,7 @@ namespace Bonfire
     		renderer.GetDebugType() = static_cast<DebugType>(current_debug_type);
     	}
     	
-    	ImGui::PopFont();
+    	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
 	}
@@ -367,13 +375,10 @@ namespace Bonfire
 		
     	ImGuiWindowFlags toolbar_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
     	
-    	ImGui::PushFont(font_title);
     	ImGui::Begin("Toolbar", nullptr, toolbar_flags);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	ImGui::PopFont();
-    	ImGui::PushFont(font_body);
     	
     	if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_E) == GLFW_PRESS)
     		gizmo_type = ImGuizmo::TRANSLATE;
@@ -433,7 +438,7 @@ namespace Bonfire
     	if (temp_gizmo_type == ImGuizmo::SCALE)
     		ImGui::PopStyleColor(1);
 
-    	ImGui::PopFont();
+    	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -445,13 +450,13 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-    	ImGui::PushFont(font_title);
+    	
     	ImGui::Begin("Project Settings", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing(); 
-    	ImGui::PopFont();
-    	ImGui::PushFont(font_body);
+    	
+    	
 
 		ImGui::PushItemWidth(100.0f);
     	ImGui::DragFloat("Drag Step", &drag_step, 0.1f, 0.1f, 100.0f, "%.2f");
@@ -469,7 +474,7 @@ namespace Bonfire
     	ImGui::SliderFloat3("Color", (float*)&scene.GetDirectionalLight()->color, 0.0f, 255.0f, "%1.f");
     	ImGui::PopItemWidth();
 		
-    	ImGui::PopFont();
+    	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -481,13 +486,13 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		
 		Scene& scene = renderer.GetScene();
-    	ImGui::PushFont(font_title);
+    	
     	ImGui::Begin("Console", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	ImGui::PopFont();
-    	ImGui::PushFont(font_body);
+    	
+    	
 		
     	std::vector<std::string> lines = console_capture->GetLines();
     	for (const std::string& line : lines)
@@ -498,7 +503,7 @@ namespace Bonfire
     		ImGui::PopTextWrapPos();
     	}
 		
-    	ImGui::PopFont();
+    	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -510,13 +515,13 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-    	ImGui::PushFont(font_title);
+    	
     	ImGui::Begin("Hierarchy", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	ImGui::PopFont();
-    	ImGui::PushFont(font_body);
+    	
+    	
     	ImGui::PushStyleColor(ImGuiCol_Header, background_primary);
     	
     	if (ImGui::BeginPopupContextWindow())
@@ -564,7 +569,7 @@ namespace Bonfire
     		ImGui::EndDragDropTarget();
     	}
     	ImGui::PopStyleColor(4);
-    	ImGui::PopFont();
+    	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
 
@@ -593,13 +598,13 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-    	ImGui::PushFont(font_title);
+    	
     	ImGui::Begin("Details", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	ImGui::PopFont();
-    	ImGui::PushFont(font_body);
+    	
+    	
 		
     	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
     	
@@ -1026,7 +1031,7 @@ namespace Bonfire
     		ImGui::PopID();
     	}
     	
-    	ImGui::PopFont();
+    	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -1040,13 +1045,13 @@ namespace Bonfire
 		Scene& scene = renderer.GetScene();
 		ParamDatabase& param_database = renderer.GetParamDatabase();
 		
-    	ImGui::PushFont(font_title);
+    	
     	ImGui::Begin("Param Editor", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	ImGui::PopFont();
-    	ImGui::PushFont(font_body);
+    	
+    	
     	
 	    if (ImGui::BeginTabBar("ParamEditorTabs"))
 		{
@@ -1098,13 +1103,13 @@ namespace Bonfire
 						size_t data_pos = abs_str.find("Data");
 						if (data_pos != std::string::npos)
 						{
-							new_model_path = abs_str.substr(data_pos);
-							std::replace(new_model_path.begin(), new_model_path.end(), '\\', '/');
+							default_model_path = abs_str.substr(data_pos);
+							std::replace(default_model_path.begin(), default_model_path.end(), '\\', '/');
 						}
 						else
-							new_model_path = model_file;
+							default_model_path = model_file;
 
-						Log::Info("File selected at " + new_model_path);
+						Log::Info("File selected at " + default_model_path);
 					
 						uint32_t next_id = 1000;
 						if (!scene.GetModels().empty())
@@ -1117,10 +1122,10 @@ namespace Bonfire
 							next_id = max_it->first + 1;
 						}
 
-						std::filesystem::path path_obj(new_model_path);
+						std::filesystem::path path_obj(default_model_path);
 						std::string model_name = path_obj.stem().string();
 					
-						std::shared_ptr<Model> new_model = std::make_shared<Model>(new_model_path);
+						std::shared_ptr<Model> new_model = std::make_shared<Model>(default_model_path);
 						new_model->param_id = next_id;
 						new_model->name = model_name;
 						new_model->Load();
@@ -1205,7 +1210,7 @@ namespace Bonfire
 						}
 						
 						scene.GetModels().insert_or_assign(next_id, new_model);
-						param_database.model_params.insert_or_assign(next_id, ModelParamData(model_name, new_model_path));
+						param_database.model_params.insert_or_assign(next_id, ModelParamData(model_name, default_model_path));
 					}
 					else
 						Log::Info("File operation cancelled");
@@ -1281,13 +1286,13 @@ namespace Bonfire
 		    			size_t data_pos = abs_str.find("Data");
 		    			if (data_pos != std::string::npos)
 		    			{
-		    				new_texture_path = abs_str.substr(data_pos);
-		    				std::replace(new_texture_path.begin(), new_texture_path.end(), '\\', '/');
+		    				default_texture_path = abs_str.substr(data_pos);
+		    				std::replace(default_texture_path.begin(), default_texture_path.end(), '\\', '/');
 		    			}
 		    			else
-		    				new_texture_path = texture_file;
+		    				default_texture_path = texture_file;
 
-		    			Log::Info("File selected at " + new_texture_path);
+		    			Log::Info("File selected at " + default_texture_path);
 					
 		    			uint32_t next_id = 200001;
 		    			if (!scene.GetTextures().empty())
@@ -1300,15 +1305,15 @@ namespace Bonfire
 		    				next_id = max_it->first + 1;
 		    			}
 
-		    			std::filesystem::path path_obj(new_texture_path);
+		    			std::filesystem::path path_obj(default_texture_path);
 		    			std::string texture_name = path_obj.stem().string();
 					
-		    			std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(new_texture_path, TextureType::DIFFUSE, false);
+		    			std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(default_texture_path, TextureType::DIFFUSE, false);
 		    			new_texture->param_id = next_id;
 		    			new_texture->name = texture_name;
 		    			new_texture->Load();
 		    			scene.GetTextures().insert_or_assign(next_id, new_texture);
-		    			param_database.texture_params[next_id] = TextureParamData(texture_name, TextureType::DIFFUSE, false, new_texture_path);
+		    			param_database.texture_params[next_id] = TextureParamData(texture_name, TextureType::DIFFUSE, false, default_texture_path);
 		    		}
 		    		else
 		    			Log::Info("File operation cancelled");
@@ -1396,7 +1401,7 @@ namespace Bonfire
 			ImGui::PopStyleColor(4);
 		}
 		
-    	ImGui::PopFont();
+    	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }

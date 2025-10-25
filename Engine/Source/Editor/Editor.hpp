@@ -22,7 +22,7 @@ namespace Bonfire
     class Editor : Layer
     {
     public:
-        Editor();
+        Editor(const std::string& config_path);
         ~Editor();
         
         void OnAttach() override;
@@ -40,6 +40,9 @@ namespace Bonfire
 
         bool EditorViewportVisible() const { return editor_viewport_visible; }
         bool ProjectViewportVisible() const { return project_viewport_visible; }
+
+        bool LoadEditorConfig();
+        bool SaveEditorConfig();
 
     private:
         void SetInterfaceStyle();
@@ -65,6 +68,7 @@ namespace Bonfire
 
     private:
 		std::string project_path;
+        std::string config_path;
         
         std::shared_ptr<Entity> selected_entity;
         std::shared_ptr<Entity> entity_to_create;
@@ -97,15 +101,15 @@ namespace Bonfire
         std::unique_ptr<Texture> rotate_icon;
         std::unique_ptr<Texture> resize_icon;
         
-        std::string new_model_path;
-        std::string new_texture_path;
-        std::string new_shader_vert_path;
-        std::string new_shader_frag_path;
-        std::string new_shader_geom_path;
+        std::string default_model_path;
+        std::string default_texture_path;
+        std::string default_shader_vert_path;
+        std::string default_shader_frag_path;
+        std::string default_shader_geom_path;
         
         // CUSTOMIZATION
-        ImFont* font_title;
-        ImFont* font_body;
+        //ImFont* font_title;
+        //ImFont* font_body;
         ImVec4 text_primary;
         ImVec4 background_primary;
         ImVec4 background_secondary;

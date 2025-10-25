@@ -14,7 +14,7 @@ namespace Bonfire
 	{
 		project_name = "Bonfire: " +  projectName;
 		static_project_instance = this;
-		static_editor = new Editor();
+		static_editor = new Editor("Data/Editor/editorconfig.bonfire");
 		static_renderer = new Renderer();
 		static_physics_system = new PhysicsSystem();
 

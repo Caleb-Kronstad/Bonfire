@@ -33,7 +33,7 @@ namespace Bonfire
 		project_viewport_framebuffer = std::make_unique<Framebuffer>(project_viewport_size.x, project_viewport_size.y);
 		
 		// SCENE AND EDITOR LOADING
-		scene = std::make_unique<Scene>("Data/Scenes/testscene.bonfirescene");
+		scene = std::make_unique<Scene>("Data/Scenes/testscene.bonfire");
 		Load();
 
 		// what is this even for?

@@ -130,6 +130,18 @@ namespace Bonfire
             return false;
         }
 
+        if (!json.contains("DATA-TYPE"))
+        {
+            Log::Error("Unknown data type when trying to load .bonfire scene file at " + path);
+            return false;
+        }
+        std::string data_type = json["DATA-TYPE"]["type"].get<std::string>();
+        if (data_type != "SCENE")
+        {
+            Log::Error("Found incorrect data type associated with .bonfire scene file at " + path + " ... " + data_type + " data type found");
+            return false;
+        }
+
         // Load camera
         if (!json.contains("cameras"))
         {
@@ -509,6 +521,7 @@ namespace Bonfire
             entities_array.push_back(entity_json);
         }
 
+        json["DATA-TYPE"]["type"] = "SCENE";
         json["cameras"] = camera_array;
         json["directional_light"] = directional_light_json;
         json["components"] = components_json;

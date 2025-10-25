@@ -1,4 +1,5 @@
 {
+    "DATA-TYPE": { "type": "SCENE"} ,
     "cameras": [
         {
             "id": 1100001,
