@@ -7,7 +7,7 @@
 namespace Bonfire
 {
 
-	void Entity::Draw(std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix)
+	void Entity::Draw(Camera& camera, std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix)
 	{
 		if (!enabled) return;
 		if (!HasComponent<ModelComponent>()) return;
@@ -29,7 +29,7 @@ namespace Bonfire
 		{
 			if (!shader->updated_this_frame && !scene.GetShadowMap()->updated_this_frame)
 			{
-				shader->SetVec3("view_pos", scene.GetEngineCamera()->position);
+				shader->SetVec3("view_pos", camera.position);
 				shader->SetFloat("far_plane", scene.GetShadowMap()->far_plane);
 				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
 				shader->SetBool("reverse_normals", false);

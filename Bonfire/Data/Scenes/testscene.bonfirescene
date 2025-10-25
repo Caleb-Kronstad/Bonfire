@@ -1,0 +1,265 @@
+{
+    "cameras": [
+        {
+            "id": 1100001,
+            "pitch": -29.79997444152832,
+            "position": [
+                -1.4436171054840088,
+                9.723710060119629,
+                6.036389350891113
+            ],
+            "up": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "yaw": -1207.7020263671875
+        }
+    ],
+    "components": {
+        "light_sources": {
+            "100001": {
+                "color": [
+                    255.0,
+                    255.0,
+                    255.0
+                ],
+                "enabled": true,
+                "intensity": 1.0,
+                "light-enabled": true,
+                "light-id": 1000,
+                "light-type": "point",
+                "position": [
+                    0.0,
+                    2.7406373023986816,
+                    -0.060891032218933105
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        "models": {
+            "100001": {
+                "enabled": true,
+                "material-id": 1000,
+                "model-id": 1000,
+                "shader-id": 1001
+            },
+            "100002": {
+                "enabled": true,
+                "material-id": 1000,
+                "model-id": 1001,
+                "shader-id": 1001
+            },
+            "100003": {
+                "enabled": true,
+                "material-id": 1001,
+                "model-id": 1000,
+                "shader-id": 1001
+            },
+            "100004": {
+                "enabled": true,
+                "material-id": 1002,
+                "model-id": 1002,
+                "shader-id": 1001
+            }
+        },
+        "physics": {
+            "100001": {
+                "body-type": 1,
+                "dimensions": [
+                    1.0,
+                    0.0,
+                    0.0
+                ],
+                "enabled": true,
+                "physics-enabled": true,
+                "physics-id": 1000,
+                "physics-name": "Physics Object",
+                "shape-type": 1
+            },
+            "100002": {
+                "body-type": 0,
+                "dimensions": [
+                    50.0,
+                    0.2499999701976776,
+                    50.0
+                ],
+                "enabled": true,
+                "physics-enabled": true,
+                "physics-id": 1001,
+                "physics-name": "Physics Object",
+                "shape-type": 0
+            },
+            "100003": {
+                "body-type": 0,
+                "dimensions": [
+                    1.0,
+                    1.4574801921844482,
+                    3.267794132232666
+                ],
+                "enabled": true,
+                "physics-enabled": true,
+                "physics-id": 100003,
+                "physics-name": "Physics Object",
+                "shape-type": 0
+            },
+            "100004": {
+                "body-type": 1,
+                "dimensions": [
+                    0.9999887347221375,
+                    1.0,
+                    0.0
+                ],
+                "enabled": true,
+                "physics-enabled": true,
+                "physics-id": 100004,
+                "physics-name": "Physics Object",
+                "shape-type": 2
+            }
+        }
+    },
+    "directional_light": {
+        "color": [
+            255.0,
+            255.0,
+            255.0
+        ],
+        "direction": [
+            34.69900131225586,
+            299.2770080566406,
+            360.0
+        ],
+        "id": 1000001,
+        "name": "Directional Light"
+    },
+    "entities": [
+        {
+            "components": {
+                "model_component": 100001,
+                "physics_component": 100002
+            },
+            "enabled": true,
+            "id": 1000001,
+            "name": "Floor",
+            "parent": 0,
+            "position": [
+                0.0,
+                -1.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                50.0,
+                0.2499999701976776,
+                50.0
+            ]
+        },
+        {
+            "components": {
+                "model_component": 100002,
+                "physics_component": 100001
+            },
+            "enabled": true,
+            "id": 1000002,
+            "name": "Sphere Object",
+            "parent": 0,
+            "position": [
+                -3.936561107635498,
+                5.89385461807251,
+                -6.533829212188721
+            ],
+            "rotation": [
+                0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                1.25,
+                1.25,
+                1.25
+            ]
+        },
+        {
+            "components": {
+                "light_source_component": 100001
+            },
+            "enabled": true,
+            "id": 1000003,
+            "name": "Light",
+            "parent": 0,
+            "position": [
+                0.0,
+                2.7406373023986816,
+                -0.060891032218933105
+            ],
+            "rotation": [
+                0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "components": {
+                "model_component": 100003,
+                "physics_component": 100003
+            },
+            "enabled": true,
+            "id": 1000004,
+            "name": "Entity",
+            "parent": 0,
+            "position": [
+                -3.7690677642822266,
+                0.3559088110923767,
+                -6.257181167602539
+            ],
+            "rotation": [
+                46.955902099609375,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.4574801921844482,
+                3.267794132232666
+            ]
+        },
+        {
+            "components": {
+                "model_component": 100004,
+                "physics_component": 100004
+            },
+            "enabled": true,
+            "id": 1000005,
+            "name": "Entity",
+            "parent": 0,
+            "position": [
+                -14.529061317443848,
+                1.0771763324737549,
+                -0.006761208642274141
+            ],
+            "rotation": [
+                -90.09479522705078,
+                89.63256072998047,
+                -90.09053039550781
+            ],
+            "scale": [
+                0.9999957084655762,
+                1.0,
+                0.9999356269836426
+            ]
+        }
+    ]
+}

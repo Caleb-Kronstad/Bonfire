@@ -4,6 +4,7 @@
 #include "Components.hpp"
 #include "ParamDatabase.hpp"
 #include "Physics/PhysicsSystem.hpp"
+#include "Camera.hpp"
 
 namespace Bonfire {
 
@@ -28,7 +29,7 @@ namespace Bonfire {
         {
         }
 
-        void Draw(std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix);
+        void Draw(Camera& camera, std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix);
         void UpdateComponents(PhysicsSystem& physics_system);
         
         bool AddComponent(ComponentType type, std::shared_ptr<Component> component);

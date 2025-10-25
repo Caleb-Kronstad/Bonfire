@@ -12,7 +12,8 @@ project "Engine"
         "Source/**.c",
         "%{IncludeDir.STB_IMAGE}/**.h",
         "%{IncludeDir.STB_IMAGE}/**.cpp",
-        "%{IncludeDir.JSON}/**.hpp"
+        "%{IncludeDir.JSON}/**.hpp",
+        "%{IncludeDir.ASIO}/**.hpp}"
     }
 
     includedirs {
@@ -25,6 +26,8 @@ project "Engine"
         "%{IncludeDir.IMGUIZMO}",
         "%{IncludeDir.JSON}",
         "%{IncludeDir.JOLT}",
+        "%{IncludeDir.ASIO}",
+        "%{IncludeDir.LUA}",
         "Source"
     }
 
@@ -37,8 +40,8 @@ project "Engine"
         "IMGUIZMO"
     }
     
-    targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/Project/%{prj.name}")
-    objdir ("%{wks.location}/../Build/Binaries-Intermediate/" .. OutputDir .. "/Project/%{prj.name}")
+    targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")
+    objdir ("%{wks.location}/../Build/Binaries-Intermediate/" .. OutputDir .. "/%{prj.name}")
 
     filter "system:windows"
         systemversion "latest"
@@ -57,9 +60,6 @@ project "Engine"
             "opengl32",
             "comdlg32"
         }
-        --postbuildcommands {
-        --    ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. OutputDir .. "/Project")
-        --}
 
     filter "system:linux"
         pchheader "Source/bonfire_pch.hpp"

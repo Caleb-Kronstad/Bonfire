@@ -15,7 +15,7 @@ namespace Bonfire
 
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
-		virtual void OnUpdate() {}
+		virtual void OnUpdate(const float& delta_time) {}
 		virtual void OnInterfaceUpdate() {}
 		virtual void OnInput(Input& input) {}
 

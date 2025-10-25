@@ -137,10 +137,8 @@ namespace Bonfire
         Log::Info("Jolt Physics shut down successfully");
     }
 
-    void PhysicsSystem::OnUpdate()
+    void PhysicsSystem::OnUpdate(const float& delta_time)
     {
-        if (paused) return;
-        float delta_time = Project::GetInstance().GetDeltaTime();
         const int collision_steps = 1;
         jolt_physics_system->Update(delta_time, collision_steps, temp_allocator.get(), job_system.get());
     }

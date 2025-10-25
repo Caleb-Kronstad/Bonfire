@@ -1,0 +1,14 @@
+{
+    "1000": {
+        "name": "Cube",
+        "path": "Data/Editor/Defaults/Models/Cube.obj"
+    },
+    "1001": {
+        "name": "Sphere",
+        "path": "Data/Editor/Defaults/Models/Sphere.obj"
+    },
+    "1002": {
+        "name": "bald_dude",
+        "path": "Data/Resources/Models/bald_dude.obj"
+    }
+}

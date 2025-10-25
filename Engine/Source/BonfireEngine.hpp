@@ -13,10 +13,6 @@
 #include "Core/Layer.hpp"
 #include "Core/Project.hpp"
 
-// Interface
-#include "Interface/ConsoleCapture.hpp"
-#include "Interface/Interface.hpp"
-
 // Physics
 #include "Physics/PhysicsBody.hpp"
 #include "Physics/PhysicsSystem.hpp"
@@ -34,3 +30,7 @@
 #include "Renderer/Entity.hpp"
 #include "Renderer/Scene.hpp"
 #include "Renderer/Renderer.hpp"
+
+// Editor
+#include "Editor/ConsoleCapture.hpp"
+#include "Editor/Editor.hpp"

@@ -92,7 +92,7 @@ namespace Bonfire
         
         void OnAttach() override;
         void OnDetach() override;
-        void OnUpdate() override;
+        void OnUpdate(const float& delta_time) override;
 
         std::shared_ptr<PhysicsBody> CreateBoxBody(
             const glm::vec3& position,
@@ -132,21 +132,18 @@ namespace Bonfire
         const JPH::BodyInterface& GetBodyInterface() const { return jolt_physics_system->GetBodyInterface(); }
         const JPH::BodyLockInterface& GetBodyLockInterface() const { return jolt_physics_system->GetBodyLockInterface(); }
 
-    public:
-        bool paused = true;
- 
-        private:
-            std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;
-            std::unique_ptr<JPH::JobSystemThreadPool> job_system;
-            std::unique_ptr<BPLayerInterfaceImpl> broad_phase_layer_interface;
-            std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> object_vs_broad_phase_layer_filter;
-            std::unique_ptr<ObjectLayerPairFilterImpl> object_layer_pair_filter;
-            std::unique_ptr<JPH::PhysicsSystem> jolt_physics_system;
-            std::unique_ptr<ContactListener> contact_listener;
+    private:
+        std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;
+        std::unique_ptr<JPH::JobSystemThreadPool> job_system;
+        std::unique_ptr<BPLayerInterfaceImpl> broad_phase_layer_interface;
+        std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> object_vs_broad_phase_layer_filter;
+        std::unique_ptr<ObjectLayerPairFilterImpl> object_layer_pair_filter;
+        std::unique_ptr<JPH::PhysicsSystem> jolt_physics_system;
+        std::unique_ptr<ContactListener> contact_listener;
 
-            const unsigned int max_bodies = 10240;
-            const unsigned int num_body_mutexes = 0;
-            const unsigned int max_body_pairs = 10240;
-            const unsigned int max_contact_constraints = 10240;
+        const unsigned int max_bodies = 10240;
+        const unsigned int num_body_mutexes = 0;
+        const unsigned int max_body_pairs = 10240;
+        const unsigned int max_contact_constraints = 10240;
     };
 }

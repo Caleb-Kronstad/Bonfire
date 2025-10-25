@@ -14,14 +14,6 @@ namespace Bonfire
         COUNT
     };
 
-    enum class MovementDirection : std::uint8_t
-    {
-        FORWARD,
-        BACKWARD,
-        LEFT,
-        RIGHT
-    };
-
     enum class TextureType : std::uint8_t
     {
         DIFFUSE,

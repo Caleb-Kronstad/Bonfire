@@ -16,10 +16,10 @@ compile_commands.json
 
 Makefile
 Engine/Makefile
-Project/Makefile
+Bonfire/Makefile
 
 **/Makefile
 
-Project/Data/Resources/Models/
-!Project/Data/Resources/Models/Cube.obj
-!Project/Data/Resources/Models/Sphere.obj
+Bonfire/Data/Resources/Models/
+!Bonfire/Data/Resources/Models/Cube.obj
+!Bonfire/Data/Resources/Models/Sphere.obj

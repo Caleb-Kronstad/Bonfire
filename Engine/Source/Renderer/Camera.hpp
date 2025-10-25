@@ -6,44 +6,44 @@ namespace Bonfire
     class Camera
     {
     public:
-        Camera(unsigned int id = 0, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f);
+        Camera(uint32_t id = 0, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f);
 
         glm::mat4 GetViewMatrix() const { return glm::lookAt(position, position + front, up); }
         glm::mat4 GetProjectionMatrix(const float& width, const float& height) const { return glm::perspective(glm::radians(fov), width / height, 0.1f, 250.0f); }
 
         void LookAt(const glm::vec3& target);
         
-        void ProcessKeyboard(MovementDirection direction, float delta_time);
-        void ProcessMouseMovement(float x_offset, float y_offset, GLboolean constrain_pitch = true);
-        void ProcessMouseScroll(float y_offset);
+        void UpdateCameraVectors();
+
+        uint32_t GetID() const { return id; }
+        glm::vec3& GetFrontVector() { return front; }
+        glm::vec3& GetUpVector() { return up; }
+        glm::vec3& GetRightVector() { return right; }
+        glm::vec3& GetWorldUpVector() { return world_up; }
+
+        bool& IsFirstMouse() { return first_mouse; }
+        float& GetLastX() { return last_x; }
+        float& GetLastY() { return last_y; }
+        bool& IsOrthographic() { return is_orthographic; }
+
+    public:
+        glm::vec3 position;
+        float yaw;
+        float pitch;
+        float fov;
         
     private:
-        void UpdateCameraVectors();
-        
-    public:
-        unsigned int id;
+        uint32_t id;
         bool is_orthographic = false;
-        bool mouse_locked = false;
-        bool movement_disabled = false;
-        bool mouse_disabled = true;
 
-        // ALL SUBJECT TO CHANGE IN FUTURE UPDATES, MAINLY FOR TESTING THE ENGINE
-        bool first_mouse = false;
+        bool first_mouse = true;
         float last_x = 0.0f;
         float last_y = 0.0f;
-        // --
         
-        glm::vec3 position;
         glm::vec3 front;
         glm::vec3 up;
         glm::vec3 right;
         glm::vec3 world_up;
-
-        float yaw;
-        float pitch;
-        float movement_speed;
-        float mouse_sensitivity;
-        float fov;
     };
 
 }

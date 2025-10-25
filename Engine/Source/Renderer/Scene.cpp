@@ -56,7 +56,6 @@ namespace Bonfire
         }
         shader.SetInt("num_spot_lights", i);
     }
-
     
     bool Scene::LoadScene(ParamDatabase& param_database)
     {
@@ -71,7 +70,7 @@ namespace Bonfire
         light_source_components.clear();
         physics_components.clear();
         directional_light = nullptr;
-        engine_camera = nullptr;
+        current_camera = nullptr;
         skybox = nullptr;
         shadow_map = nullptr;
 
@@ -149,7 +148,7 @@ namespace Bonfire
             glm::vec3 position(position_array[0], position_array[1], position_array[2]);
             glm::vec3 up(up_array[0], up_array[1], up_array[2]);
 
-            engine_camera = std::make_unique<Camera>(id, position, up, yaw, pitch);
+            current_camera = std::make_unique<Camera>(id, position, up, yaw, pitch);
         }
 
         // Load directional light
@@ -368,7 +367,7 @@ namespace Bonfire
             }
         }
         
-        skybox = std::make_unique<Skybox>("S3");
+        skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S3");
         std::shared_ptr<Shader> point_shadow_map_shader;
         std::shared_ptr<Shader> lit_shader;
         std::shared_ptr<Shader> shadow_map_shader;
@@ -383,7 +382,7 @@ namespace Bonfire
             else if (shader->name == "Shadow Map")
                 shadow_map_shader = shader;
         }
-        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, lit_shader, "Data/Resources/Textures/checkered.png");
+        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, lit_shader, "Data/Editor/Defaults/Textures/default.png");
 
         Log::Info("Loaded scene from " + path);
         return true;
@@ -396,11 +395,11 @@ namespace Bonfire
         nlohmann::json entities_array = nlohmann::json::array();
 
         nlohmann::json camera_json;
-        camera_json["id"] = engine_camera->id;
-        camera_json["yaw"] = engine_camera->yaw;
-        camera_json["pitch"] = engine_camera->pitch;
-        camera_json["position"] = {engine_camera->position.x, engine_camera->position.y, engine_camera->position.z};
-        camera_json["up"] = {engine_camera->world_up.x, engine_camera->world_up.y, engine_camera->world_up.z};
+        camera_json["id"] = current_camera->GetID();
+        camera_json["yaw"] = current_camera->yaw;
+        camera_json["pitch"] = current_camera->pitch;
+        camera_json["position"] = {current_camera->position.x, current_camera->position.y, current_camera->position.z};
+        camera_json["up"] = {current_camera->GetWorldUpVector().x, current_camera->GetWorldUpVector().y, current_camera->GetWorldUpVector().z};
         camera_array.push_back(camera_json);
 
         nlohmann::json directional_light_json;

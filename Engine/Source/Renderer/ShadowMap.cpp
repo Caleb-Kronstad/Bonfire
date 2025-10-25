@@ -160,7 +160,7 @@ namespace Bonfire
 		}
 		else
 		{
-			std::cout << "Texture failed to load at path: " << path << " ... (Debug in shadows.cpp file) ..." << std::endl;
+			Log::Error("Texture failed to load at path: " + std::string(path) + " [ShadowMap.cpp]");
 			stbi_image_free(data);
 		}
 

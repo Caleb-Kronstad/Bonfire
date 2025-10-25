@@ -54,7 +54,7 @@ namespace Bonfire
     {
     public:
         Skybox(const std::string& faces_path = "S1", const std::array<float, 120>& vertices = SKYBOX_VERTICES)
-            : skybox_shader(skybox_shader), faces_path(faces_path), vertices(vertices)
+            : faces_path(faces_path), vertices(vertices)
         {
             vertex_buffer = 0;
             vertex_array = 0;

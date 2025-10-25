@@ -6,16 +6,16 @@
 namespace Bonfire
 {
 	Project* Project::static_project_instance = nullptr;
+	Editor* Project::static_editor = nullptr;
 	Renderer* Project::static_renderer = nullptr;
-	Interface* Project::static_interface = nullptr;
 	PhysicsSystem* Project::static_physics_system = nullptr;
 
 	Project::Project(std::string projectName)
 	{
 		project_name = "Bonfire: " +  projectName;
 		static_project_instance = this;
+		static_editor = new Editor();
 		static_renderer = new Renderer();
-		static_interface = new Interface();
 		static_physics_system = new PhysicsSystem();
 
 		window = Window(WindowProperties(1280, 720, 0, 0, project_name));
@@ -58,55 +58,54 @@ namespace Bonfire
 		glfwSetScrollCallback(window.GetNativeWindow(), ScrollCallbackDispatch);
 		glfwSetFramebufferSizeCallback(window.GetNativeWindow(), FramebufferSizeCallbackDispatch);
 
-		static_interface->OnAttach();
+		static_editor->OnAttach();
 		static_physics_system->OnAttach();
 		static_renderer->OnAttach();
 		for (const auto& layer : layers)
 			layer->OnAttach();
 
-		while (engine_running)
+		while (running)
 		{
 			TickDeltaTime();
 
 			// Update Project
+			if (editor_running)
+				static_editor->OnUpdate(delta_time);
 			if (project_running)
-				static_physics_system->OnUpdate();
-			static_renderer->OnUpdate();
+				static_physics_system->OnUpdate(delta_time);
+			static_renderer->OnUpdate(delta_time);
 			if (project_running)
 			{
 				for (const auto& layer : layers)
-					layer->OnUpdate();
+					layer->OnUpdate(delta_time);
 			}
 
 			// Update Interface
-			static_interface->Begin();
-			static_interface->OnUpdate();
-			static_renderer->OnInterfaceUpdate();
+			if (editor_running)
+				static_editor->OnInterfaceUpdate();
 			if (project_running)
 			{
 				for (const auto& layer : layers)
 					layer->OnInterfaceUpdate();
 			}
-			static_interface->End();
+			if (editor_running)
+				static_editor->OnInterfaceEndUpdate();
 
 			glfwSwapBuffers(window.GetNativeWindow());
 			glfwPollEvents();
 			
 			if (glfwWindowShouldClose(window.GetNativeWindow()))
-			{
-				engine_running = false;
-				project_running = false;
-			}
+				running = false;
 		}
 
 		for (const auto& layer : layers)
 			layer->OnDetach();
 		static_renderer->OnDetach();
 		static_physics_system->OnDetach();
-		static_interface->OnDetach();
+		static_editor->OnDetach();
 		glfwDestroyWindow(window.GetNativeWindow());
 		glfwTerminate();
-		delete static_interface;
+		delete static_editor;
 		delete static_physics_system;
 		delete static_renderer;
 		delete static_project_instance;
@@ -118,8 +117,7 @@ namespace Bonfire
 		{
 			KeyPressedInput input(keycode);
 
-			static_renderer->OnInput(input);
-			static_interface->OnInput(input);
+			static_editor->OnInput(input);
 			for (const auto& layer : layers)
 				layer->OnInput(input);
 		}
@@ -127,8 +125,7 @@ namespace Bonfire
 		{
 			KeyReleasedInput input(keycode);
 
-			static_renderer->OnInput(input);
-			static_interface->OnInput(input);
+			static_editor->OnInput(input);
 			for (const auto& layer : layers)
 				layer->OnInput(input);
 		}
@@ -140,8 +137,7 @@ namespace Bonfire
 		{
 			MouseButtonPressedInput input(button);
 
-			static_renderer->OnInput(input);
-			static_interface->OnInput(input);
+			static_editor->OnInput(input);
 			for (const auto& layer : layers)
 				layer->OnInput(input);
 		}
@@ -149,8 +145,7 @@ namespace Bonfire
 		{
 			MouseButtonReleasedInput input(button);
 
-			static_renderer->OnInput(input);
-			static_interface->OnInput(input);
+			static_editor->OnInput(input);
 			for (const auto& layer : layers)
 				layer->OnInput(input);
 		}
@@ -160,8 +155,7 @@ namespace Bonfire
 	{
 		MouseMovedInput input(xposin, yposin);
 
-		static_renderer->OnInput(input);
-		static_interface->OnInput(input);
+		static_editor->OnInput(input);
 		for (const auto& layer : layers)
 			layer->OnInput(input);
 	}
@@ -170,8 +164,7 @@ namespace Bonfire
 	{
 		MouseScrolledInput input(xoffset, yoffset);
 
-		static_renderer->OnInput(input);
-		static_interface->OnInput(input);
+		static_editor->OnInput(input);
 		for (const auto& layer : layers)
 			layer->OnInput(input);
 	}
@@ -219,13 +212,6 @@ namespace Bonfire
 		}
 
 		glfwMakeContextCurrent(window.GetNativeWindow());
-
-		GLFWimage images[1];
-		stbi_set_flip_vertically_on_load(false);
-		int* channels = new int(4);
-		images[0].pixels = stbi_load("Data/Resources/Textures/bonfire-logo.png", &images[0].width, &images[0].height, channels, 0);
-		glfwSetWindowIcon(window.GetNativeWindow(), 1, images);
-		stbi_image_free(images[0].pixels);
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 			Log::Error("Error Initializing GLAD");

@@ -1,7 +1,7 @@
 workspace "Bonfire"
    architecture "x64"
    configurations { "Debug", "Release", "Dist" }
-   startproject "Project"
+   startproject "Bonfire"
    location "Build"
 
    -- Workspace-wide build options for MSVC
@@ -25,6 +25,8 @@ IncludeDir["GLM"] = os.realpath("Engine/Dependencies/glm/glm")
 IncludeDir["IMGUIZMO"] = os.realpath("Engine/Dependencies/imguizmo")
 IncludeDir["JSON"] = os.realpath("Engine/Dependencies/json")
 IncludeDir["JOLT"] = os.realpath("Engine/Dependencies/jolt")
+IncludeDir["ASIO"] = os.realpath("Engine/Dependencies/asio/include")
+IncludeDir["LUA"] = os.realpath("Engine/Dependencies/lua/src")
 
 group "Dependencies"
    include "Engine/Dependencies/glad/Build-GLAD.lua"
@@ -34,12 +36,10 @@ group "Dependencies"
    include "Engine/Dependencies/glm/Build-GLM.lua"
    include "Engine/Dependencies/imguizmo/Build-IMGUIZMO.lua"
    include "Engine/Dependencies/jolt/Build-JOLT.lua"
+   include "Engine/Dependencies/lua/Build-LUA.lua"
 group ""
 
 group "Engine"
    include "Engine/Build-Engine.lua"
-group ""
-
-group "Projects"
-   include "Project/Build-Project.lua"
+   include "Bonfire/Build-Bonfire.lua"
 group ""
