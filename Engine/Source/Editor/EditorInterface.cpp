@@ -186,9 +186,14 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-		
 		editor_viewport_visible = ImGui::Begin("Viewport");
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
+		
+		if (!editor_viewport_visible)
+		{
+			ImGui::End();
+			return;
+		}
     	
     	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
     	{
@@ -208,8 +213,6 @@ namespace Bonfire
 				renderer.GetEditorViewportFramebuffer().Resize(renderer.GetEditorViewportSize().x, renderer.GetEditorViewportSize().y);
 			}
 		}
-
-		
 
 		ImGui::Image((void*)(intptr_t)renderer.GetEditorViewportFramebuffer().GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
     	ImVec2 viewport_min = ImGui::GetItemRectMin();
@@ -341,9 +344,7 @@ namespace Bonfire
     	ImGui::Begin("Debug Info", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
-    	ImGui::Spacing(); 
-    	
-    	
+    	ImGui::Spacing();
     	
     	std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
     	std::string frame_time = "Frame Time: " + std::to_string(project.GetDeltaTime() * 1000.0f);
@@ -352,13 +353,15 @@ namespace Bonfire
     	ImGui::Text(frame_time.c_str());
     	ImGui::Text(frame_rate.c_str());
 
+		ImGui::Checkbox("Draw Colliders", &renderer.GetDrawColliders());
+		ImGui::SliderFloat("Collider Line Width", &renderer.GetDrawCollidersLineWidth(), 0.1f, 10.0f, "%.1f");
+
     	const char* debug_type_names[] = { "DEFAULT", "WIREFRAME", "POINT" };
     	int current_debug_type = static_cast<int>(renderer.GetDebugType());
     	if (ImGui::Combo("Debug Mode", &current_debug_type, debug_type_names, IM_ARRAYSIZE(debug_type_names)))
     	{
     		renderer.GetDebugType() = static_cast<DebugType>(current_debug_type);
     	}
-    	
     	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
@@ -396,8 +399,9 @@ namespace Bonfire
     		if (!project.GetProjectRunState())
     		{
     			Log::Info("Running...");
-    			scene.SaveScene(param_database);
+    			serialized_scene_data = scene.SerializeToString(param_database);
     			project.SetProjectRunState(true);
+    			selected_entity = nullptr;
     			ImGui::SetWindowFocus("Project Name Here");
     		}
     		// stop playing
@@ -405,7 +409,8 @@ namespace Bonfire
     		{
     			Log::Info("Stopping...");
     			project.SetProjectRunState(false);
-    			scene.LoadScene(param_database);
+    			scene.DeserializeFromString(serialized_scene_data, param_database);
+    			selected_entity = nullptr;
     			ImGui::SetWindowFocus("Viewport");
     		}
     	}
@@ -638,6 +643,7 @@ namespace Bonfire
     		if (selected_entity->HasComponent<ModelComponent>())
     		{
     			ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+    			ImGui::PushID(&model_component);
     			
     			ImGui::Separator();
     			ImGui::Checkbox("##Enabled", &model_component.enabled);
@@ -658,6 +664,8 @@ namespace Bonfire
     			if (ImGui::Button(model_component.material->name.c_str(), ImVec2(100, 22)))
     				ImGui::OpenPopup("ChangeMaterialModelComponent");
     			ImGui::SameLine(); ImGui::Text("Material");
+
+    			ImGui::PopID();
 
     			if (ImGui::BeginPopup("ChangeModelModelComponent"))
     			{
@@ -862,6 +870,9 @@ namespace Bonfire
 
     				physics_component.physics_body = new_physics_body;
     			}
+
+    			ImGui::DragFloat3("Collider Dimensions", (float*)&physics_component.physics_body->GetShapeData().dimensions, drag_step, 0.1f, 100.0f);
+				physics_component.physics_body->SetScale(physics_component.physics_body->GetShapeData().dimensions);
 
     			selected_entity->UpdateComponents(physics_system);
     		}

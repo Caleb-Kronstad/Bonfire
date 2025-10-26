@@ -19,6 +19,8 @@
 
 namespace Bonfire
 {
+    inline bool CTRL_DOWN = false;
+    
     class Editor : Layer
     {
     public:
@@ -69,6 +71,7 @@ namespace Bonfire
     private:
 		std::string project_path;
         std::string config_path;
+        std::string serialized_scene_data;
         
         std::shared_ptr<Entity> selected_entity;
         std::shared_ptr<Entity> entity_to_create;

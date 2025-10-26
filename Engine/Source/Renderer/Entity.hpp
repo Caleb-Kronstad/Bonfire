@@ -37,7 +37,7 @@ namespace Bonfire {
         template<typename T> T& GetComponent() { return *std::static_pointer_cast<T>(components.at(GetComponentType<T>())); }
         template<typename T> bool HasComponent() const { return components.contains(GetComponentType<T>()); }
         
-        glm::quat GetTransformOrientation();
+        glm::quat GetTransformOrientation() const ;
         glm::mat4 GetTransformMatrix();
         glm::mat4 GetWorldTransformMatrix(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities);
 
@@ -46,6 +46,10 @@ namespace Bonfire {
         bool IsRoot() const { return parent == 0; }
 
         AABB GetWorldAABB(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities);
+
+        glm::vec3 GetForwardVector() const;
+        glm::vec3 GetRightVector() const;
+        glm::vec3 GetUpVector() const;
 
     public:
         uint32_t id;

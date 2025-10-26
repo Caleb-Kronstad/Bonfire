@@ -2,6 +2,7 @@
 
 // Utility
 #include "Core/Utility.hpp"
+#include "Editor/Debug.hpp"
 
 // Input
 #include "Input/Input.hpp"

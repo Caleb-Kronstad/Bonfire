@@ -15,6 +15,9 @@ namespace Bonfire
         
         void UpdateCameraVectors();
 
+        void SetID(const uint32_t& id) { this->id = id; }
+        void SetWorldUpVector(const glm::vec3& world_up) { this->world_up = world_up; }
+
         uint32_t GetID() const { return id; }
         glm::vec3& GetFrontVector() { return front; }
         glm::vec3& GetUpVector() { return up; }

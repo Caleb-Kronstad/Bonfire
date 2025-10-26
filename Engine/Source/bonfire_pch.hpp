@@ -25,6 +25,10 @@
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <condition_variable>
+#include <queue>
+#include <future>
+#include <atomic>
 
 #include <string>
 #include <string_view>

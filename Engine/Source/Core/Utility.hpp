@@ -12,6 +12,7 @@ namespace Bonfire
 	ImVec4 RgbaToImVec4(unsigned int r, unsigned int g, unsigned int b, unsigned int a = 255);
 	glm::vec4 HexToGlmVec4(unsigned int hex_value, float alpha = 1.0f);
 	glm::vec4 RgbaToGlmVec4(unsigned int r, unsigned int g, unsigned int b, unsigned int a = 255);
+	glm::vec3 RgbToGlmVec3(unsigned int r, unsigned int g, unsigned int b);
 	std::vector<std::filesystem::path> GetFilesInDirectory(const std::string& path);
 	bool FloatEquals(float a, float b, float epsilon = 1e-9);
 	bool DoubleEquals(double a, double b, double epsilon = 1e-9);

@@ -15,6 +15,10 @@ namespace Bonfire
 
         bool LoadScene(ParamDatabase& param_database);
         bool SaveScene(ParamDatabase& param_database);
+
+        std::string SerializeToString(ParamDatabase& param_database);
+        bool DeserializeFromString(const std::string& json_str, ParamDatabase& param_database);
+        
         void UpdateLightSources(Shader& shader, float shininess = 64.0f);
 
         std::unordered_map<uint32_t, std::shared_ptr<Entity>>& GetEntities() { return entities; }

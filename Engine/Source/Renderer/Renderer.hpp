@@ -16,7 +16,6 @@
 
 namespace Bonfire
 {
-	inline bool CTRL_DOWN = false;
 	
 	class Renderer : public Layer
 	{
@@ -33,20 +32,24 @@ namespace Bonfire
 
 		void RenderEditorViewport();
 		void RenderProjectViewport();
+		void DrawColliders(const glm::mat4& projection, const glm::mat4& view);
 
 		Scene& GetScene() const { return *scene; }
 		ParamDatabase& GetParamDatabase() const { return *param_database; }
-
-		DebugType& GetDebugType() { return debug_type; }
 		glm::vec2& GetEditorViewportSize() { return editor_viewport_size; }
 		glm::vec2& GetProjectViewportSize() { return project_viewport_size; }
 		Framebuffer& GetEditorViewportFramebuffer() const { return *editor_viewport_framebuffer; }
 		Framebuffer& GetProjectViewportFramebuffer() const { return *project_viewport_framebuffer; }
+		DebugType& GetDebugType() { return debug_type; }
+		bool& GetDrawColliders() { return draw_colliders; }
+		float& GetDrawCollidersLineWidth() { return draw_colliders_line_width; }
 
 	private:
         glm::mat4 manipulation_matrix;
-        DebugType debug_type = DebugType::DEFAULT;
         glm::vec4 background_color;
+        DebugType debug_type = DebugType::DEFAULT;
+		bool draw_colliders = false;
+		float draw_colliders_line_width = 1.0f;
 		
 		// scene
 		std::unique_ptr<Scene> scene;

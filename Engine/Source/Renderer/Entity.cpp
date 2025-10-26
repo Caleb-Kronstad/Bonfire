@@ -14,7 +14,7 @@ namespace Bonfire
 		
 		ModelComponent& model_component = GetComponent<ModelComponent>();
 
-		if (!model_component.enabled || !model_component.model || !model_component.material) return;
+		if (!model_component.enabled || !model_component.model || !model_component.shader || !model_component.material) return;
 
 		manipulation_matrix = GetWorldTransformMatrix(scene.GetEntities());
 
@@ -48,6 +48,7 @@ namespace Bonfire
 		}
 		if (shader->name == "Shadow Map")
 		{
+			if (model_component.model->casts_shadow)
 				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
 		}
 		
@@ -78,7 +79,6 @@ namespace Bonfire
                 
 			physics_body->SetPosition(position);
 			physics_body->SetRotation(glm::quat(glm::radians(rotation)));
-			physics_body->SetScale(scale);
 		}
 	}
 
@@ -140,7 +140,7 @@ namespace Bonfire
 		return false;
 	}
 	
-	glm::quat Entity::GetTransformOrientation()
+	glm::quat Entity::GetTransformOrientation() const
 	{
 		return glm::quat(rotation / 180.0f * glm::pi<float>());
 	}
@@ -159,5 +159,18 @@ namespace Bonfire
 
 		glm::mat4 parent_world_transform = entities.at(parent)->GetWorldTransformMatrix(entities);
 		return parent_world_transform * local_transform;
+	}
+
+	glm::vec3 Entity::GetForwardVector() const
+	{
+		return glm::normalize(GetTransformOrientation() * glm::vec3(0.0f, 0.0f, 1.0f));
+	}
+	glm::vec3 Entity::GetRightVector() const
+	{
+		return glm::normalize(GetTransformOrientation() * glm::vec3(-1.0f, 0.0f, 0.0f));
+	}
+	glm::vec3 Entity::GetUpVector() const
+	{
+		return glm::normalize(GetTransformOrientation() * glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 }

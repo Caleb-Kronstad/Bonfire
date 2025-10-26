@@ -11,11 +11,11 @@ TestLayer::~TestLayer()
 
 void TestLayer::OnAttach()
 {
-	/*Project& project = Project::GetInstance();
+	Project& project = Project::GetInstance();
 	
-	player = Project::GetRenderer().GetScene().GetEntities().at(1000001);
+	player = Project::GetRenderer().GetScene().GetEntities().at(1000005);
 	PhysicsComponent& physics_component = player->GetComponent<PhysicsComponent>();
-	physics_component.physics_body->SetAllowedDOFS(true, true, true, false, false, false);*/
+	physics_component.physics_body->SetAllowedDOFS(true, true, true, false, false, false);
 }
 
 void TestLayer::OnDetach()
@@ -25,7 +25,7 @@ void TestLayer::OnDetach()
 
 void TestLayer::OnUpdate(const float& delta_time)
 {
-	/*Project& project = Project::GetInstance();
+	Project& project = Project::GetInstance();
 	Renderer& renderer = Project::GetRenderer();
 	Camera& camera = *renderer.GetScene().GetCurrentCamera();
 	
@@ -33,31 +33,32 @@ void TestLayer::OnUpdate(const float& delta_time)
 
 	PhysicsComponent& physics_component = player->GetComponent<PhysicsComponent>();
 
-	float move_x = 0.0f;
-	float move_z = 0.0f;
-	float move_y = 0.0f;
+	glm::vec3 move_to = glm::vec3(0.0f);
 	if (w_down)
-		move_x += 10.0f;
+		move_to.x += 10.0f;
 	if (s_down)
-		move_x -= 10.0f;
+		move_to.x -= 10.0f;
 	if (a_down)
-		move_z -= 10.0f;
+		move_to.z -= 10.0f;
 	if (d_down)
-		move_z += 10.0f;
+		move_to.z += 10.0f;
 	if (space_down)
-		move_y += 1.0f;
+		move_to.y += 1.0f;
 	else
-		move_y -= 1.0f;
+		move_to.y -= 1.0f;
+
+	move_to *= (player->GetForwardVector() + player->GetRightVector() + player->GetUpVector());
 
 	glm::vec3 linear_velocity = physics_component.physics_body->GetLinearVelocity();
-	physics_component.physics_body->SetLinearVelocity(glm::vec3(move_x, linear_velocity.y + move_y, move_z));
+	move_to.y += linear_velocity.y;
+	physics_component.physics_body->SetLinearVelocity(move_to);
 	if (max_jump_height < linear_velocity.y)
 		space_down = false;
 
 	glm::vec3 camera_offset = glm::vec3(-15.0f, 10.0f, 0.0f);
 	glm::vec3 player_no_y = glm::vec3(player->position.x, 0.0f, player->position.z);
 	camera.position = camera_offset + player_no_y;
-	camera.LookAt(player_no_y);*/
+	camera.LookAt(player_no_y);
 }
 void TestLayer::OnInterfaceUpdate()
 {
@@ -65,7 +66,7 @@ void TestLayer::OnInterfaceUpdate()
 }
 void TestLayer::OnInput(Input& input)
 {
-	/*switch (input.GetInputType())
+	switch (input.GetInputType())
 	{
 	case InputType::KeyPressed:
 		{
@@ -165,5 +166,5 @@ void TestLayer::OnInput(Input& input)
 		}
 	case InputType::None:
 			break;
-	}*/
+	}
 }

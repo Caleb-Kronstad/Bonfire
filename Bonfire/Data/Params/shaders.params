@@ -12,18 +12,24 @@
         "vert-path": "Data/Editor/Defaults/Shaders/lit.vert"
     },
     "1002": {
+        "frag-path": "Data/Editor/Defaults/Shaders/debug.frag",
+        "geom-path": "None",
+        "name": "Debug",
+        "vert-path": "Data/Editor/Defaults/Shaders/debug.vert"
+    },
+    "1003": {
         "frag-path": "Data/Editor/Defaults/Shaders/skybox.frag",
         "geom-path": "None",
         "name": "Skybox",
         "vert-path": "Data/Editor/Defaults/Shaders/skybox.vert"
     },
-    "1003": {
+    "1004": {
         "frag-path": "Data/Editor/Defaults/Shaders/shadowmap.frag",
         "geom-path": "None",
         "name": "Shadow Map",
         "vert-path": "Data/Editor/Defaults/Shaders/shadowmap.vert"
     },
-    "1004": {
+    "1005": {
         "frag-path": "Data/Editor/Defaults/Shaders/pointshadowmap.frag",
         "geom-path": "Data/Editor/Defaults/Shaders/pointshadowmap.geom",
         "name": "Point Shadow Map",

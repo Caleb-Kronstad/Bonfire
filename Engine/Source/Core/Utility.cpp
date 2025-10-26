@@ -73,6 +73,10 @@ namespace Bonfire
 	{
 		return glm::vec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 	}
+	glm::vec3 RgbToGlmVec3(unsigned int r, unsigned int g, unsigned int b)
+	{
+		return glm::vec3(r / 255.0f, g / 255.0f, b / 255.0f);
+	}
 
 	std::vector<std::filesystem::path> GetFilesInDirectory(const std::string& path)
 	{

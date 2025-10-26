@@ -119,288 +119,49 @@ namespace Bonfire
             return false;
         }
 
-        nlohmann::json json;
-        try
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        std::string json_string = buffer.str();
+
+        current_camera = std::make_unique<Camera>(0);
+        directional_light = std::make_unique<DirectionalLight>();
+
+        if (!DeserializeFromString(json_string, param_database))
         {
-            file >> json;
-        }
-        catch (const nlohmann::json::exception& e)
-        {
-            Log::Error("Failed to parse scene JSON: " + std::string(e.what()));
+            Log::Error("Error deserializing scene file at " + path);
             return false;
         }
-
-        if (!json.contains("DATA-TYPE"))
-        {
-            Log::Error("Unknown data type when trying to load .bonfire scene file at " + path);
-            return false;
-        }
-        std::string data_type = json["DATA-TYPE"]["type"].get<std::string>();
-        if (data_type != "SCENE")
-        {
-            Log::Error("Found incorrect data type associated with .bonfire scene file at " + path + " ... " + data_type + " data type found");
-            return false;
-        }
-
-        // Load camera
-        if (!json.contains("cameras"))
-        {
-            Log::Error("Scene file has no camera");
-            return false;
-        }
-        for (const auto& camera_json : json["cameras"])
-        {
-            uint32_t id = camera_json["id"].get<uint32_t>();
-            float yaw = camera_json["yaw"].get<float>();
-            float pitch = camera_json["pitch"].get<float>();
-            
-            auto position_array = camera_json["position"].get<std::vector<float>>();
-            auto up_array = camera_json["up"].get<std::vector<float>>();
-            
-            glm::vec3 position(position_array[0], position_array[1], position_array[2]);
-            glm::vec3 up(up_array[0], up_array[1], up_array[2]);
-
-            current_camera = std::make_unique<Camera>(id, position, up, yaw, pitch);
-        }
-
-        // Load directional light
-        if (!json.contains("directional_light"))
-        {
-            directional_light = std::make_unique<DirectionalLight>();
-            directional_light->id = 1000001;
-        }
-        else
-        {
-            nlohmann::json dir_light_json = json["directional_light"];
-            uint32_t id = dir_light_json["id"].get<uint32_t>();
-            std::string name = dir_light_json["name"].get<std::string>();
-        
-            auto direction_array = dir_light_json["direction"].get<std::vector<float>>();
-            auto color_array = dir_light_json["color"].get<std::vector<float>>();
-
-            glm::vec3 direction(direction_array[0], direction_array[1], direction_array[2]);
-            glm::vec3 color(color_array[0], color_array[1], color_array[2]);
-
-            directional_light = std::make_unique<DirectionalLight>(color, direction);
-            directional_light->id = id;
-            directional_light->name = name;
-        }
-
-        // Load components
-        if (!json.contains("components"))
-        {
-            Log::Warning("Scene file has no components");
-        }
-        else
-        {
-            const auto& components = json["components"];
-
-            if (components.contains("models"))
-            {
-                for (const auto& [model_component_id, model_data] : components["models"].items())
-                {
-                    uint32_t id = std::stoul(model_component_id);
-                    bool enabled = model_data["enabled"].get<bool>();
-                    uint32_t model_id = model_data["model-id"].get<uint32_t>();
-                    uint32_t shader_id = model_data["shader-id"].get<uint32_t>();
-                    uint32_t material_id = model_data["material-id"].get<uint32_t>();
-
-                    std::shared_ptr<Model> model = models.contains(model_id) ? models.at(model_id) : nullptr;
-                    std::shared_ptr<Shader> shader = shaders.contains(shader_id) ? shaders.at(shader_id) : nullptr;
-                    std::shared_ptr<Material> material = materials.contains(material_id) ? materials.at(material_id) : nullptr;
-                    
-                    std::shared_ptr<ModelComponent> model_included = std::make_shared<ModelComponent>(id, enabled, model, shader, material);
-                    model_components.insert_or_assign(id, model_included);
-                }
-            }
-            // ADD OTHER COMPONENT TYPES
-            if (components.contains("light_sources"))
-            {
-                for (const auto& [light_component_id, light_data] : components["light_sources"].items())
-                {
-                    uint32_t id = std::stoul(light_component_id);
-                    bool enabled = light_data["enabled"].get<bool>();
-                    std::string light_type = light_data["light-type"].get<std::string>();
-                    std::shared_ptr<LightSource> light_source;
-                    
-                    if (light_type == "point")
-                    {
-                        auto color_array = light_data["color"].get<std::vector<float>>();
-                        auto position_array = light_data["position"].get<std::vector<float>>();
-                        auto scale_array = light_data["scale"].get<std::vector<float>>();
-                        glm::vec3 color(color_array[0], color_array[1], color_array[2]);
-                        glm::vec3 position(position_array[0], position_array[1], position_array[2]);
-                        glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
-
-                        std::shared_ptr<PointLight> point_light = std::make_shared<PointLight>(color, position, scale);
-                        point_light->id = light_data["light-id"].get<uint32_t>();
-                        point_light->enabled = light_data["light-enabled"].get<bool>();
-                        if (light_data.contains("intensity"))
-                            point_light->intensity = light_data["intensity"].get<float>();
-                        light_source = point_light;
-                    }
-                    else if (light_type == "spot")
-                    {
-                        auto color_array = light_data["color"].get<std::vector<float>>();
-                        auto position_array = light_data["position"].get<std::vector<float>>();
-                        auto scale_array = light_data["scale"].get<std::vector<float>>();
-                        auto direction_array = light_data["direction"].get<std::vector<float>>();
-                        glm::vec3 color(color_array[0], color_array[1], color_array[2]);
-                        glm::vec3 position(position_array[0], position_array[1], position_array[2]);
-                        glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
-                        glm::vec3 direction(direction_array[0], direction_array[1], direction_array[2]);
-
-                        std::shared_ptr<SpotLight> spot_light = std::make_shared<SpotLight>(color, position, scale, direction);
-                        spot_light->id = light_data["light-id"].get<uint32_t>();
-                        spot_light->enabled = light_data["light-enabled"].get<bool>();
-                        light_source = spot_light;
-                    }
-
-                    if (light_source)
-                    {
-                        std::shared_ptr<LightSourceComponent> light_component = std::make_shared<LightSourceComponent>(id, enabled, light_source);
-                        light_source_components.insert_or_assign(id, light_component);
-                    }
-                }
-            }
-
-            if (components.contains("physics"))
-            {
-                for (const auto& [physics_component_id, physics_data] : components["physics"].items())
-                {
-                    PhysicsSystem& physics_system = Project::GetPhysicsSystem();
-                    
-                    uint32_t id = std::stoul(physics_component_id);
-                    bool enabled = physics_data["enabled"].get<bool>();
-
-                    uint32_t physics_id = physics_data["physics-id"].get<uint32_t>();
-                    bool physics_enabled = physics_data["physics-enabled"].get<bool>();
-                    std::string physics_name = physics_data["physics-name"].get<std::string>();
-                    PhysicsBodyType body_type = static_cast<PhysicsBodyType>(physics_data["body-type"].get<uint8_t>());
-                    PhysicsShapeType shape_type = static_cast<PhysicsShapeType>(physics_data["shape-type"].get<uint8_t>());
-
-                    auto dims_array = physics_data["dimensions"].get<std::vector<float>>();
-                    glm::vec3 dimensions(dims_array[0], dims_array[1], dims_array[2]);
-
-                    std::shared_ptr<PhysicsBody> physics_body;
-
-                    if (shape_type == PhysicsShapeType::BOX)
-                        physics_body = physics_system.CreateBoxBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions, body_type);
-                    else if (shape_type == PhysicsShapeType::SPHERE)
-                        physics_body = physics_system.CreateSphereBody(glm::vec3(0.0f), dimensions.x, body_type);
-                    else if (shape_type == PhysicsShapeType::CAPSULE)
-                        physics_body = physics_system.CreateCapsuleBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions.x, dimensions.y, body_type);
-
-                    if (physics_body)
-                    {
-                        physics_body->id = physics_id;
-                        physics_body->enabled = physics_enabled;
-                        physics_body->SetEnabled(enabled);
-                        physics_body->name = physics_name;
-
-                        std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(id, enabled, physics_body);
-                        physics_components.insert_or_assign(id, physics_component);
-                    }
-                }
-            }
-            
-            for (auto& [id, light_component] : light_source_components)
-            {
-                if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_component->light_source))
-                    point_lights.insert_or_assign(point_light->id, point_light);
-                else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_component->light_source))
-                    spot_lights.insert_or_assign(spot_light->id, spot_light);
-            }
-        }
-
-        // Load entities
-        if (!json.contains("entities"))
-        {
-            Log::Warning("Scene file has no entities");
-        }
-        else
-        {
-            for (const auto& entity_json : json["entities"])
-            {
-                uint32_t id = entity_json["id"].get<uint32_t>();
-                bool enabled = entity_json["enabled"].get<bool>();
-                std::string name = entity_json["name"].get<std::string>();
-
-                auto position_array = entity_json["position"].get<std::vector<float>>();
-                auto rotation_array = entity_json["rotation"].get<std::vector<float>>();
-                auto scale_array = entity_json["scale"].get<std::vector<float>>();
-
-                glm::vec3 position(position_array[0], position_array[1], position_array[2]);
-                glm::vec3 rotation(rotation_array[0], rotation_array[1], rotation_array[2]);
-                glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
-
-                std::shared_ptr<Entity> entity = std::make_shared<Entity>(id, enabled, name, position, rotation, scale);
-                if (entity_json.contains("parent"))
-                    entity->parent = entity_json["parent"].get<uint32_t>();
-                
-                const auto& entity_components = entity_json["components"];
-                if (entity_components.contains("model_component"))
-                {
-                    uint32_t model_id = entity_components["model_component"].get<uint32_t>();
-                    entity->AddComponent(ComponentType::MODEL, model_components.at(model_id));
-                }
-                if (entity_components.contains("light_source_component"))
-                {
-                    uint32_t light_id = entity_components["light_source_component"].get<uint32_t>();
-                    entity->AddComponent(ComponentType::LIGHT, light_source_components.at(light_id));
-                }
-                if (entity_components.contains("physics_component"))
-                {
-                    uint32_t physics_id = entity_components["physics_component"].get<uint32_t>();
-                    entity->AddComponent(ComponentType::PHYSICS, physics_components.at(physics_id));
-                }
-
-                entities.insert_or_assign(id, entity);
-            }
-
-            for (auto& [id, entity] : entities)
-            {
-                if (entity->parent != 0 && entities.contains(entity->parent))
-                {
-                    entities.at(entity->parent)->AddChild(id);
-                }
-            }
-        }
-
-        for (auto& [id, entity] : entities)
-        {
-            if (entity->HasComponent<PhysicsComponent>())
-            {
-                PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
-                std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
-                
-                physics_body->SetPosition(entity->position);
-                physics_body->SetRotation(glm::quat(glm::radians(entity->rotation)));
-            }
-        }
-        
-        skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S3");
-        std::shared_ptr<Shader> point_shadow_map_shader;
-        std::shared_ptr<Shader> lit_shader;
-        std::shared_ptr<Shader> shadow_map_shader;
-        for (auto& [shader_id, shader] : shaders)
-        {
-            if (shader->name == "Skybox")
-                skybox->Load(shader);
-            else if (shader->name == "Point Shadow Map")
-                point_shadow_map_shader = shader;
-            else if (shader->name == "Lit")
-                lit_shader = shader;
-            else if (shader->name == "Shadow Map")
-                shadow_map_shader = shader;
-        }
-        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, lit_shader, "Data/Editor/Defaults/Textures/default.png");
 
         Log::Info("Loaded scene from " + path);
         return true;
     }
 
     bool Scene::SaveScene(ParamDatabase& param_database)
+    {
+        std::string json_string = SerializeToString(param_database);
+
+        std::ofstream file(path);
+        if (!file.is_open())
+        {
+            Log::Error("Failed to open scene file for writing: " + path);
+            return false;
+        }
+
+        try
+        {
+            file << json_string;
+        }
+        catch (const std::exception& e)
+        {
+            Log::Error("Failed to write scene to file: " + std::string(e.what()));
+            return false;
+        }
+
+        Log::Info("Saved scene to " + path);
+        return true;
+    }
+
+    std::string Scene::SerializeToString(ParamDatabase& param_database)
     {
         nlohmann::json json;
         nlohmann::json camera_array = nlohmann::json::array();
@@ -410,18 +171,22 @@ namespace Bonfire
         camera_json["id"] = current_camera->GetID();
         camera_json["yaw"] = current_camera->yaw;
         camera_json["pitch"] = current_camera->pitch;
-        camera_json["position"] = {current_camera->position.x, current_camera->position.y, current_camera->position.z};
-        camera_json["up"] = {current_camera->GetWorldUpVector().x, current_camera->GetWorldUpVector().y, current_camera->GetWorldUpVector().z};
+        camera_json["position"] = {current_camera->position.x, current_camera->position.y,
+            current_camera->position.z};
+        camera_json["up"] = {current_camera->GetWorldUpVector().x, current_camera->GetWorldUpVector().y,
+            current_camera->GetWorldUpVector().z};
         camera_array.push_back(camera_json);
 
         nlohmann::json directional_light_json;
         directional_light_json["id"] = directional_light->id;
         directional_light_json["name"] = directional_light->name;
-        directional_light_json["color"] = {directional_light->color.x, directional_light->color.y, directional_light->color.z};
-        directional_light_json["direction"] = {directional_light->direction.x, directional_light->direction.y, directional_light->direction.z};
-        
+        directional_light_json["color"] = {directional_light->color.x, directional_light->color.y,
+            directional_light->color.z};
+        directional_light_json["direction"] = {directional_light->direction.x, directional_light->direction.y,
+            directional_light->direction.z};
+
         nlohmann::json components_json;
-        // Save components
+
         nlohmann::json models_json;
         for (const auto& [id, model_component] : model_components)
         {
@@ -465,7 +230,6 @@ namespace Bonfire
         if (!lights_json.empty())
             components_json["light_sources"] = lights_json;
 
-        // save physics components
         nlohmann::json physics_json;
         for (const auto& [id, physics_component] : physics_components)
         {
@@ -485,21 +249,18 @@ namespace Bonfire
         if (!physics_json.empty())
             components_json["physics"] = physics_json;
 
-        // Save entities
         for (const auto& [id, entity] : entities)
         {
             nlohmann::json entity_json;
             entity_json["id"] = id;
             entity_json["enabled"] = entity->enabled;
             entity_json["name"] = entity->name;
-        
+
             entity_json["position"] = {entity->position.x, entity->position.y, entity->position.z};
             entity_json["rotation"] = {entity->rotation.x, entity->rotation.y, entity->rotation.z};
             entity_json["scale"] = {entity->scale.x, entity->scale.y, entity->scale.z};
-
             entity_json["parent"] = entity->parent;
-        
-            // Save entity components
+
             nlohmann::json entity_components_json;
             if (entity->HasComponent<ModelComponent>())
             {
@@ -516,7 +277,7 @@ namespace Bonfire
                 PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
                 entity_components_json["physics_component"] = physics_component.id;
             }
-        
+
             entity_json["components"] = entity_components_json;
             entities_array.push_back(entity_json);
         }
@@ -527,24 +288,284 @@ namespace Bonfire
         json["components"] = components_json;
         json["entities"] = entities_array;
 
-        std::ofstream file(path);
-        if (!file.is_open())
-        {
-            Log::Error("Failed to open scene file for writing: " + path);
-            return false;
-        }
+        return json.dump();
+    }
 
+    bool Scene::DeserializeFromString(const std::string& json_str, ParamDatabase& param_database)
+    {
+        entities.clear();
+        point_lights.clear();
+        spot_lights.clear();
+        model_components.clear();
+        light_source_components.clear();
+        physics_components.clear();
+
+        nlohmann::json json;
         try
         {
-            file << json.dump(4);
+            json = nlohmann::json::parse(json_str);
         }
         catch (const nlohmann::json::exception& e)
         {
-            Log::Error("Failed to write scene JSON: " + std::string(e.what()));
+            Log::Error("Failed to parse scene JSON from string: " + std::string(e.what()));
             return false;
         }
 
-        Log::Info("Saved scene to " + path);
+        if (!json.contains("DATA-TYPE"))
+        {
+            Log::Error("Unknown data type when trying to load scene from snapshot");
+            return false;
+        }
+        std::string data_type = json["DATA-TYPE"]["type"].get<std::string>();
+        if (data_type != "SCENE")
+        {
+            Log::Error("Invalid data type: expected 'SCENE', got '" + data_type + "'");
+            return false;
+        }
+
+        if (json.contains("cameras"))
+        {
+            if (!current_camera)
+            {
+                Log::Error("Cannot deserialize: camera not initialized. Load scene first.");
+                return false;
+            }
+            for (const auto& camera_json : json["cameras"])
+            {
+                current_camera->SetID(camera_json["id"].get<uint32_t>());
+                current_camera->yaw = camera_json["yaw"].get<float>();
+                current_camera->pitch = camera_json["pitch"].get<float>();
+
+                auto position_array = camera_json["position"].get<std::vector<float>>();
+                current_camera->position = glm::vec3(position_array[0], position_array[1], position_array[2]);
+
+                auto up_array = camera_json["up"].get<std::vector<float>>();
+                current_camera->SetWorldUpVector(glm::vec3(up_array[0], up_array[1], up_array[2]));
+
+                current_camera->UpdateCameraVectors();
+            }
+        }
+
+        if (json.contains("directional_light"))
+        {
+            const auto& dir_light_json = json["directional_light"];
+            directional_light->id = dir_light_json["id"].get<uint32_t>();
+            directional_light->name = dir_light_json["name"].get<std::string>();
+
+            auto color_array = dir_light_json["color"].get<std::vector<float>>();
+            directional_light->color = glm::vec3(color_array[0], color_array[1], color_array[2]);
+
+            auto direction_array = dir_light_json["direction"].get<std::vector<float>>();
+            directional_light->direction = glm::vec3(direction_array[0], direction_array[1], direction_array[2]);
+        }
+
+        if (json.contains("components"))
+        {
+            const auto& components = json["components"];
+
+            if (components.contains("models"))
+            {
+                for (const auto& [model_component_id, model_data] : components["models"].items())
+                {
+                    uint32_t id = std::stoul(model_component_id);
+                    bool enabled = model_data["enabled"].get<bool>();
+                    uint32_t model_id = model_data["model-id"].get<uint32_t>();
+                    uint32_t shader_id = model_data["shader-id"].get<uint32_t>();
+                    uint32_t material_id = model_data["material-id"].get<uint32_t>();
+
+                    std::shared_ptr<Model> model = models.at(model_id);
+                    std::shared_ptr<Shader> shader = shaders.at(shader_id);
+                    std::shared_ptr<Material> material = materials.at(material_id);
+
+                    if (model && shader && material)
+                    {
+                        std::shared_ptr<ModelComponent> model_component = std::make_shared<ModelComponent>(id, enabled, model, shader, material);
+                        model_components.insert_or_assign(id, model_component);
+                    }
+                }
+            }
+
+            if (components.contains("light_sources"))
+            {
+                for (const auto& [light_component_id, light_data] : components["light_sources"].items())
+                {
+                    uint32_t id = std::stoul(light_component_id);
+                    bool enabled = light_data["enabled"].get<bool>();
+                    std::string light_type = light_data["light-type"].get<std::string>();
+
+                    std::shared_ptr<LightSource> light_source = nullptr;
+
+                    if (light_type == "point")
+                    {
+                        auto color_array = light_data["color"].get<std::vector<float>>();
+                        auto position_array = light_data["position"].get<std::vector<float>>();
+                        auto scale_array = light_data["scale"].get<std::vector<float>>();
+                        glm::vec3 color(color_array[0], color_array[1], color_array[2]);
+                        glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+                        glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
+
+                        std::shared_ptr<PointLight> point_light = std::make_shared<PointLight>(color, position,
+                            scale);
+                        point_light->id = light_data["light-id"].get<uint32_t>();
+                        point_light->enabled = light_data["light-enabled"].get<bool>();
+                        if (light_data.contains("intensity"))
+                            point_light->intensity = light_data["intensity"].get<float>();
+                        light_source = point_light;
+                    }
+                    else if (light_type == "spot")
+                    {
+                        auto color_array = light_data["color"].get<std::vector<float>>();
+                        auto position_array = light_data["position"].get<std::vector<float>>();
+                        auto scale_array = light_data["scale"].get<std::vector<float>>();
+                        auto direction_array = light_data["direction"].get<std::vector<float>>();
+                        glm::vec3 color(color_array[0], color_array[1], color_array[2]);
+                        glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+                        glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
+                        glm::vec3 direction(direction_array[0], direction_array[1], direction_array[2]);
+
+                        std::shared_ptr<SpotLight> spot_light = std::make_shared<SpotLight>(color, position, scale, direction);
+                        spot_light->id = light_data["light-id"].get<uint32_t>();
+                        spot_light->enabled = light_data["light-enabled"].get<bool>();
+                        light_source = spot_light;
+                    }
+
+                    if (light_source)
+                    {
+                        std::shared_ptr<LightSourceComponent> light_component =
+                            std::make_shared<LightSourceComponent>(id, enabled, light_source);
+                        light_source_components.insert_or_assign(id, light_component);
+                    }
+                }
+            }
+
+            if (components.contains("physics"))
+            {
+                for (const auto& [physics_component_id, physics_data] : components["physics"].items())
+                {
+                    PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+
+                    uint32_t id = std::stoul(physics_component_id);
+                    bool enabled = physics_data["enabled"].get<bool>();
+
+                    uint32_t physics_id = physics_data["physics-id"].get<uint32_t>();
+                    bool physics_enabled = physics_data["physics-enabled"].get<bool>();
+                    std::string physics_name = physics_data["physics-name"].get<std::string>();
+                    PhysicsBodyType body_type = static_cast<PhysicsBodyType>(physics_data["body-type"].get<uint8_t>());
+                    PhysicsShapeType shape_type = static_cast<PhysicsShapeType>(physics_data["shape-type"].get<uint8_t>());
+
+                    auto dims_array = physics_data["dimensions"].get<std::vector<float>>();
+                    glm::vec3 dimensions(dims_array[0], dims_array[1], dims_array[2]);
+
+                    std::shared_ptr<PhysicsBody> physics_body;
+
+                    if (shape_type == PhysicsShapeType::BOX)
+                        physics_body = physics_system.CreateBoxBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions, body_type);
+                    else if (shape_type == PhysicsShapeType::SPHERE)
+                        physics_body = physics_system.CreateSphereBody(glm::vec3(0.0f), dimensions.x, body_type);
+                    else if (shape_type == PhysicsShapeType::CAPSULE)
+                        physics_body = physics_system.CreateCapsuleBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions.x, dimensions.y, body_type);
+
+                    if (physics_body)
+                    {
+                        physics_body->id = physics_id;
+                        physics_body->enabled = physics_enabled;
+                        physics_body->SetEnabled(enabled);
+                        physics_body->name = physics_name;
+
+                        std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(id, enabled, physics_body);
+                        physics_components.insert_or_assign(id, physics_component);
+                    }
+                }
+            }
+
+            for (auto& [id, light_component] : light_source_components)
+            {
+                if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_component->light_source))
+                    point_lights.insert_or_assign(point_light->id, point_light);
+                else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_component->light_source))
+                    spot_lights.insert_or_assign(spot_light->id, spot_light);
+            }
+        }
+
+        if (json.contains("entities"))
+        {
+            for (const auto& entity_json : json["entities"])
+            {
+                uint32_t id = entity_json["id"].get<uint32_t>();
+                bool enabled = entity_json["enabled"].get<bool>();
+                std::string name = entity_json["name"].get<std::string>();
+
+                auto position_array = entity_json["position"].get<std::vector<float>>();
+                auto rotation_array = entity_json["rotation"].get<std::vector<float>>();
+                auto scale_array = entity_json["scale"].get<std::vector<float>>();
+
+                glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+                glm::vec3 rotation(rotation_array[0], rotation_array[1], rotation_array[2]);
+                glm::vec3 scale(scale_array[0], scale_array[1], scale_array[2]);
+
+                std::shared_ptr<Entity> entity = std::make_shared<Entity>(id, enabled, name, position, rotation,
+                    scale);
+                if (entity_json.contains("parent"))
+                    entity->parent = entity_json["parent"].get<uint32_t>();
+
+                const auto& entity_components = entity_json["components"];
+                if (entity_components.contains("model_component"))
+                {
+                    uint32_t model_id = entity_components["model_component"].get<uint32_t>();
+                    entity->AddComponent(ComponentType::MODEL, model_components.at(model_id));
+                }
+                if (entity_components.contains("light_source_component"))
+                {
+                    uint32_t light_id = entity_components["light_source_component"].get<uint32_t>();
+                    entity->AddComponent(ComponentType::LIGHT, light_source_components.at(light_id));
+                }
+                if (entity_components.contains("physics_component"))
+                {
+                    uint32_t physics_id = entity_components["physics_component"].get<uint32_t>();
+                    entity->AddComponent(ComponentType::PHYSICS, physics_components.at(physics_id));
+                }
+
+                entities.insert_or_assign(id, entity);
+            }
+
+            for (auto& [id, entity] : entities)
+            {
+                if (entity->parent != 0 && entities.contains(entity->parent))
+                {
+                    entities.at(entity->parent)->AddChild(id);
+                }
+            }
+        }
+
+        for (auto& [id, entity] : entities)
+        {
+            if (entity->HasComponent<PhysicsComponent>())
+            {
+                PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
+                std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
+
+                physics_body->SetPosition(entity->position);
+                physics_body->SetRotation(glm::quat(glm::radians(entity->rotation)));
+            }
+        }
+
+        skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S3");
+        std::shared_ptr<Shader> point_shadow_map_shader;
+        std::shared_ptr<Shader> lit_shader;
+        std::shared_ptr<Shader> shadow_map_shader;
+        for (auto& [shader_id, shader] : shaders)
+        {
+            if (shader->name == "Skybox")
+                skybox->Load(shader);
+            else if (shader->name == "Point Shadow Map")
+                point_shadow_map_shader = shader;
+            else if (shader->name == "Lit")
+                lit_shader = shader;
+            else if (shader->name == "Shadow Map")
+                shadow_map_shader = shader;
+        }
+        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, lit_shader, "Data/Editor/Defaults/Textures/default.png");
+
         return true;
     }
 

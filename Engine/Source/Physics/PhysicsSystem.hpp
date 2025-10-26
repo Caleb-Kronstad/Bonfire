@@ -94,6 +94,8 @@ namespace Bonfire
         void OnDetach() override;
         void OnUpdate(const float& delta_time) override;
 
+        void SyncPhysicsToEntities();
+
         std::shared_ptr<PhysicsBody> CreateBoxBody(
             const glm::vec3& position,
             const glm::quat& rotation,
