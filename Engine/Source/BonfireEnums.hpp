@@ -4,14 +4,20 @@
 
 namespace Bonfire
 {
+    enum class AnimationState : std::uint8_t
+    {
+        STOPPED,
+        PLAYING,
+        PAUSED
+    };
+    
     enum class ComponentType : std::uint8_t
     {
         UNKNOWN,
         MODEL,
         LIGHT,
         PHYSICS,
-        ANIMATION,
-        COUNT
+        ANIMATION
     };
 
     enum class TextureType : std::uint8_t

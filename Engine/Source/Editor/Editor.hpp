@@ -10,6 +10,7 @@
 #include "Renderer/Camera.hpp"
 #include "Renderer/Mesh.hpp"
 #include "Renderer/Model.hpp"
+#include "Renderer/SkeletalModel.hpp"
 #include "Renderer/Entity.hpp"
 #include "Renderer/Scene.hpp"
 
@@ -40,6 +41,7 @@ namespace Bonfire
         Entity& GetSelectedEntity() { return *selected_entity; }
         Camera& GetEngineCamera() { return *engine_camera; }
 
+        bool PreviewAnimations() const { return preview_animations; }
         bool EditorViewportVisible() const { return editor_viewport_visible; }
         bool ProjectViewportVisible() const { return project_viewport_visible; }
 
@@ -68,10 +70,17 @@ namespace Bonfire
         bool IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent);
         void ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent);
 
+        void CreateModelComponent();
+        void CreateLightSourceComponent();
+        void CreatePhysicsComponent();
+        void CreateAnimationComponent();
+
     private:
 		std::string project_path;
         std::string config_path;
         std::string serialized_scene_data;
+
+        bool preview_animations = true;
         
         std::shared_ptr<Entity> selected_entity;
         std::shared_ptr<Entity> entity_to_create;

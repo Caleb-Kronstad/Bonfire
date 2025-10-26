@@ -30,8 +30,8 @@ namespace Bonfire
 		bool Load();
 		bool Save();
 
-		void RenderEditorViewport();
-		void RenderProjectViewport();
+		void RenderEditorViewport(const float& delta_time);
+		void RenderProjectViewport(const float& delta_time);
 		void DrawColliders(const glm::mat4& projection, const glm::mat4& view);
 
 		Scene& GetScene() const { return *scene; }

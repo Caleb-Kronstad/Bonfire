@@ -7,7 +7,7 @@ namespace Bonfire
     class ShadowMap
     {
     public:
-        ShadowMap(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> shadow_map_shader, std::shared_ptr<Shader> lit_shader, const std::string& path);
+        ShadowMap(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> shadow_map_shader, std::vector<std::shared_ptr<Shader>> shadow_activated_shaders, const std::string& path);
         ~ShadowMap();
         void Load(glm::vec3& light_pos);
         void LoadDirectional(glm::vec3& light_dir);
@@ -27,7 +27,8 @@ namespace Bonfire
 
         glm::mat4 light_space_matrix;
         std::vector<glm::mat4> shadow_transforms;
-        std::shared_ptr<Shader> point_shadow_map_shader, lit_shader, shadow_map_shader;
+        std::shared_ptr<Shader> point_shadow_map_shader, shadow_map_shader;
+        std::vector<std::shared_ptr<Shader>> shadow_activated_shaders;
 
     private:   
         

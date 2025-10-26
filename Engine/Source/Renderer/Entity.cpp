@@ -3,6 +3,7 @@
 
 #include "Shader.hpp"
 #include "Scene.hpp"
+#include "Animation/Animator.hpp"
 
 namespace Bonfire
 {
@@ -20,14 +21,14 @@ namespace Bonfire
 
 		shader->Use();
 		shader->SetMat4("projection", projection_matrix);
-		shader->SetMat4("view", view_matrix);
+		shader->SetMat4("view", view_matrix);\
 		
 		if (shader->name == "Unlit")
 		{
 		}
-		if (shader->name == "Lit")
+		else if (shader->name == "Lit")
 		{
-			if (!shader->updated_this_frame && !scene.GetShadowMap()->updated_this_frame)
+			if (!shader->updated_this_frame)
 			{
 				shader->SetVec3("view_pos", camera.position);
 				shader->SetFloat("far_plane", scene.GetShadowMap()->far_plane);
@@ -39,14 +40,61 @@ namespace Bonfire
 				shader->updated_this_frame = true;
 			}
 		}
-		if (shader->name == "Point Shadow Map")
+		else if (shader->name == "Lit Animated")
+		{
+			if (!shader->updated_this_frame)
+			{
+				shader->SetVec3("view_pos", camera.position);
+				shader->SetFloat("far_plane", scene.GetShadowMap()->far_plane);
+				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
+				shader->SetBool("reverse_normals", false);
+				scene.UpdateLightSources(*shader);
+				scene.GetShadowMap()->Draw();
+				scene.GetShadowMap()->updated_this_frame = true;
+				shader->updated_this_frame = true;
+				
+			}
+
+			if (model_component.model->IsAnimated() && HasComponent<AnimationComponent>())
+			{
+				AnimationComponent& animation_component = GetComponent<AnimationComponent>();
+				if (!shader->updated_this_frame)
+				{
+					const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
+					Log::Info("Uploading " + std::to_string(bone_transforms.size()) + " bone transforms");
+
+					// Check first bone transform
+					if (!bone_transforms.empty())
+					{
+						glm::mat4 first = bone_transforms[0];
+						Log::Info("First bone: [" + std::to_string(first[0][0]) + ", " + std::to_string(first[1][1]) + ", " + std::to_string(first[2][2]) + ", " + std::to_string(first[3][3]) + "]");
+					}
+				}
+				if (animation_component.animator)
+				{
+					const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
+					for (size_t i = 0; i < bone_transforms.size() && i < MAX_BONES; i++)
+					{
+						shader->SetMat4("bone_transforms["+std::to_string(i)+"]", bone_transforms[i]);
+					}
+					shader->SetBool("is_animated", true);
+				}
+				else
+					shader->SetBool("is_animated", false);
+			}
+			else
+				shader->SetBool("is_animated", false);
+			
+			shader->updated_this_frame = true;
+		}
+		else if (shader->name == "Point Shadow Map")
 		{
 			if (!shader->updated_this_frame)
 			{
 				// i dont remember whats supposed to be here
 			}
 		}
-		if (shader->name == "Shadow Map")
+		else if (shader->name == "Shadow Map")
 		{
 			if (model_component.model->casts_shadow)
 				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);

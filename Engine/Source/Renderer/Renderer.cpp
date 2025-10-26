@@ -57,13 +57,26 @@ namespace Bonfire
 		Window& project_window = project.GetWindow();
 		GLFWwindow* glfw_window = project_window.GetNativeWindow();
 
+		if (project.GetProjectRunState() || editor.PreviewAnimations())
+		{
+			for (auto& [entity_id, entity] : scene->GetEntities())
+			{
+				if (entity->HasComponent<AnimationComponent>())
+				{
+					AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
+					if (animation_component.animator)
+						animation_component.animator->Update(delta_time);
+				}
+			}
+		}
+
 		if (editor.EditorViewportVisible())
-			RenderEditorViewport();
+			RenderEditorViewport(delta_time);
 		if (editor.ProjectViewportVisible())
-			RenderProjectViewport();
+			RenderProjectViewport(delta_time);
 	}
 
-	void Renderer::RenderEditorViewport()
+	void Renderer::RenderEditorViewport(const float& delta_time)
 	{
 		Project& project = Project::GetInstance();
 		Editor& editor = Project::GetEditor();
@@ -168,15 +181,8 @@ namespace Bonfire
 		{
 			if (entity->HasComponent<ModelComponent>())
 			{
-				ModelComponent& model_component = entity->GetComponent<ModelComponent>();
-				entity->Draw(editor.GetEngineCamera(), model_component.shader, *scene, manipulation_matrix, view, projection);
-			}
-			if (entity->HasComponent<PhysicsComponent>() && project.GetProjectRunState())
-			{
-				PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
-				std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
-				entity->position = physics_body->GetPosition();
-				entity->rotation = glm::degrees(glm::eulerAngles(physics_body->GetRotation()));
+				ModelComponent& model_component = entity->GetComponent<ModelComponent>();;
+				entity->Draw(*scene->GetCurrentCamera(), model_component.shader, *scene, manipulation_matrix, view, projection);
 			}
 		}
 
@@ -190,7 +196,7 @@ namespace Bonfire
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
 	}
 
-	void Renderer::RenderProjectViewport()
+	void Renderer::RenderProjectViewport(const float& delta_time)
 	{
 		Project& project = Project::GetInstance();
 		PhysicsSystem& physics_system = Project::GetPhysicsSystem();
@@ -277,13 +283,6 @@ namespace Bonfire
 			{
 				ModelComponent& model_component = entity->GetComponent<ModelComponent>();
 				entity->Draw(*scene->GetCurrentCamera(), model_component.shader, *scene, manipulation_matrix, view, projection);
-			}
-			if (entity->HasComponent<PhysicsComponent>() && project.GetProjectRunState())
-			{
-				PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
-				std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
-				entity->position = physics_body->GetPosition();
-				entity->rotation = glm::degrees(glm::eulerAngles(physics_body->GetRotation()));
 			}
 		}
 

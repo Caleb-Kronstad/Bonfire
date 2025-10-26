@@ -551,8 +551,8 @@ namespace Bonfire
 
         skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S3");
         std::shared_ptr<Shader> point_shadow_map_shader;
-        std::shared_ptr<Shader> lit_shader;
         std::shared_ptr<Shader> shadow_map_shader;
+        std::vector<std::shared_ptr<Shader>> shadow_activated_shaders;
         for (auto& [shader_id, shader] : shaders)
         {
             if (shader->name == "Skybox")
@@ -560,11 +560,13 @@ namespace Bonfire
             else if (shader->name == "Point Shadow Map")
                 point_shadow_map_shader = shader;
             else if (shader->name == "Lit")
-                lit_shader = shader;
+                shadow_activated_shaders.push_back(shader);
+            else if (shader->name == "Lit Animated")
+                shadow_activated_shaders.push_back(shader);
             else if (shader->name == "Shadow Map")
                 shadow_map_shader = shader;
         }
-        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, lit_shader, "Data/Editor/Defaults/Textures/default.png");
+        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, shadow_activated_shaders, "Data/Editor/Defaults/Textures/default.png");
 
         return true;
     }

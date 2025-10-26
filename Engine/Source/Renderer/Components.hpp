@@ -6,6 +6,7 @@
 #include "Material.hpp"
 #include "Lighting.hpp"
 #include "Physics/PhysicsBody.hpp"
+#include "Animation/Animator.hpp"
 
 namespace Bonfire
 {
@@ -62,7 +63,14 @@ namespace Bonfire
 
     struct AnimationComponent : Component
     {
-
+        std::shared_ptr<Animator> animator;
+        
         AnimationComponent() {}
+        AnimationComponent(uint32_t id, bool enabled, std::shared_ptr<Animator> animator)
+        {
+            this->id = id;
+            this->enabled = enabled;
+            this->animator = animator;
+        }
     };
 }

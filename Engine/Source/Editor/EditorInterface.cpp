@@ -353,6 +353,8 @@ namespace Bonfire
     	ImGui::Text(frame_time.c_str());
     	ImGui::Text(frame_rate.c_str());
 
+		ImGui::Checkbox("Preview Animations", &preview_animations);
+
 		ImGui::Checkbox("Draw Colliders", &renderer.GetDrawColliders());
 		ImGui::SliderFloat("Collider Line Width", &renderer.GetDrawCollidersLineWidth(), 0.1f, 10.0f, "%.1f");
 
@@ -643,9 +645,10 @@ namespace Bonfire
     		if (selected_entity->HasComponent<ModelComponent>())
     		{
     			ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
-    			ImGui::PushID(&model_component);
     			
+    			ImGui::PushID(&model_component);
     			ImGui::Separator();
+    			
     			ImGui::Checkbox("##Enabled", &model_component.enabled);
     			ImGui::SameLine();
     			ImGui::Text("Model Component");
@@ -664,8 +667,6 @@ namespace Bonfire
     			if (ImGui::Button(model_component.material->name.c_str(), ImVec2(100, 22)))
     				ImGui::OpenPopup("ChangeMaterialModelComponent");
     			ImGui::SameLine(); ImGui::Text("Material");
-
-    			ImGui::PopID();
 
     			if (ImGui::BeginPopup("ChangeModelModelComponent"))
     			{
@@ -709,12 +710,15 @@ namespace Bonfire
     				}
     				ImGui::EndPopup();
     			}
+
+    			ImGui::PopID();
     		}
 
     		if (selected_entity->HasComponent<LightSourceComponent>())
     		{
     			LightSourceComponent& light_source_component = selected_entity->GetComponent<LightSourceComponent>();
     			
+    			ImGui::PushID(&light_source_component);
     			ImGui::Separator();
 
     			ImGui::Separator();
@@ -813,13 +817,16 @@ namespace Bonfire
     				}
     				ImGui::EndPopup();
     			}
+    			
+    			ImGui::PopID();
     		}
     		
     		// PHYSICS COMPONENT
     		if (selected_entity->HasComponent<PhysicsComponent>())
     		{
     			PhysicsComponent& physics_component = selected_entity->GetComponent<PhysicsComponent>();
-				
+
+    			ImGui::PushID(&physics_component);
     			ImGui::Separator();
 				
     			ImGui::Separator();
@@ -875,13 +882,74 @@ namespace Bonfire
 				physics_component.physics_body->SetScale(physics_component.physics_body->GetShapeData().dimensions);
 
     			selected_entity->UpdateComponents(physics_system);
+    			
+    			ImGui::PopID();
     		}
 
     		// ANIMATION COMPONENT
-    		if (selected_entity->HasComponent<PhysicsComponent>())
+    		if (selected_entity->HasComponent<AnimationComponent>())
     		{
+				AnimationComponent& animation_component = selected_entity->GetComponent<AnimationComponent>();
+    			Animator& animator = *animation_component.animator;
+
+    			ImGui::PushID(&animation_component);
     			ImGui::Separator();
 				
+    			ImGui::Separator();
+    			ImGui::Checkbox("##Enabled", &animation_component.enabled);
+    			ImGui::SameLine();
+    			ImGui::Text("Physics Component");
+    			ImGui::SameLine();
+    			ImGui::Text(std::to_string(animation_component.id).c_str());
+    			ImGui::Spacing();
+
+    			ImGui::Text("Current Animation: ", animator.GetCurrentAnimationName().c_str());
+
+    			std::string state_text = "STOPPED";
+    			if (animator.GetState() == AnimationState::PLAYING)
+    				state_text = "PLAYING";
+    			else if (animator.GetState() == AnimationState::PAUSED)
+    				state_text = "PAUSED";
+    			ImGui::SameLine();
+    			ImGui::Text("State: %s", state_text.c_str());
+    			
+    			ImGui::Checkbox("Loop", &animator.GetLoop());
+    			ImGui::SliderFloat("Speed", &animator.GetSpeed(), 0.0f, 10.0f);
+    			//float progress = animator.GetCurrentAnimation()->GetDuration() > 0.0f ? animator.GetCurrentAnimationTime() /animator.GetCurrentAnimation()->GetDuration() : 0.0f;
+    			//ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.0f));
+
+    			if (animator.GetState() == AnimationState::PLAYING)
+    			{
+    				if (ImGui::Button("Pause"))
+    					animator.Pause();
+    			}
+    			else
+    			{
+    				if (ImGui::Button("Play"))
+    				{
+    					if (animator.GetCurrentAnimationName().empty())
+    					{
+    						if (!animator.GetAnimations().empty())
+    						{
+    							const auto& first_animation_name = animator.GetAnimations().begin()->first;
+    							animator.Play(first_animation_name);
+    						}
+    					}
+    					else
+    						animator.Play(animator.GetCurrentAnimationName());
+    				}
+    			}
+    			ImGui::SameLine();
+    			if (ImGui::Button("Stop"))
+    				animator.Stop();
+
+    			ImGui::Spacing();
+
+    			ImGui::Text("Animations");
+    			for (auto& [animation_name, animation] : animator.GetAnimations())
+    				ImGui::Text("  - %s", animation_name.c_str());
+    			
+    			ImGui::PopID();
     		}
 
     		ImGui::Separator();
@@ -898,29 +966,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<ModelComponent>())
     				{
-    					uint32_t next_id = 100001;
-    					if (!scene.GetModelComponents().empty())
-    					{
-    						auto max_it = std::max_element(
-								scene.GetModelComponents().begin(),
-								scene.GetModelComponents().end(),
-								[](const auto& a, const auto& b) { return a.first < b.first; }
-								);
-    						next_id = max_it->first + 1;
-    					}
-
-    					if (!scene.GetModels().empty())
-    					{
-    						std::shared_ptr<Model> default_model = scene.GetModels().begin()->second;
-    						std::shared_ptr<Shader> default_shader = scene.GetShaders().begin()->second;
-    						std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
-    						std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, default_material);
-
-    						scene.GetModelComponents().insert_or_assign(next_id, new_component);
-    						selected_entity->AddComponent(ComponentType::MODEL, new_component);
-    					}
-    					else
-    						Log::Warning("No models available");
+    					CreateModelComponent();
     				}
     				else
     				{
@@ -933,41 +979,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<LightSourceComponent>())
     				{
-    					uint32_t next_id = 100001;
-    					if (!scene.GetLightSourceComponents().empty())
-    					{
-    						auto max_it = std::max_element(
-								scene.GetLightSourceComponents().begin(),
-								scene.GetLightSourceComponents().end(),
-								[](const auto& a, const auto& b) { return a.first < b.first; }
-							);
-    						next_id = max_it->first + 1;
-    					}
-
-    					uint32_t next_light_id = 1000;
-    					if (!scene.GetPointLights().empty())
-    					{
-    						auto max_it = std::max_element(
-								scene.GetPointLights().begin(),
-								scene.GetPointLights().end(),
-								[](const auto& a, const auto& b) { return a.first < b.first; }
-							);
-    						next_light_id = max_it->first + 1;
-    					}
-    					
-    					std::shared_ptr<PointLight> new_light = std::make_shared<PointLight>();
-    					new_light->id = next_light_id;
-    					new_light->position = selected_entity->position;
-    					new_light->color = glm::vec3(255.0f, 255.0f, 255.0f);
-    					new_light->scale = glm::vec3(1.0f);
-    					new_light->intensity = 1.0f;
-    					new_light->enabled = true;
-
-    					std::shared_ptr<LightSourceComponent> new_component = std::make_shared<LightSourceComponent>(next_id, true, new_light);
-
-    					scene.GetLightSourceComponents().insert_or_assign(next_id, new_component);
-    					scene.GetPointLights().insert_or_assign(next_light_id, new_light);
-    					selected_entity->AddComponent(ComponentType::LIGHT, new_component);
+    					CreateLightSourceComponent();
     				}
     				else
     				{
@@ -980,42 +992,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<PhysicsComponent>())
     				{
-    					uint32_t next_id = 100001;
-    					if (!scene.GetPhysicsComponents().empty())
-    					{
-    						auto max_it = std::max_element(
-								scene.GetPhysicsComponents().begin(),
-								scene.GetPhysicsComponents().end(),
-								[](const auto& a, const auto& b) { return a.first < b.first; }
-							);
-    						next_id = max_it->first + 1;
-    					}
-    					
-    					uint32_t next_po_id = 1000;
-    					if (!scene.GetPhysicsComponents().empty())
-    					{
-    						auto max_it = std::max_element(
-								scene.GetPhysicsComponents().begin(),
-								scene.GetPhysicsComponents().end(),
-								[](const auto& a, const auto& b) { return a.first < b.first; }
-							);
-    						next_po_id = max_it->first + 1;
-    					}
-
-    					std::string physics_name = "Physics Object";
-    					PhysicsBodyType body_type = PhysicsBodyType::DYNAMIC;
-    					PhysicsShapeType shape_type = PhysicsShapeType::BOX;
-    					glm::vec3 dimensions = selected_entity->scale / 2.0f;
-
-    					std::shared_ptr<PhysicsBody> physics_body = physics_system.CreateBoxBody(selected_entity->position, glm::quat(glm::radians(selected_entity->rotation)), dimensions, body_type);
-    					physics_body->id = next_po_id;
-    					physics_body->enabled = true;
-    					physics_body->SetEnabled(true);
-    					physics_body->name = physics_name;
-
-    					std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body);
-    					scene.GetPhysicsComponents().insert_or_assign(next_id, physics_component);
-    					selected_entity->AddComponent(ComponentType::PHYSICS, physics_component);
+    					CreatePhysicsComponent();
     				}
     				else
     				{
@@ -1028,14 +1005,14 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<AnimationComponent>())
     				{
-    					Log::Warning("Animation component not yet implemented");
+    					CreateAnimationComponent();
     				}
-    				else
-    				{
-    					Log::Warning("Entity already has animation component");
-    					ImGui::CloseCurrentPopup();
-    				}
-    			}
+    			  	else
+    			  	{
+    			  		Log::Warning("Entity already has animation component");
+    			  		ImGui::CloseCurrentPopup();
+    			  	}
+    			}  
     			ImGui::EndPopup();
     		}
     	
@@ -1135,11 +1112,62 @@ namespace Bonfire
 
 						std::filesystem::path path_obj(default_model_path);
 						std::string model_name = path_obj.stem().string();
-					
-						std::shared_ptr<Model> new_model = std::make_shared<Model>(default_model_path);
+
+						bool has_animations = false;
+						int animation_count = 0;
+
+						std::filesystem::path absolute_model_path = std::filesystem::absolute(default_model_path);
+						std::string abs_path_str = absolute_model_path.string();
+
+						Log::Info("Scanning for animations in: " + abs_path_str);
+
+						Assimp::Importer temp_importer;
+						const aiScene* temp_scene = temp_importer.ReadFile(abs_path_str, aiProcess_ValidateDataStructure | 0);
+
+						if (!temp_scene)
+						{
+							Log::Warning("Assimp pre-scan failed: " + std::string(temp_importer.GetErrorString()));
+							Log::Info("Will attempt to load as regular model");
+						}
+						else if (temp_scene->HasAnimations() && temp_scene->mNumAnimations > 0)
+						{
+							has_animations = true;
+							animation_count = temp_scene->mNumAnimations;
+							Log::Info("Found " + std::to_string(animation_count) + " animation(s)");
+
+							for (unsigned int i = 0; i < temp_scene->mNumAnimations; i++)
+							{
+								aiAnimation* anim = temp_scene->mAnimations[i];
+								std::string anim_name = anim->mName.C_Str();
+								if (anim_name.empty())
+									anim_name = "Animation_" + std::to_string(i);
+								Log::Info("  - " + anim_name + " (" + std::to_string(anim->mDuration) + " ticks, " +
+										  std::to_string(anim->mTicksPerSecond) + " tps)");
+							}
+						}
+						else
+							Log::Info("No animations found in file");
+
+						std::shared_ptr<Model> new_model;
+						if (has_animations)
+						{
+							Log::Info("Creating SkeletalModel");
+							new_model = std::make_shared<SkeletalModel>(default_model_path);
+							SkeletalModel* skel_model = static_cast<SkeletalModel*>(new_model.get());
+							if (skel_model->GetAnimations().empty())
+								Log::Warning("SkeletalModel created but no animations loaded!");
+							else
+								Log::Info("Successfully loaded " + std::to_string(skel_model->GetAnimations().size()) + " animations");
+						}
+						else
+						{
+							Log::Info("Creating regular Model");
+							new_model = std::make_shared<Model>(default_model_path);
+							new_model->Load();
+						}
+
 						new_model->param_id = next_id;
 						new_model->name = model_name;
-						new_model->Load();
 
 						std::vector<std::shared_ptr<Texture>> auto_textures;
 						for (const auto& [tex_path, tex_type] : new_model->extracted_texture_paths)
@@ -1554,7 +1582,171 @@ namespace Bonfire
 		);
     }
 
-	
+	void Editor::CreateModelComponent()
+	{
+		Scene& scene = Project::GetRenderer().GetScene();
+		
+		uint32_t next_id = 100001;
+		if (!scene.GetModelComponents().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetModelComponents().begin(),
+				scene.GetModelComponents().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+				);
+			next_id = max_it->first + 1;
+		}
+
+		if (!scene.GetModels().empty())
+		{
+			std::shared_ptr<Model> default_model = scene.GetModels().begin()->second;
+			std::shared_ptr<Shader> default_shader = scene.GetShaders().begin()->second;
+			std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
+			std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, default_material);
+
+			scene.GetModelComponents().insert_or_assign(next_id, new_component);
+			selected_entity->AddComponent(ComponentType::MODEL, new_component);
+		}
+		else
+			Log::Warning("No models available");
+	}
+	void Editor::CreateLightSourceComponent()
+	{
+		Scene& scene = Project::GetRenderer().GetScene();
+		
+		uint32_t next_id = 100001;
+		if (!scene.GetLightSourceComponents().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetLightSourceComponents().begin(),
+				scene.GetLightSourceComponents().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_id = max_it->first + 1;
+		}
+
+		uint32_t next_light_id = 1000;
+		if (!scene.GetPointLights().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetPointLights().begin(),
+				scene.GetPointLights().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_light_id = max_it->first + 1;
+		}
+    					
+		std::shared_ptr<PointLight> new_light = std::make_shared<PointLight>();
+		new_light->id = next_light_id;
+		new_light->position = selected_entity->position;
+		new_light->color = glm::vec3(255.0f, 255.0f, 255.0f);
+		new_light->scale = glm::vec3(1.0f);
+		new_light->intensity = 1.0f;
+		new_light->enabled = true;
+
+		std::shared_ptr<LightSourceComponent> new_component = std::make_shared<LightSourceComponent>(next_id, true, new_light);
+
+		scene.GetLightSourceComponents().insert_or_assign(next_id, new_component);
+		scene.GetPointLights().insert_or_assign(next_light_id, new_light);
+		selected_entity->AddComponent(ComponentType::LIGHT, new_component);
+	}
+	void Editor::CreatePhysicsComponent()
+	{
+		Scene& scene = Project::GetRenderer().GetScene();
+		PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+		
+		uint32_t next_id = 100001;
+		if (!scene.GetPhysicsComponents().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetPhysicsComponents().begin(),
+				scene.GetPhysicsComponents().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_id = max_it->first + 1;
+		}
+    					
+		uint32_t next_po_id = 1000;
+		if (!scene.GetPhysicsComponents().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetPhysicsComponents().begin(),
+				scene.GetPhysicsComponents().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_po_id = max_it->first + 1;
+		}
+
+		std::string physics_name = "Physics Object";
+		PhysicsBodyType body_type = PhysicsBodyType::DYNAMIC;
+		PhysicsShapeType shape_type = PhysicsShapeType::BOX;
+		glm::vec3 dimensions = selected_entity->scale / 2.0f;
+
+		std::shared_ptr<PhysicsBody> physics_body = physics_system.CreateBoxBody(selected_entity->position, glm::quat(glm::radians(selected_entity->rotation)), dimensions, body_type);
+		physics_body->id = next_po_id;
+		physics_body->enabled = true;
+		physics_body->SetEnabled(true);
+		physics_body->name = physics_name;
+
+		std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body);
+		scene.GetPhysicsComponents().insert_or_assign(next_id, physics_component);
+		selected_entity->AddComponent(ComponentType::PHYSICS, physics_component);
+	}
+	void Editor::CreateAnimationComponent()
+	{
+		Scene& scene = Project::GetRenderer().GetScene();
+		
+		if (!selected_entity->HasComponent<ModelComponent>())
+    	{
+    		Log::Warning("Entity must have animated model to add animator");
+    	}
+	    else
+	    {
+	    	ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+    	
+	    	std::shared_ptr<SkeletalModel> skeletal_model = std::static_pointer_cast<SkeletalModel>(model_component.model);
+
+	    	if (skeletal_model->GetAnimations().empty())
+	    	{
+	    		Log::Warning("Skeletal model has no animations loaded");
+	    		ImGui::CloseCurrentPopup();
+	    	}
+	    	else
+	    	{
+	    		uint32_t next_id = 100001;
+	    		if (!scene.GetAnimationComponents().empty())
+	    		{
+	    			auto max_it = std::max_element(
+						scene.GetAnimationComponents().begin(),
+						scene.GetAnimationComponents().end(),
+						[](const auto& a, const auto& b) { return a.first < b.first; }
+					);
+	    			next_id = max_it->first + 1;
+	    		}
+
+	    		std::shared_ptr<Animator> animator = std::make_shared<Animator>(skeletal_model->GetSkeleton());
+
+	    		for (const auto& animation : skeletal_model->GetAnimations())
+	    		{
+	    			animator->AddAnimation(animation);
+	    		}
+
+	    		std::shared_ptr<AnimationComponent> anim_comp = std::make_shared<AnimationComponent>(next_id, true, animator);
+
+	    		scene.GetAnimationComponents().insert_or_assign(next_id, anim_comp);
+	    		selected_entity->AddComponent(ComponentType::ANIMATION, anim_comp);
+
+	    		Log::Info("Added Animation Component with " + std::to_string(skeletal_model->GetAnimations().size()) + " animation(s)");
+
+	    		for (const auto& anim : skeletal_model->GetAnimations())
+	    		{
+	    			Log::Info("  - " + anim->GetName());
+	    		}
+
+	    		ImGui::CloseCurrentPopup();
+	    	}
+	    }
+	}
 
 	void Editor::CreateEntity(std::shared_ptr<Entity> parent)
 	{

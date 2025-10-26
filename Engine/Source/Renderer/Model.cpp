@@ -35,7 +35,7 @@ namespace Bonfire
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            Log::Error("ERROR::ASSIMP::" + std::string(import.GetErrorString()) + "\n");
+            Log::Error("ERROR::ASSIMP::" + std::string(import.GetErrorString()));
             return;
         }
         this->directory = path.substr(0, path.find_last_of('/'));

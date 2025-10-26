@@ -27,18 +27,16 @@ namespace Bonfire
 			switch (textures[i]->type)
 			{
 			case TextureType::DIFFUSE:
-					texture_type_name = "diffuse";
-					break;
+				texture_type_name = "diffuse";
+				break;
 			case TextureType::SPECULAR:
-					texture_type_name = "specular";
-					break;
+				texture_type_name = "specular";
+				break;
 			case TextureType::NORMAL:
-					texture_type_name = "normal";
-					break;
+				texture_type_name = "normal";
+				break;
 			case TextureType::HEIGHT:
-					texture_type_name = "height";
-					break;
-			default:
+				texture_type_name = "height";
 				break;
 			}
 			shader.SetInt("material."+texture_type_name, static_cast<int>(i));

@@ -18,6 +18,12 @@
 #include "Physics/PhysicsBody.hpp"
 #include "Physics/PhysicsSystem.hpp"
 
+// Animation
+#include "Animation/Skeleton.hpp"
+#include "Animation/AnimationTrack.hpp"
+#include "Animation/Animation.hpp"
+#include "Animation/Animator.hpp"
+
 // Renderer
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Shader.hpp"
@@ -27,6 +33,8 @@
 #include "Renderer/Texture.hpp"
 #include "Renderer/Material.hpp"
 #include "Renderer/Mesh.hpp"
+#include "Renderer/Model.hpp"
+#include "Renderer/SkeletalModel.hpp"
 #include "Renderer/ParamDatabase.hpp"
 #include "Renderer/Entity.hpp"
 #include "Renderer/Scene.hpp"
