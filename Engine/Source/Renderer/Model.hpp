@@ -13,11 +13,11 @@ namespace Bonfire
         Model(std::string path);
         
         void Load();
-        virtual void Draw(Shader& shader, std::shared_ptr<Material> material);
+        virtual void Draw(Shader& shader, std::vector<std::shared_ptr<Material>>& materials);
         void ProcessNode(aiNode* node, const aiScene* scene);
         Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
 
-        AABB CalculateAABB() const;
+        virtual AABB CalculateAABB() const;
         virtual bool IsAnimated() const { return false; }
 
     public:
@@ -28,5 +28,6 @@ namespace Bonfire
         std::string directory;
         std::vector<Mesh> meshes;
         std::vector<std::pair<std::string, TextureType>> extracted_texture_paths;
+        std::vector<uint32_t> mesh_material_indices;
     };
 }

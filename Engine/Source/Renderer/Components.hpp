@@ -22,16 +22,16 @@ namespace Bonfire
     {
         std::shared_ptr<Model> model;
         std::shared_ptr<Shader> shader;
-        std::shared_ptr<Material> material;
+        std::vector<std::shared_ptr<Material>> materials;
 
         ModelComponent() {}
-        ModelComponent(uint32_t id, bool enabled, std::shared_ptr<Model> model, std::shared_ptr<Shader> shader, std::shared_ptr<Material> material)
+        ModelComponent(uint32_t id, bool enabled, std::shared_ptr<Model> model, std::shared_ptr<Shader> shader, std::vector<std::shared_ptr<Material>> materials)
         {
             this->id = id;
             this->enabled = enabled;
             this->model = model;
             this->shader = shader;
-            this->material = material;
+            this->materials = materials;
         }
     };
 

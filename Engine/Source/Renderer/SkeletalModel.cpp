@@ -18,35 +18,49 @@ namespace Bonfire
         }
     }
     
-    void SkeletalModel::Draw(Shader& shader, std::shared_ptr<Material> material)
+    void SkeletalModel::Draw(Shader& shader,  std::vector<std::shared_ptr<Material>>& materials)
     {
         // Draw all skeletal meshes
-        for (const auto& mesh : skeletal_meshes)
+        for (size_t i = 0; i < skeletal_meshes.size(); i++)
         {
-            const auto& textures = material->textures;
-    	
-            for (unsigned int i = 0; i < textures.size(); i++)
-            {
-                glActiveTexture(GL_TEXTURE0+i);
+            const auto& mesh = skeletal_meshes[i];
+            size_t mat_idx = (mesh.material_index < materials.size()) ? mesh.material_index : 0;
+            if (materials.empty()) continue;
 
+            const auto& material = materials[mat_idx];
+            const auto& textures = material->textures;
+            
+            for (const std::shared_ptr<Texture>& texture : textures)
+            {
+                unsigned int texture_unit = 0;
                 std::string texture_type_name = "diffuse";
-                switch (textures[i]->type)
+                switch (texture->type)
                 {
                 case TextureType::DIFFUSE:
+                    texture_unit = 0;
                     texture_type_name = "diffuse";
                     break;
                 case TextureType::SPECULAR:
+                    texture_unit = 1;
                     texture_type_name = "specular";
                     break;
                 case TextureType::NORMAL:
+                    texture_unit = 2;
                     texture_type_name = "normal";
                     break;
                 case TextureType::HEIGHT:
+                    texture_unit = 3;
                     texture_type_name = "height";
                     break;
+                case TextureType::EMISSION:
+                    texture_unit = 4;
+                    texture_type_name = "emission";
+                    break;
                 }
-                shader.SetInt("material."+texture_type_name, static_cast<int>(i));
-                glBindTexture(GL_TEXTURE_2D, textures[i]->gl_id);
+			
+                glActiveTexture(GL_TEXTURE0+texture_unit);
+                shader.SetInt("material."+texture_type_name, static_cast<int>(texture_unit));
+                glBindTexture(GL_TEXTURE_2D, texture->gl_id);
             }
         
             // bind and draw mesh
@@ -57,6 +71,17 @@ namespace Bonfire
             glBindVertexArray(0);
             glActiveTexture(GL_TEXTURE0);
         }
+    }
+
+    AABB SkeletalModel::CalculateAABB() const
+    {
+        AABB aabb;
+        for (const auto& mesh : skeletal_meshes)
+        {
+            for (const auto& vertex : mesh.vertices)
+                aabb.Expand(vertex.position);
+        }
+        return aabb;
     }
   
     void SkeletalModel::LoadSkeletalModel(const std::string& path)
@@ -213,65 +238,97 @@ namespace Bonfire
   
     void SkeletalModel::LoadBones(aiMesh* mesh, std::vector<SkeletalVertex>& vertices)
     {
-        for (unsigned int i = 0; i < mesh->mNumBones; i++)
+        std::vector<std::vector<std::pair<int, float>>> vertex_bone_data(vertices.size());
+
+       for (unsigned int i = 0; i < mesh->mNumBones; i++)
+       {
+           aiBone* bone = mesh->mBones[i];
+           std::string bone_name = bone->mName.C_Str();
+           int bone_index = -1;
+
+           if (bone_map.find(bone_name) == bone_map.end())
+           {
+               aiMatrix4x4 offset = bone->mOffsetMatrix;
+               glm::mat4 offset_matrix;
+
+               offset_matrix[0][0] = offset.a1; offset_matrix[1][0] = offset.a2;
+               offset_matrix[2][0] = offset.a3; offset_matrix[3][0] = offset.a4;
+               offset_matrix[0][1] = offset.b1; offset_matrix[1][1] = offset.b2;
+               offset_matrix[2][1] = offset.b3; offset_matrix[3][1] = offset.b4;
+               offset_matrix[0][2] = offset.c1; offset_matrix[1][2] = offset.c2;
+               offset_matrix[2][2] = offset.c3; offset_matrix[3][2] = offset.c4;
+               offset_matrix[0][3] = offset.d1; offset_matrix[1][3] = offset.d2;
+               offset_matrix[2][3] = offset.d3; offset_matrix[3][3] = offset.d4;
+
+               int parent_index = -1;
+               aiNode* bone_node = ai_scene->mRootNode->FindNode(bone->mName);
+               if (bone_node && bone_node->mParent)
+               {
+                   std::string parent_name = bone_node->mParent->mName.C_Str();
+                   if (bone_map.find(parent_name) != bone_map.end())
+                   {
+                       parent_index = bone_map[parent_name];
+                   }
+               }
+
+               skeleton->AddBone(bone_name, parent_index, offset_matrix);
+               bone_index = skeleton->GetBoneIndex(bone_name);
+               bone_map[bone_name] = bone_index;
+           }
+           else
+           {
+               bone_index = bone_map[bone_name];
+           }
+
+           for (unsigned int j = 0; j < bone->mNumWeights; j++)
+           {
+               unsigned int vertex_id = bone->mWeights[j].mVertexId;
+               float weight = bone->mWeights[j].mWeight;
+
+               if (vertex_id < vertices.size())
+               {
+                   vertex_bone_data[vertex_id].push_back({bone_index, weight});
+               }
+           }
+       }
+
+        int vertices_with_more_than_4 = 0;
+        int max_influences = 0;
+  
+        for (size_t i = 0; i < vertices.size(); i++)
         {
-            aiBone* bone = mesh->mBones[i];
-            std::string bone_name = bone->mName.C_Str();
-            int bone_index = -1;
+            auto& bone_list = vertex_bone_data[i];
   
-            if (bone_map.find(bone_name) == bone_map.end())
+            if (bone_list.size() > 4)
             {
-                aiMatrix4x4 offset = bone->mOffsetMatrix;
-                glm::mat4 offset_matrix;
+                vertices_with_more_than_4++;
+                max_influences = (std::max)(max_influences, (int)bone_list.size());
   
-                offset_matrix[0][0] = offset.a1; offset_matrix[1][0] = offset.a2;
-                offset_matrix[2][0] = offset.a3; offset_matrix[3][0] = offset.a4;
-                offset_matrix[0][1] = offset.b1; offset_matrix[1][1] = offset.b2;
-                offset_matrix[2][1] = offset.b3; offset_matrix[3][1] = offset.b4;
-                offset_matrix[0][2] = offset.c1; offset_matrix[1][2] = offset.c2;
-                offset_matrix[2][2] = offset.c3; offset_matrix[3][2] = offset.c4;
-                offset_matrix[0][3] = offset.d1; offset_matrix[1][3] = offset.d2;
-                offset_matrix[2][3] = offset.d3; offset_matrix[3][3] = offset.d4;
+                std::sort(bone_list.begin(), bone_list.end(),
+                    [](const std::pair<int, float>& a, const std::pair<int, float>& b) {
+                        return a.second > b.second;
+                    });
   
-                int parent_index = -1;
-                aiNode* bone_node = ai_scene->mRootNode->FindNode(bone->mName);
-                if (bone_node && bone_node->mParent)
-                    {
-                    std::string parent_name = bone_node->mParent->mName.C_Str();
-                    if (bone_map.find(parent_name) != bone_map.end())
-                        {
-                        parent_index = bone_map[parent_name];
-                    }
-                }
-  
-                skeleton->AddBone(bone_name, parent_index, offset_matrix);
-                bone_index = skeleton->GetBoneIndex(bone_name);
-                bone_map[bone_name] = bone_index;
-            }
-            else
-                {
-                bone_index = bone_map[bone_name];
+                bone_list.resize(4);
             }
   
-            for (unsigned int j = 0; j < bone->mNumWeights; j++)
-                {
-                unsigned int vertex_id = bone->mWeights[j].mVertexId;
-                float weight = bone->mWeights[j].mWeight;
-  
-                if (vertex_id < vertices.size())
-                    {
-                    vertices[vertex_id].AddBoneData(bone_index, weight);
-                }
+            for (size_t j = 0; j < bone_list.size() && j < 4; j++)
+            {
+                vertices[i].bone_ids[j] = bone_list[j].first;
+                vertices[i].bone_weights[j] = bone_list[j].second;
             }
         }
   
-        for (auto& vertex : vertices)
-            {
-            float total_weight = vertex.bone_weights.x + vertex.bone_weights.y +
-                                vertex.bone_weights.z + vertex.bone_weights.w;
+        if (vertices_with_more_than_4 > 0)
+        {
+            Log::Warning("Mesh has " + std::to_string(vertices_with_more_than_4) + " vertices with >4 bone influences (max: " + std::to_string(max_influences) + "). Keeping top 4 weights per vertex.");
+        }
   
+        for (auto& vertex : vertices)
+        {
+            float total_weight = vertex.bone_weights.x + vertex.bone_weights.y + vertex.bone_weights.z + vertex.bone_weights.w;
             if (total_weight > 0.0f)
-                {
+            {
                 vertex.bone_weights /= total_weight;
             }
         }

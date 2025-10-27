@@ -664,9 +664,6 @@ namespace Bonfire
     			if (ImGui::Button(model_component.shader->name.c_str(), ImVec2(100, 22)))
     				ImGui::OpenPopup("ChangeShaderModelComponent");
     			ImGui::SameLine(); ImGui::Text("Shader");
-    			if (ImGui::Button(model_component.material->name.c_str(), ImVec2(100, 22)))
-    				ImGui::OpenPopup("ChangeMaterialModelComponent");
-    			ImGui::SameLine(); ImGui::Text("Material");
 
     			if (ImGui::BeginPopup("ChangeModelModelComponent"))
     			{
@@ -696,19 +693,28 @@ namespace Bonfire
     				}
     				ImGui::EndPopup();
     			}
-    			if (ImGui::BeginPopup("ChangeMaterialModelComponent"))
+    			ImGui::Text("Materials", model_component.materials.size());
+    			for (size_t i = 0; i < model_component.materials.size(); i++)
     			{
-    				for (auto& [id, scene_item] : scene.GetMaterials())
+    				ImGui::PushID(&model_component.materials[i]);
+    				std::string label = "Mesh " + std::to_string(i);
+    				if (ImGui::Button(model_component.materials[i]->name.c_str(), ImVec2(100, 22)))
+    					ImGui::OpenPopup("ChangeMaterialMesh");
+    				ImGui::SameLine(); ImGui::Text(label.c_str());
+
+    				if (ImGui::BeginPopup("ChangeMaterialMesh"))
     				{
-    					ImGui::PushID(&id);
-    					if (ImGui::Selectable(scene_item->name.c_str(), false, 0))
+    					for (auto& [id, mat] : scene.GetMaterials())
     					{
-    						model_component.material = scene_item;
-    						ImGui::CloseCurrentPopup();
+    						if (ImGui::Selectable(mat->name.c_str(), false, 0))
+    						{
+    							model_component.materials[i] = mat;
+    							ImGui::CloseCurrentPopup();
+    						}
     					}
-    					ImGui::PopID();
+    					ImGui::EndPopup();
     				}
-    				ImGui::EndPopup();
+    				ImGui::PopID();
     			}
 
     			ImGui::PopID();
@@ -898,7 +904,7 @@ namespace Bonfire
     			ImGui::Separator();
     			ImGui::Checkbox("##Enabled", &animation_component.enabled);
     			ImGui::SameLine();
-    			ImGui::Text("Physics Component");
+    			ImGui::Text("Animation Component");
     			ImGui::SameLine();
     			ImGui::Text(std::to_string(animation_component.id).c_str());
     			ImGui::Spacing();
@@ -914,9 +920,13 @@ namespace Bonfire
     			ImGui::Text("State: %s", state_text.c_str());
     			
     			ImGui::Checkbox("Loop", &animator.GetLoop());
+    			ImGui::PushItemWidth(100.0f);
     			ImGui::SliderFloat("Speed", &animator.GetSpeed(), 0.0f, 10.0f);
-    			//float progress = animator.GetCurrentAnimation()->GetDuration() > 0.0f ? animator.GetCurrentAnimationTime() /animator.GetCurrentAnimation()->GetDuration() : 0.0f;
-    			//ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.0f));
+    			ImGui::PopItemWidth();
+    			ImGui::PushItemWidth(300.0f);
+    			float progress = animator.GetCurrentAnimation() && animator.GetCurrentAnimation()->GetDuration() > 0.0f ? animator.GetCurrentAnimationTime() / animator.GetCurrentAnimation()->GetDuration() : 0.0f;
+    			ImGui::ProgressBar(progress);
+    			ImGui::PopItemWidth();
 
     			if (animator.GetState() == AnimationState::PLAYING)
     			{
@@ -946,8 +956,16 @@ namespace Bonfire
     			ImGui::Spacing();
 
     			ImGui::Text("Animations");
+    			ImGui::PushItemWidth(100.0f);
     			for (auto& [animation_name, animation] : animator.GetAnimations())
-    				ImGui::Text("  - %s", animation_name.c_str());
+    			{
+    				if (ImGui::Button(animation_name.c_str()))
+    				{
+    					animator.Stop();
+    					animator.Play(animation_name);
+    				}
+    			}
+    			ImGui::PopItemWidth();
     			
     			ImGui::PopID();
     		}
@@ -967,6 +985,7 @@ namespace Bonfire
     				if (!selected_entity->HasComponent<ModelComponent>())
     				{
     					CreateModelComponent();
+    					ImGui::CloseCurrentPopup();
     				}
     				else
     				{
@@ -980,6 +999,7 @@ namespace Bonfire
     				if (!selected_entity->HasComponent<LightSourceComponent>())
     				{
     					CreateLightSourceComponent();
+    					ImGui::CloseCurrentPopup();
     				}
     				else
     				{
@@ -993,6 +1013,7 @@ namespace Bonfire
     				if (!selected_entity->HasComponent<PhysicsComponent>())
     				{
     					CreatePhysicsComponent();
+    					ImGui::CloseCurrentPopup();
     				}
     				else
     				{
@@ -1006,6 +1027,7 @@ namespace Bonfire
     				if (!selected_entity->HasComponent<AnimationComponent>())
     				{
     					CreateAnimationComponent();
+    					ImGui::CloseCurrentPopup();
     				}
     			  	else
     			  	{
@@ -1118,8 +1140,6 @@ namespace Bonfire
 
 						std::filesystem::path absolute_model_path = std::filesystem::absolute(default_model_path);
 						std::string abs_path_str = absolute_model_path.string();
-
-						Log::Info("Scanning for animations in: " + abs_path_str);
 
 						Assimp::Importer temp_importer;
 						const aiScene* temp_scene = temp_importer.ReadFile(abs_path_str, aiProcess_ValidateDataStructure | 0);
@@ -1249,7 +1269,7 @@ namespace Bonfire
 						}
 						
 						scene.GetModels().insert_or_assign(next_id, new_model);
-						param_database.model_params.insert_or_assign(next_id, ModelParamData(model_name, default_model_path));
+						param_database.model_params.insert_or_assign(next_id, ModelParamData(model_name, default_model_path, new_model->IsAnimated()));
 					}
 					else
 						Log::Info("File operation cancelled");
@@ -1260,7 +1280,7 @@ namespace Bonfire
 		    
 		    if (ImGui::BeginTabItem("Texture Params"))
 		    {
-		        const char* texture_type_names[] = { "Diffuse", "Specular", "Normal", "Height" };
+		        const char* texture_type_names[] = { "Diffuse", "Specular", "Normal", "Height" , "Emission" };
 		        for (auto& [texture_id, texture_data] : param_database.texture_params)
 		        {
 		        	ImGui::PushID(&texture_data);
@@ -1602,7 +1622,9 @@ namespace Bonfire
 			std::shared_ptr<Model> default_model = scene.GetModels().begin()->second;
 			std::shared_ptr<Shader> default_shader = scene.GetShaders().begin()->second;
 			std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
-			std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, default_material);
+			size_t mesh_count = default_model->meshes.size();
+			std::vector<std::shared_ptr<Material>> materials_vec(mesh_count, default_material);
+			std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, materials_vec);
 
 			scene.GetModelComponents().insert_or_assign(next_id, new_component);
 			selected_entity->AddComponent(ComponentType::MODEL, new_component);
@@ -1678,9 +1700,13 @@ namespace Bonfire
 		}
 
 		std::string physics_name = "Physics Object";
-		PhysicsBodyType body_type = PhysicsBodyType::DYNAMIC;
+		PhysicsBodyType body_type = PhysicsBodyType::STATIC;
 		PhysicsShapeType shape_type = PhysicsShapeType::BOX;
-		glm::vec3 dimensions = selected_entity->scale / 2.0f;
+		glm::vec3 dimensions = glm::vec3(
+			(std::max)(selected_entity->scale.x, 0.1f),
+			(std::max)(selected_entity->scale.y, 0.1f),
+			(std::max)(selected_entity->scale.z, 0.1f)
+			);
 
 		std::shared_ptr<PhysicsBody> physics_body = physics_system.CreateBoxBody(selected_entity->position, glm::quat(glm::radians(selected_entity->rotation)), dimensions, body_type);
 		physics_body->id = next_po_id;
@@ -1698,53 +1724,59 @@ namespace Bonfire
 		
 		if (!selected_entity->HasComponent<ModelComponent>())
     	{
-    		Log::Warning("Entity must have animated model to add animator");
+    		Log::Warning("Entity must have model to add animator");
+			ImGui::CloseCurrentPopup();
+			return;
     	}
+		
+		ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+		if (!model_component.model->IsAnimated())
+		{
+			Log::Warning("Model must be animated (skeletal) to add animator");
+			ImGui::CloseCurrentPopup();
+			return;
+		}
+		
+	    std::shared_ptr<SkeletalModel> skeletal_model = std::static_pointer_cast<SkeletalModel>(model_component.model);
+
+	    if (skeletal_model->GetAnimations().empty())
+	    {
+	    	Log::Warning("Skeletal model has no animations loaded");
+	    	ImGui::CloseCurrentPopup();
+	    }
 	    else
 	    {
-	    	ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
-    	
-	    	std::shared_ptr<SkeletalModel> skeletal_model = std::static_pointer_cast<SkeletalModel>(model_component.model);
-
-	    	if (skeletal_model->GetAnimations().empty())
+	    	uint32_t next_id = 100001;
+	    	if (!scene.GetAnimationComponents().empty())
 	    	{
-	    		Log::Warning("Skeletal model has no animations loaded");
-	    		ImGui::CloseCurrentPopup();
+	    		auto max_it = std::max_element(
+					scene.GetAnimationComponents().begin(),
+					scene.GetAnimationComponents().end(),
+					[](const auto& a, const auto& b) { return a.first < b.first; }
+				);
+	    		next_id = max_it->first + 1;
 	    	}
-	    	else
+
+	    	std::shared_ptr<Animator> animator = std::make_shared<Animator>(skeletal_model->GetSkeleton());
+
+	    	for (const auto& animation : skeletal_model->GetAnimations())
 	    	{
-	    		uint32_t next_id = 100001;
-	    		if (!scene.GetAnimationComponents().empty())
-	    		{
-	    			auto max_it = std::max_element(
-						scene.GetAnimationComponents().begin(),
-						scene.GetAnimationComponents().end(),
-						[](const auto& a, const auto& b) { return a.first < b.first; }
-					);
-	    			next_id = max_it->first + 1;
-	    		}
-
-	    		std::shared_ptr<Animator> animator = std::make_shared<Animator>(skeletal_model->GetSkeleton());
-
-	    		for (const auto& animation : skeletal_model->GetAnimations())
-	    		{
-	    			animator->AddAnimation(animation);
-	    		}
-
-	    		std::shared_ptr<AnimationComponent> anim_comp = std::make_shared<AnimationComponent>(next_id, true, animator);
-
-	    		scene.GetAnimationComponents().insert_or_assign(next_id, anim_comp);
-	    		selected_entity->AddComponent(ComponentType::ANIMATION, anim_comp);
-
-	    		Log::Info("Added Animation Component with " + std::to_string(skeletal_model->GetAnimations().size()) + " animation(s)");
-
-	    		for (const auto& anim : skeletal_model->GetAnimations())
-	    		{
-	    			Log::Info("  - " + anim->GetName());
-	    		}
-
-	    		ImGui::CloseCurrentPopup();
+	    		animator->AddAnimation(animation);
 	    	}
+
+	    	std::shared_ptr<AnimationComponent> anim_comp = std::make_shared<AnimationComponent>(next_id, true, animator);
+
+	    	scene.GetAnimationComponents().insert_or_assign(next_id, anim_comp);
+	    	selected_entity->AddComponent(ComponentType::ANIMATION, anim_comp);
+
+	    	Log::Info("Added Animation Component with " + std::to_string(skeletal_model->GetAnimations().size()) + " animation(s)");
+
+	    	for (const auto& anim : skeletal_model->GetAnimations())
+	    	{
+	    		Log::Info("  - " + anim->GetName());
+	    	}
+
+	    	ImGui::CloseCurrentPopup();
 	    }
 	}
 
@@ -1819,7 +1851,7 @@ namespace Bonfire
 				  original_component.enabled,
 				  original_component.model,
 				  original_component.shader,
-				  original_component.material
+				  original_component.materials
 				);
 
 				scene.GetModelComponents().insert_or_assign(next_comp_id, new_component);

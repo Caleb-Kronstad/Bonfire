@@ -31,6 +31,7 @@ namespace Bonfire
         GLuint vertex_buffer, element_buffer, vertex_array;
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
+        uint32_t material_index = 0;
     };
 
 }

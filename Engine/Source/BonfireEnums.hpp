@@ -25,7 +25,8 @@ namespace Bonfire
         DIFFUSE,
         SPECULAR,
         NORMAL,
-        HEIGHT
+        HEIGHT,
+        EMISSION
     };
 
     enum class PhysicsBodyType : std::uint8_t

@@ -15,7 +15,7 @@ namespace Bonfire
 		
 		ModelComponent& model_component = GetComponent<ModelComponent>();
 
-		if (!model_component.enabled || !model_component.model || !model_component.shader || !model_component.material) return;
+		if (!model_component.enabled || !model_component.model || !model_component.shader) return;
 
 		manipulation_matrix = GetWorldTransformMatrix(scene.GetEntities());
 
@@ -101,7 +101,7 @@ namespace Bonfire
 		}
 		
 		shader->SetMat4("model", manipulation_matrix);
-		model_component.model->Draw(*shader, model_component.material);
+		model_component.model->Draw(*shader, model_component.materials);
 	}
 
 	void Entity::UpdateComponents(PhysicsSystem& physics_system)

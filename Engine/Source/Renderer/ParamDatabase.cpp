@@ -32,8 +32,9 @@ namespace Bonfire
 
             std::string name = value["name"].get<std::string>();
             std::string path = value["path"].get<std::string>();
+            bool is_animated = value["is_animated"].get<bool>();
 
-            model_params[ref] = ModelParamData(name, path);
+            model_params[ref] = ModelParamData(name, path, is_animated);
         }
         model_file.close();
 
@@ -150,7 +151,8 @@ namespace Bonfire
             std::string key = std::to_string(ref);
             model_json[key] = {
                 {"name", data.name},
-                {"path", data.path}
+                {"path", data.path},
+                {"is_animated", data.is_animated}
             };
         }
 

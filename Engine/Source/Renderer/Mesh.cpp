@@ -19,28 +19,37 @@ namespace Bonfire
     {
 		const auto& textures = material->textures;
     	
-		for (unsigned int i = 0; i < textures.size(); i++)
+    	for (const std::shared_ptr<Texture>& texture : textures)
 		{
-		    glActiveTexture(GL_TEXTURE0+i);
-
+			unsigned int texture_unit = 0;
 			std::string texture_type_name = "diffuse";
-			switch (textures[i]->type)
+			switch (texture->type)
 			{
 			case TextureType::DIFFUSE:
+				texture_unit = 0;
 				texture_type_name = "diffuse";
 				break;
 			case TextureType::SPECULAR:
+				texture_unit = 1;
 				texture_type_name = "specular";
 				break;
 			case TextureType::NORMAL:
+				texture_unit = 2;
 				texture_type_name = "normal";
 				break;
 			case TextureType::HEIGHT:
+				texture_unit = 3;
 				texture_type_name = "height";
 				break;
+			case TextureType::EMISSION:
+				texture_unit = 4;
+				texture_type_name = "emission";
+				break;
 			}
-			shader.SetInt("material."+texture_type_name, static_cast<int>(i));
-			glBindTexture(GL_TEXTURE_2D, textures[i]->gl_id);
+			
+		    glActiveTexture(GL_TEXTURE0+texture_unit);
+			shader.SetInt("material."+texture_type_name, static_cast<int>(texture_unit));
+			glBindTexture(GL_TEXTURE_2D, texture->gl_id);
 		}
         
         // bind and draw mesh

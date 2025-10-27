@@ -1,14 +1,22 @@
 {
     "1000": {
         "name": "Cube",
-        "path": "Data/Editor/Defaults/Models/Cube.obj"
+        "path": "Data/Editor/Defaults/Models/Cube.obj",
+        "is_animated": false
     },
     "1001": {
         "name": "Sphere",
-        "path": "Data/Editor/Defaults/Models/Sphere.obj"
+        "path": "Data/Editor/Defaults/Models/Sphere.obj",
+        "is_animated": false
     },
     "1002": {
         "name": "bald_dude",
-        "path": "Data/Resources/Models/bald_dude.obj"
+        "path": "Data/Resources/Models/bald_dude.obj",
+        "is_animated": false
+    },
+    "1003": {
+        "name": "test animated",
+        "path": "Data/Resources/Models/Yuup-v001.fbx",
+        "is_animated": true
     }
 }

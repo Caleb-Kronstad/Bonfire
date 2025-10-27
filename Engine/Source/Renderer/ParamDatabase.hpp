@@ -8,9 +8,10 @@ namespace Bonfire
     {
         std::string name;
         std::string path;
+        bool is_animated;
 
         ModelParamData() { name = ""; path = "";}
-        ModelParamData(const std::string& name, const std::string& path) : name(name), path(path) {}
+        ModelParamData(const std::string& name, const std::string& path, const bool& is_animated) : name(name), path(path), is_animated(is_animated) {}
     };
     struct TextureParamData
     {

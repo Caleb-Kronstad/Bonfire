@@ -9,11 +9,13 @@ namespace Bonfire
         : path(path)
     {
     }
-    void Model::Draw(Shader& shader, std::shared_ptr<Material> material)
+    void Model::Draw(Shader& shader, std::vector<std::shared_ptr<Material>>& materials)
     {
-        for (Mesh& mesh : meshes)
+        for (size_t i = 0; i < meshes.size(); i++)
         {
-            mesh.Draw(shader, material);
+            size_t mat_idx = (i < mesh_material_indices.size()) ? mesh_material_indices[i] : 0;
+            mat_idx = (std::min)(mat_idx, materials.size() - 1);
+            meshes[i].Draw(shader, materials[mat_idx]);
         }
     }
 
@@ -70,6 +72,7 @@ namespace Bonfire
             extractTextures(aiTextureType_SPECULAR, TextureType::SPECULAR);
             extractTextures(aiTextureType_NORMALS, TextureType::NORMAL);
             extractTextures(aiTextureType_HEIGHT, TextureType::HEIGHT);
+            extractTextures(aiTextureType_EMISSIVE, TextureType::EMISSION);
         }
         ProcessNode(scene->mRootNode, scene);
 
@@ -94,6 +97,8 @@ namespace Bonfire
     {
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
+
+        mesh_material_indices.push_back(ai_mesh->mMaterialIndex);
 
         // process vertices
         for (unsigned int i = 0; i < ai_mesh->mNumVertices; i++)
@@ -123,8 +128,8 @@ namespace Bonfire
             for (unsigned int j = 0; j < face.mNumIndices; j++)
                 indices.push_back(face.mIndices[j]);
         }
-
-        return {vertices, indices};
+        
+        return Mesh(vertices, indices);
     }
 
 }

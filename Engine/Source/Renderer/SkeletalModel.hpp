@@ -31,6 +31,7 @@ namespace Bonfire
         std::vector<unsigned int> indices;
         unsigned int vertex_array, vertex_buffer, element_buffer;
         std::string material_name;
+        uint32_t material_index = 0;
   
         SkeletalMesh() : vertex_array(0), vertex_buffer(0), element_buffer(0) {}
     };
@@ -46,7 +47,8 @@ namespace Bonfire
   
         bool IsAnimated() const override { return true; }
   
-        void Draw(Shader& shader, std::shared_ptr<Material> material) override;
+        void Draw(Shader& shader,  std::vector<std::shared_ptr<Material>>& materials) override;
+        AABB CalculateAABB() const override;
   
     private:
         void LoadSkeletalModel(const std::string& path);
