@@ -37,24 +37,8 @@ namespace Bonfire
 				scene.UpdateLightSources(*shader);
 				scene.GetShadowMap()->Draw();
 				scene.GetShadowMap()->updated_this_frame = true;
-				shader->updated_this_frame = true;
 			}
-		}
-		else if (shader->name == "Lit Animated")
-		{
-			if (!shader->updated_this_frame)
-			{
-				shader->SetVec3("view_pos", camera.position);
-				shader->SetFloat("far_plane", scene.GetShadowMap()->far_plane);
-				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
-				shader->SetBool("reverse_normals", false);
-				scene.UpdateLightSources(*shader);
-				scene.GetShadowMap()->Draw();
-				scene.GetShadowMap()->updated_this_frame = true;
-				shader->updated_this_frame = true;
-				
-			}
-
+			
 			if (model_component.model->IsAnimated() && HasComponent<AnimationComponent>())
 			{
 				AnimationComponent& animation_component = GetComponent<AnimationComponent>();
@@ -127,6 +111,16 @@ namespace Bonfire
                 
 			physics_body->SetPosition(position);
 			physics_body->SetRotation(glm::quat(glm::radians(rotation)));
+		}
+		if (HasComponent<AudioComponent>())
+		{
+			AudioComponent& audio_component = GetComponent<AudioComponent>();
+			if (audio_component.audio && audio_component.enabled)
+			{
+				audio_component.audio->Set3DPosition(position);
+				if (audio_component.audio->GetPlayOnAwake() && !audio_component.audio->IsPlaying())
+					audio_component.audio->Play();
+			}
 		}
 	}
 

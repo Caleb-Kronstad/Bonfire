@@ -20,6 +20,5 @@ Bonfire/Makefile
 
 **/Makefile
 
-Bonfire/Data/Resources/Models/
-!Bonfire/Data/Resources/Models/Cube.obj
-!Bonfire/Data/Resources/Models/Sphere.obj
+Bonfire/Data/Resources/
+Bonfire/Data/Resources/

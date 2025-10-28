@@ -10,6 +10,7 @@
 #include "Editor/Editor.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Physics/PhysicsSystem.hpp"
+#include "Audio/AudioSystem.hpp"
 
 namespace Bonfire
 {
@@ -28,6 +29,7 @@ namespace Bonfire
 		static Editor& GetEditor() { return *static_editor; }
 		static Renderer& GetRenderer() { return *static_renderer; }
 		static PhysicsSystem& GetPhysicsSystem() { return *static_physics_system; }
+		static AudioSystem& GetAudioSystem() { return *static_audio_system; }
 		const bool& GetProjectRunState() const { return project_running; }
 		const bool& GetEngineRunState() const { return editor_running; }
 		const std::string& GetProjectName() const { return project_name; }
@@ -90,9 +92,10 @@ namespace Bonfire
 		
 		std::vector<std::shared_ptr<Layer>> layers;
 
-		static Renderer* static_renderer;
 		static Project* static_project_instance;
-		static PhysicsSystem* static_physics_system;
+		static Renderer* static_renderer;
 		static Editor* static_editor;
+		static PhysicsSystem* static_physics_system;
+		static AudioSystem* static_audio_system;
 	};
 }

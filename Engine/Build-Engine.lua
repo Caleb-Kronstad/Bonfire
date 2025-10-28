@@ -10,8 +10,10 @@ project "Engine"
         "Source/**.cpp",
         "Source/**.hpp",
         "Source/**.c",
-        "%{IncludeDir.STB_IMAGE}/**.h",
-        "%{IncludeDir.STB_IMAGE}/**.cpp",
+        "%{IncludeDir.STB_IMAGE}/stb_image.h",
+        "%{IncludeDir.STB_IMAGE}/stb_image.cpp",
+        "%{IncludeDir.MINIAUDIO}/miniaudio.h}",
+        "%{IncludeDir.MINIAUDIO}/miniaudio.c}",
         "%{IncludeDir.JSON}/**.hpp",
         "%{IncludeDir.ASIO}/**.hpp}"
     }
@@ -27,7 +29,8 @@ project "Engine"
         "%{IncludeDir.JSON}",
         "%{IncludeDir.JOLT}",
         "%{IncludeDir.ASIO}",
-        "%{IncludeDir.LUA}",
+        --"%{IncludeDir.LUA}",
+        "%{IncludeDir.MINIAUDIO}",
         "Source"
     }
 
@@ -37,7 +40,9 @@ project "Engine"
         "IMGUI",
         "ASSIMP",
         "GLM",
-        "IMGUIZMO"
+        "IMGUIZMO",
+        "JOLT",
+        --"LUA"
     }
     
     targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")

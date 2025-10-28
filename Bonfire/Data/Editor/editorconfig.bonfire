@@ -1,24 +1,24 @@
 {
-    "DATA-TYPE": { "type": "EDITOR CONFIG"} ,
-    "camera": 
-    {
-        "pitch": -29.79997444152832,
+    "DATA-TYPE": {
+        "type": "EDITOR CONFIG"
+    },
+    "camera": {
+        "pitch": -28.400001525878906,
         "position": [
-            -1.4436171054840088,
-            9.723710060119629,
-            6.036389350891113
+            -2.5108330249786377,
+            8.965983390808105,
+            9.64952564239502
         ],
+        "sensitivity": 0.10000000149011612,
+        "speed": 5.0,
         "up": [
             0.0,
             1.0,
             0.0
         ],
-        "yaw": -1207.7020263671875,
-        "speed": 5.0,
-        "sensitivity": 0.1
+        "yaw": -1539.702392578125
     },
-    "editor-settings":
-    {
+    "editor-settings": {
         "drag-step": 1.0
     }
 }

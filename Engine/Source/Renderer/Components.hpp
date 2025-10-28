@@ -7,6 +7,7 @@
 #include "Lighting.hpp"
 #include "Physics/PhysicsBody.hpp"
 #include "Animation/Animator.hpp"
+#include "Audio/Audio.hpp"
 
 namespace Bonfire
 {
@@ -71,6 +72,19 @@ namespace Bonfire
             this->id = id;
             this->enabled = enabled;
             this->animator = animator;
+        }
+    };
+
+    struct AudioComponent : Component
+    {
+        std::shared_ptr<Audio> audio;
+
+        AudioComponent() {}
+        AudioComponent(uint32_t id, bool enabled, std::shared_ptr<Audio> audio)
+        {
+            this->id = id;
+            this->enabled = enabled;
+            this->audio = audio;
         }
     };
 }

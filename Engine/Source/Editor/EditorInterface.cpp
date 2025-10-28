@@ -970,6 +970,37 @@ namespace Bonfire
     			ImGui::PopID();
     		}
 
+    		if (selected_entity->HasComponent<AudioComponent>())
+    		{
+    			AudioComponent& audio_component = selected_entity->GetComponent<AudioComponent>();
+    			Audio& audio = *audio_component.audio;
+    			
+    			ImGui::PushID(&audio_component);
+    			ImGui::Separator();
+				
+    			ImGui::Separator();
+    			ImGui::Checkbox("##Enabled", &audio_component.enabled);
+    			ImGui::SameLine();
+    			ImGui::Text("Animation Component");
+    			ImGui::SameLine();
+    			ImGui::Text(std::to_string(audio_component.id).c_str());
+    			ImGui::Spacing();
+
+    			bool loop = audio.GetLoop();
+    			bool play_on_awake = audio.GetPlayOnAwake();
+    			float volume = audio.GetVolume();
+    			float pitch = audio.GetPitch();
+    			if (ImGui::Checkbox("Loop", &loop))
+    				audio.SetLoop(loop);
+    			if (ImGui::Checkbox("Play On Awake", &play_on_awake))
+    				audio.SetPlayOnAwake(play_on_awake);
+    			if (ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f))
+    				audio.SetVolume(volume);
+    			if (ImGui::SliderFloat("Pitch", &pitch, 0.0f, 1.0f))
+    				audio.SetPitch(pitch);
+    			ImGui::PopID();
+    		}
+
     		ImGui::Separator();
     		
     		// ADD COMPONENT
@@ -1034,7 +1065,21 @@ namespace Bonfire
     			  		Log::Warning("Entity already has animation component");
     			  		ImGui::CloseCurrentPopup();
     			  	}
-    			}  
+    			}
+
+    			if (ImGui::MenuItem("Audio Component"))
+    			{
+    				if (!selected_entity->HasComponent<AudioComponent>())
+    				{
+    					CreateAudioComponent();
+    					ImGui::CloseCurrentPopup();
+    				}
+    				else
+    				{
+    					Log::Warning("Entity already has audio component");
+    					ImGui::CloseCurrentPopup();
+    				}
+    			}
     			ImGui::EndPopup();
     		}
     	
@@ -1446,16 +1491,94 @@ namespace Bonfire
 					ImGui::PushID(&shader_data);
 					if (ImGui::CollapsingHeader(std::to_string(shader_id).c_str()))
 					{
+						ImGui::SetNextItemWidth(200.0f);
+						ImGui::InputText("Name", &shader_data.name);
 						ImGui::Text(("Vertex Shader: " + shader_data.vert_path).c_str());
 						ImGui::Text(("Fragment Shader: " + shader_data.frag_path).c_str());
 						ImGui::Text(("Geometry Shader: " + shader_data.geom_path).c_str());
-						ImGui::SetNextItemWidth(200.0f);
-						ImGui::InputText("Name", &shader_data.name);
 					}
 					ImGui::PopID();
 				}
 		        ImGui::EndTabItem();
 			}
+
+	    	if (ImGui::BeginTabItem("Audio Params"))
+	    	{
+	    		for (auto& [audio_id, audio_data] : param_database.audio_params)
+	    		{
+	    			ImGui::PushID(&audio_data);
+	    			if (ImGui::CollapsingHeader(std::to_string(audio_id).c_str()))
+	    			{
+						ImGui::SetNextItemWidth(200.0f);
+						ImGui::InputText("Name: ", &audio_data.name);
+	    				ImGui::Text("Path: %s", audio_data.path.c_str());
+	    			}
+					ImGui::PopID();
+	    		}
+
+	    		ImGui::Separator();
+
+				char exe_path[MAX_PATH];
+	    		GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+	    		std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
+	    		std::filesystem::path audio_dir = exe_dir / "Data/Resources/Audio";
+	    		std::string audio_file = std::string(MAX_PATH, '\0');
+
+	    		if (ImGui::Button("+"))
+	    		{
+	    			OPENFILENAMEA ofn;
+	    			ZeroMemory(&ofn, sizeof(OPENFILENAME));
+	    			ofn.lStructSize = sizeof(OPENFILENAME);
+	    			ofn.lpstrFile = (LPSTR)audio_file.c_str();
+	    			ofn.nMaxFile = audio_file.size();
+	    			ofn.lpstrInitialDir = audio_dir.string().c_str();
+	    			ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+	    			ofn.lpstrFilter = "Audio Files\0*.wav;*.mp3;*.ogg;*.flac\0WAV Files\0*.wav\0MP3 Files\0*.mp3\0OGG Files\0*.ogg\0FLAC Files\0*.flac\0All Files\0*.*\0";
+	    			ofn.lpstrTitle = "Select audio file";
+
+	    			if (GetOpenFileNameA(&ofn))
+	    			{
+	    				audio_file.resize(audio_file.find('\0'));
+	    				std::filesystem::path absolute_path = audio_file;
+	    				std::string abs_str = absolute_path.string();
+	    				std::string relative_audio_path;
+	    				size_t data_pos = abs_str.find("Data");
+	    				if (data_pos != std::string::npos)
+	    				{
+	    					relative_audio_path = abs_str.substr(data_pos);
+	    					std::replace(relative_audio_path.begin(), relative_audio_path.end(), '\\', '/');
+	    				}
+	    				else
+	    					relative_audio_path = audio_file;
+
+	    				Log::Info("Audio file selected at " + relative_audio_path);
+	    				uint32_t next_id = 1000;
+	    				AudioSystem& audio_system = Project::GetAudioSystem();
+	    				if (!audio_system.GetAudios().empty())
+	    				{
+	    					auto max_it = std::max_element(
+									audio_system.GetAudios().begin(),
+									audio_system.GetAudios().end(),
+									[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+	    					next_id = max_it->first + 1;
+	    				}
+
+	    				std::filesystem::path path_obj(relative_audio_path);
+	    				std::string audio_name = path_obj.stem().string();
+
+	    				std::shared_ptr<Audio> new_audio = std::make_shared<Audio>(next_id, relative_audio_path);
+	    				audio_system.AddAudio(new_audio);
+	    				param_database.audio_params.insert_or_assign(next_id, AudioParamData(audio_name, relative_audio_path));
+	    				Log::Info("Loaded audio " + audio_name);
+	    			}
+	    			else
+	    				Log::Info("Audio file operation cancelled");
+	    		}
+	    		
+		        ImGui::EndTabItem();
+	    	}
+	    	
 			ImGui::EndTabBar();
 			ImGui::PopStyleColor(4);
 		}
@@ -1779,6 +1902,34 @@ namespace Bonfire
 	    	ImGui::CloseCurrentPopup();
 	    }
 	}
+	void Editor::CreateAudioComponent()
+	{
+		Scene& scene = Project::GetRenderer().GetScene();
+		AudioSystem& audio_system = Project::GetAudioSystem();
+		
+		uint32_t next_id = 100001;
+		if (!scene.GetAudioComponents().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetAudioComponents().begin(),
+				scene.GetAudioComponents().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_id = max_it->first + 1;
+		}
+
+		if (audio_system.GetAudios().empty())
+		{
+			Log::Warning("No audios found in Audio Params");
+			return;
+		}
+		std::shared_ptr<Audio> audio = audio_system.GetAudios().begin()->second;
+		std::shared_ptr<AudioComponent> audio_component = std::make_shared<AudioComponent>(next_id, true, audio);
+		scene.GetAudioComponents().insert_or_assign(next_id, audio_component);
+		selected_entity->AddComponent(ComponentType::AUDIO, audio_component);
+		
+		ImGui::CloseCurrentPopup();
+	}
 
 	void Editor::CreateEntity(std::shared_ptr<Entity> parent)
 	{
@@ -1996,6 +2147,74 @@ namespace Bonfire
 		            duplicated->AddComponent(ComponentType::PHYSICS, new_component);
 		        }
 		    }
+			if (ent->HasComponent<AnimationComponent>())
+			{
+				AnimationComponent& original_component = ent->GetComponent<AnimationComponent>();
+
+				uint32_t next_comp_id = 100001;
+				if (!scene.GetAnimationComponents().empty())
+				{
+					auto max_comp = std::max_element(
+						scene.GetAnimationComponents().begin(),
+						scene.GetAnimationComponents().end(),
+						[](const auto& a, const auto& b) { return a.first < b.first; }
+						);
+					next_comp_id = max_comp->first + 1;
+				}
+
+				std::shared_ptr<Animator> new_animator = nullptr;
+				if (original_component.animator)
+					new_animator = std::make_shared<Animator>(*original_component.animator);
+				std::shared_ptr<AnimationComponent> new_component = std::make_shared<AnimationComponent>(next_comp_id, original_component.enabled, new_animator);
+
+				scene.GetAnimationComponents().insert_or_assign(next_comp_id, new_component);
+				duplicated->RemoveComponent(ComponentType::ANIMATION);
+				duplicated->AddComponent(ComponentType::ANIMATION, new_component);
+			}
+			if (ent->HasComponent<AudioComponent>())
+			{
+				AudioComponent& original_component = ent->GetComponent<AudioComponent>();
+				uint32_t next_comp_id = 100001;
+				if (!scene.GetAudioComponents().empty())
+				{
+					auto max_comp = std::max_element(
+						scene.GetAudioComponents().begin(),
+						scene.GetAudioComponents().end(),
+						[](const auto& a, const auto& b) { return a.first < b.first; }
+						);
+					next_comp_id = max_comp->first + 1;
+				}
+
+				std::shared_ptr<Audio> new_audio = nullptr;
+				if (original_component.audio)
+				{
+					AudioSystem& audio_system = Project::GetAudioSystem();
+					uint32_t next_audio_id = 100001;
+					if (!audio_system.GetAudios().empty())
+					{
+						auto max_comp = std::max_element(
+							audio_system.GetAudios().begin(),
+							audio_system.GetAudios().end(),
+							[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+						next_audio_id = max_comp->first + 1;
+					}
+					new_audio = std::make_shared<Audio>(*original_component.audio);
+					if (new_audio)
+					{
+						new_audio->SetVolume(original_component.audio->GetVolume());
+						new_audio->SetPitch(original_component.audio->GetPitch());
+						new_audio->SetLoop(original_component.audio->GetLoop());
+						new_audio->SetPlayOnAwake(original_component.audio->GetPlayOnAwake());
+						new_audio->id = next_audio_id;
+					}
+				}
+
+				std::shared_ptr<AudioComponent> new_component = std::make_shared<AudioComponent>(next_comp_id, original_component.enabled, new_audio);
+				scene.GetAudioComponents().insert_or_assign(next_comp_id, new_component);
+				duplicated->RemoveComponent(ComponentType::AUDIO);
+				duplicated->AddComponent(ComponentType::AUDIO, new_component);
+			}
 			
 		    scene.GetEntities().insert_or_assign(next_entity_id, duplicated);
 
@@ -2082,7 +2301,18 @@ namespace Bonfire
 			if (ent->HasComponent<AnimationComponent>())
 			{
 				auto& animation_component = ent->GetComponent<AnimationComponent>();
-				// delete animation component
+				scene.GetAnimationComponents().erase(animation_component.id);
+			}
+			if (ent->HasComponent<AudioComponent>())
+			{
+				auto& audio_component = ent->GetComponent<AudioComponent>();
+				AudioSystem& audio_system = Project::GetAudioSystem();
+				if (audio_system.GetAudios().contains(audio_component.audio->id))
+				{
+					audio_system.RemoveAudio(audio_component.audio->id);
+				}
+
+				scene.GetAudioComponents().erase(audio_component.id);
 			}
 
 			if (selected_entity == ent)

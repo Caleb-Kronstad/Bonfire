@@ -16,5 +16,11 @@
         "name": "albinauric",
         "path": "Data/Resources/Textures/albinauric.jpg",
         "type": 0
+    },
+    "1003": {
+        "flip": false,
+        "name": "grid_small",
+        "path": "Data/Resources/Textures/The Grid/grid_small.png",
+        "type": 0
     }
 }

@@ -57,6 +57,11 @@ namespace Bonfire
                     texture_type_name = "emission";
                     break;
                 }
+
+                if (texture_unit == 4)
+                    shader.SetBool("is_emissive", true);
+                else
+                    shader.SetBool("is_emissive", false);
 			
                 glActiveTexture(GL_TEXTURE0+texture_unit);
                 shader.SetInt("material."+texture_type_name, static_cast<int>(texture_unit));

@@ -26,7 +26,8 @@ IncludeDir["IMGUIZMO"] = os.realpath("Engine/Dependencies/imguizmo")
 IncludeDir["JSON"] = os.realpath("Engine/Dependencies/json")
 IncludeDir["JOLT"] = os.realpath("Engine/Dependencies/jolt")
 IncludeDir["ASIO"] = os.realpath("Engine/Dependencies/asio/include")
-IncludeDir["LUA"] = os.realpath("Engine/Dependencies/lua/src")
+--IncludeDir["LUA"] = os.realpath("Engine/Dependencies/lua/src")
+IncludeDir["MINIAUDIO"] = os.realpath("Engine/Dependencies/miniaudio")
 
 group "Dependencies"
    include "Engine/Dependencies/glad/Build-GLAD.lua"
@@ -36,7 +37,7 @@ group "Dependencies"
    include "Engine/Dependencies/glm/Build-GLM.lua"
    include "Engine/Dependencies/imguizmo/Build-IMGUIZMO.lua"
    include "Engine/Dependencies/jolt/Build-JOLT.lua"
-   include "Engine/Dependencies/lua/Build-LUA.lua"
+   --include "Engine/Dependencies/lua/Build-LUA.lua"
 group ""
 
 group "Engine"

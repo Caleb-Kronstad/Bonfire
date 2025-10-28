@@ -24,6 +24,10 @@
 #include "Animation/Animation.hpp"
 #include "Animation/Animator.hpp"
 
+// Audio
+#include "Audio/Audio.hpp"
+#include "Audio/AudioSystem.hpp"
+
 // Renderer
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Shader.hpp"

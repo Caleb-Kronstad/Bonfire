@@ -135,6 +135,34 @@ namespace Bonfire
         }
         shader_file.close();
 
+        // audio params
+        std::ifstream audio_file(audio_path);
+        if (!audio_file.is_open())
+        {
+            Log::Error("Failed to open audio params file: " + audio_path);
+            return false;
+        }
+
+        nlohmann::json audio_json;
+        try
+        {
+            audio_file >> audio_json;
+        } catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to parse audio params JSON: " + std::string(e.what()));
+            return false;
+        }
+
+        for (auto& [key, value] : audio_json.items())
+        {
+            uint32_t id = std::stoul(key);
+            uint32_t ref(id);
+
+            std::string name = value["name"].get<std::string>();
+            std::string path = value["path"].get<std::string>();
+            audio_params[ref] = AudioParamData(name, path);
+        }
+
         // load other param types
 
         Log::Info("Successfully loaded params");
@@ -275,6 +303,34 @@ namespace Bonfire
         catch (const nlohmann::json::exception& e)
         {
             Log::Error("Failed to write shader params JSON: " + std::string(e.what()));
+            return false;
+        }
+
+        // audio params
+        nlohmann::json audio_json;
+
+        for (const auto& [ref, data] : audio_params)
+        {
+            std::string key = std::to_string(ref);
+            audio_json[key] = {
+                {"name", data.name},
+                {"path", data.path}
+            };
+        }
+
+        std::ofstream audio_file(audio_path);
+        if (!audio_file.is_open())
+        {
+            Log::Error("Failed to open audio params file for writing: " + audio_path);
+            return false;
+        }
+        try
+        {
+            audio_file << audio_json.dump(4);
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to write audio params JSON: " + std::string(e.what()));
             return false;
         }
 

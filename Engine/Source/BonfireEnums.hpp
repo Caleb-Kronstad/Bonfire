@@ -17,7 +17,8 @@ namespace Bonfire
         MODEL,
         LIGHT,
         PHYSICS,
-        ANIMATION
+        ANIMATION,
+        AUDIO
     };
 
     enum class TextureType : std::uint8_t

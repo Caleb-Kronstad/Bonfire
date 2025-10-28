@@ -82,8 +82,6 @@ namespace Bonfire
     };
 
 
-
-    
     class PhysicsSystem : Layer
     {
     public:

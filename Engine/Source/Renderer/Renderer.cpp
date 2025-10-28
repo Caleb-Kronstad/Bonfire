@@ -25,7 +25,7 @@ namespace Bonfire
 		background_color = project_editor.GetBackgroundColor();
 		manipulation_matrix = glm::mat4(1.0f);
 
-		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params", "Data/Params/materials.params");
+		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params", "Data/Params/materials.params", "Data/Params/audios.params");
 		
 		std::stringstream path_stream;
 		path_stream << "Project Path: " << std::filesystem::current_path();
@@ -67,8 +67,21 @@ namespace Bonfire
 					if (animation_component.animator)
 						animation_component.animator->Update(delta_time);
 				}
+				if (entity->HasComponent<AudioComponent>())
+				{
+					AudioComponent& audio_component = entity->GetComponent<AudioComponent>();
+					if (audio_component.audio && audio_component.enabled)
+					{
+						audio_component.audio->Set3DPosition(entity->position);
+						if (audio_component.audio->GetPlayOnAwake() && !audio_component.audio->IsPlaying())
+							audio_component.audio->Play();
+					}
+				}
 			}
 		}
+
+		Project::GetAudioSystem().UpdateListener(editor.GetEngineCamera().position, editor.GetEngineCamera().GetFrontVector(), editor.GetEngineCamera().GetUpVector());
+		//Project::GetAudioSystem().UpdateListener(scene->GetCurrentCamera()->position, scene->GetCurrentCamera()->GetFrontVector(), scene->GetCurrentCamera()->GetUpVector());
 
 		if (editor.EditorViewportVisible())
 			RenderEditorViewport(delta_time);

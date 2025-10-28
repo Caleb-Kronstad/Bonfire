@@ -20,6 +20,8 @@ namespace Bonfire {
     inline ComponentType GetComponentType<PhysicsComponent>() { return ComponentType::PHYSICS; }
     template<>
     inline ComponentType GetComponentType<AnimationComponent>() { return ComponentType::ANIMATION; }
+    template<>
+    inline ComponentType GetComponentType<AudioComponent>() { return ComponentType::AUDIO; }
     
     class Entity
     {

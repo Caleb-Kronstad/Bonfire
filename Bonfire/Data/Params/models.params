@@ -1,22 +1,22 @@
 {
     "1000": {
+        "is_animated": false,
         "name": "Cube",
-        "path": "Data/Editor/Defaults/Models/Cube.obj",
-        "is_animated": false
+        "path": "Data/Editor/Defaults/Models/Cube.obj"
     },
     "1001": {
+        "is_animated": false,
         "name": "Sphere",
-        "path": "Data/Editor/Defaults/Models/Sphere.obj",
-        "is_animated": false
+        "path": "Data/Editor/Defaults/Models/Sphere.obj"
     },
     "1002": {
+        "is_animated": false,
         "name": "bald_dude",
-        "path": "Data/Resources/Models/bald_dude.obj",
-        "is_animated": false
+        "path": "Data/Resources/Models/bald_dude.obj"
     },
     "1003": {
+        "is_animated": true,
         "name": "test animated",
-        "path": "Data/Resources/Models/Yuup-v001.fbx",
-        "is_animated": true
+        "path": "Data/Resources/Models/Yuup-v001.fbx"
     }
 }

@@ -9,6 +9,7 @@ namespace Bonfire
 	Editor* Project::static_editor = nullptr;
 	Renderer* Project::static_renderer = nullptr;
 	PhysicsSystem* Project::static_physics_system = nullptr;
+	AudioSystem* Project::static_audio_system = nullptr;
 
 	Project::Project(std::string projectName)
 	{
@@ -17,6 +18,7 @@ namespace Bonfire
 		static_editor = new Editor("Data/Editor/editorconfig.bonfire");
 		static_renderer = new Renderer();
 		static_physics_system = new PhysicsSystem();
+		static_audio_system = new AudioSystem();
 
 		window = Window(WindowProperties(1280, 720, 0, 0, project_name));
 		/*unsigned int viewportWidth = window.GetWidth() * viewportSizeAdjust;
@@ -59,6 +61,7 @@ namespace Bonfire
 		glfwSetFramebufferSizeCallback(window.GetNativeWindow(), FramebufferSizeCallbackDispatch);
 
 		static_editor->OnAttach();
+		static_audio_system->OnAttach();
 		static_physics_system->OnAttach();
 		static_renderer->OnAttach();
 		for (const auto& layer : layers)
@@ -72,7 +75,10 @@ namespace Bonfire
 			if (editor_running)
 				static_editor->OnUpdate(delta_time);
 			if (project_running)
+			{
 				static_physics_system->OnUpdate(delta_time);
+				static_audio_system->OnUpdate(delta_time);
+			}
 			static_renderer->OnUpdate(delta_time);
 			if (project_running)
 			{
@@ -101,11 +107,13 @@ namespace Bonfire
 		for (const auto& layer : layers)
 			layer->OnDetach();
 		static_renderer->OnDetach();
+		static_audio_system->OnDetach();
 		static_physics_system->OnDetach();
 		static_editor->OnDetach();
 		glfwDestroyWindow(window.GetNativeWindow());
 		glfwTerminate();
 		delete static_editor;
+		delete static_audio_system;
 		delete static_physics_system;
 		delete static_renderer;
 		delete static_project_instance;

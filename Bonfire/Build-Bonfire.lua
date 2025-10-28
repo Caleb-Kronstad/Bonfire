@@ -25,7 +25,8 @@ project "Bonfire"
         "%{IncludeDir.IMGUIZMO}",
         "%{IncludeDir.JSON}",
         "%{IncludeDir.JOLT}",
-        "%{IncludeDir.LUA}"
+        --"%{IncludeDir.LUA}",
+        "%{IncludeDir.MINIAUDIO}"
     }
 
     links {
@@ -37,7 +38,7 @@ project "Bonfire"
         "GLM",
         "IMGUIZMO",
         "JOLT",
-        "LUA"
+        --"LUA"
     }
 
     targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")

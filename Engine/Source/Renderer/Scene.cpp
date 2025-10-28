@@ -69,6 +69,8 @@ namespace Bonfire
         model_components.clear();
         light_source_components.clear();
         physics_components.clear();
+        animation_components.clear();
+        audio_components.clear();
         directional_light = nullptr;
         current_camera = nullptr;
         skybox = nullptr;
@@ -123,7 +125,12 @@ namespace Bonfire
             shader->Load();
             shaders.insert_or_assign(shader_id, std::move(shader));
         }
-        //  LOAD OTHER COMPONENT TYPES
+        for (auto& [audio_id, audio_data] : param_database.audio_params)
+        {
+            std::shared_ptr<Audio> audio = std::make_shared<Audio>(audio_id, audio_data.path);
+            Project::GetAudioSystem().AddAudio(audio);
+        }
+        //  LOAD OTHER PARAM TYPES
 
         std::ifstream file(path);
         if (!file.is_open())
@@ -264,6 +271,32 @@ namespace Bonfire
         if (!physics_json.empty())
             components_json["physics"] = physics_json;
 
+        nlohmann::json animations_json;
+        for (const auto& [id, animation_component] : animation_components)
+        {
+            nlohmann::json animation_json;
+            animation_json["enabled"] = animation_component->enabled;
+            animation_json["current-animation"] = animation_component->animator->GetCurrentAnimationName();
+            animations_json[std::to_string(id)] = animation_json;
+        }
+        if (!animations_json.empty())
+            components_json["animations"] = animations_json;
+
+        nlohmann::json audios_json;
+        for (const auto& [id, audio_component] : audio_components)
+        {
+            nlohmann::json audio_json;
+            audio_json["enabled"] = audio_component->enabled;
+            audio_json["loop"] = audio_component->audio->GetLoop();
+            audio_json["volume"] = audio_component->audio->GetVolume();
+            audio_json["pitch"] = audio_component->audio->GetPitch();
+            audio_json["play-on-awake"] = audio_component->audio->GetPlayOnAwake();
+            audio_json["audio-id"] = audio_component->audio->id;
+            audios_json[std::to_string(id)] = audio_json;
+        }
+        if (!audios_json.empty())
+            components_json["audios"] = audios_json;
+
         for (const auto& [id, entity] : entities)
         {
             nlohmann::json entity_json;
@@ -292,6 +325,16 @@ namespace Bonfire
                 PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
                 entity_components_json["physics_component"] = physics_component.id;
             }
+            if (entity->HasComponent<AnimationComponent>())
+            {
+                AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
+                entity_components_json["animation_component"] = animation_component.id;
+            }
+            if (entity->HasComponent<AudioComponent>())
+            {
+                AudioComponent& audio_component = entity->GetComponent<AudioComponent>();
+                entity_components_json["audio_component"] = audio_component.id;
+            }
 
             entity_json["components"] = entity_components_json;
             entities_array.push_back(entity_json);
@@ -313,7 +356,9 @@ namespace Bonfire
         spot_lights.clear();
         model_components.clear();
         light_source_components.clear();
+        animation_components.clear();
         physics_components.clear();
+        audio_components.clear();
 
         nlohmann::json json;
         try
@@ -506,6 +551,47 @@ namespace Bonfire
                     }
                 }
             }
+            
+            if (components.contains("animations"))
+            {
+                for (const auto& [animation_component_id, animation_data] : components["animations"].items())
+                {
+                    uint32_t id = std::stoul(animation_component_id);
+                    bool enabled = animation_data["enabled"].get<bool>();
+                    std::string current_animation = animation_data["current-animation"].get<std::string>();
+
+                    std::shared_ptr<Animator> animator;
+                    std::shared_ptr<AnimationComponent> animation_component = std::make_shared<AnimationComponent>(id, enabled, animator);
+
+                    animation_components.insert_or_assign(id, animation_component);
+                }
+            }
+
+            if (components.contains("audios"))
+            {
+                for (const auto& [audio_component_id, audio_data] : components["audios"].items())
+                {
+                    uint32_t id = std::stoul(audio_component_id);
+                    bool enabled = audio_data["enabled"].get<bool>();
+                    bool loop = audio_data["loop"].get<bool>();
+                    float volume = audio_data["volume"].get<float>();
+                    float pitch = audio_data["pitch"].get<float>();
+                    bool play_on_awake = audio_data["play-on-awake"].get<bool>();
+                    uint32_t audio_id = audio_data["audio-id"].get<uint32_t>();
+
+                    std::shared_ptr<Audio> audio = Project::GetAudioSystem().GetAudio(audio_id);
+
+                    if (audio)
+                    {
+                        audio->SetLoop(loop);
+                        audio->SetVolume(volume);
+                        audio->SetPitch(pitch);
+                        audio->SetPlayOnAwake(play_on_awake);
+                        std::shared_ptr<AudioComponent> audio_component = std::make_shared<AudioComponent>(id, enabled, audio);
+                        audio_components.insert_or_assign(id, audio_component);
+                    }
+                }
+            }
 
             for (auto& [id, light_component] : light_source_components)
             {
@@ -553,6 +639,16 @@ namespace Bonfire
                     uint32_t physics_id = entity_components["physics_component"].get<uint32_t>();
                     entity->AddComponent(ComponentType::PHYSICS, physics_components.at(physics_id));
                 }
+                if (entity_components.contains("animation_component"))
+                {
+                    uint32_t animation_id = entity_components["animation_component"].get<uint32_t>();
+                    entity->AddComponent(ComponentType::ANIMATION, animation_components.at(animation_id));
+                }
+                if (entity_components.contains("audio_component"))
+                {
+                    uint32_t audio_id = entity_components["audio_component"].get<uint32_t>();
+                    entity->AddComponent(ComponentType::AUDIO, audio_components.at(audio_id));
+                }
 
                 entities.insert_or_assign(id, entity);
             }
@@ -578,7 +674,26 @@ namespace Bonfire
             }
         }
 
-        skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S3");
+        for (auto& [id, entity] : entities)
+        {
+            if (entity->HasComponent<AnimationComponent>() && entity->HasComponent<ModelComponent>())
+            {
+                AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
+                ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+
+                if (auto skeletal_model = std::dynamic_pointer_cast<SkeletalModel>(model_component.model))
+                {
+                    std::shared_ptr<Animator> animator = std::make_shared<Animator>(skeletal_model->GetSkeleton());
+
+                    for (const auto& animation : skeletal_model->GetAnimations())
+                        animator->AddAnimation(animation);
+
+                    animation_component.animator = animator;
+                }
+            }
+        }
+
+        skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S10");
         std::shared_ptr<Shader> point_shadow_map_shader;
         std::shared_ptr<Shader> shadow_map_shader;
         std::vector<std::shared_ptr<Shader>> shadow_activated_shaders;
@@ -589,8 +704,6 @@ namespace Bonfire
             else if (shader->name == "Point Shadow Map")
                 point_shadow_map_shader = shader;
             else if (shader->name == "Lit")
-                shadow_activated_shaders.push_back(shader);
-            else if (shader->name == "Lit Animated")
                 shadow_activated_shaders.push_back(shader);
             else if (shader->name == "Shadow Map")
                 shadow_map_shader = shader;

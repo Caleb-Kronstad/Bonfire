@@ -12,9 +12,9 @@
         ]
     },
     "1002": {
-        "name": "Albinauric",
+        "name": "The Grid",
         "texture_ids": [
-            1002
+            1003
         ]
     }
 }

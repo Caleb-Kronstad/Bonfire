@@ -74,6 +74,7 @@ namespace Bonfire
         void CreateLightSourceComponent();
         void CreatePhysicsComponent();
         void CreateAnimationComponent();
+        void CreateAudioComponent();
 
     private:
 		std::string project_path;

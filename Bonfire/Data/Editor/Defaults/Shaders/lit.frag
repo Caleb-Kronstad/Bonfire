@@ -13,6 +13,7 @@ struct Material {
     sampler2D specular;
     sampler2D normal;
     sampler2D height;
+    sampler2D emission;
     float shininess;
 };
 
@@ -66,6 +67,8 @@ uniform float far_plane;
 uniform int num_point_lights;
 uniform int num_spot_lights;
 
+uniform bool is_emissive;
+
 uniform DirectionalLight directional_light;
 uniform PointLight point_lights[MAX_POINT_LIGHTS];
 uniform SpotLight spot_lights[MAX_SPOT_LIGHTS];
@@ -106,6 +109,11 @@ void main()
         result += CalculateSpotLight(spot_lights[i], norm, frag_in.FragPos, view_dir);
     }
 
+    vec3 emission = texture(material.emission, frag_in.TexCoords).rgb;
+    if (is_emissive == true)
+    {
+        result += emission;
+    }
     vec4 fragColor = vec4(result, 1.0);
     FragColor = fragColor;
 

@@ -32,14 +32,16 @@ namespace Bonfire
         void CalculateBoneTransforms(std::shared_ptr<Animation> animation, float time);
         void CalculateBoneTransform(std::shared_ptr<Animation> animation, int bone_index, const glm::mat4& parent_transform);
 
-    private:
+    public:
         std::shared_ptr<Skeleton> skeleton;
+        float speed = 1.0f;
+        bool loop = true;
+
+    private:
         std::unordered_map<std::string, std::shared_ptr<Animation>> animations;
         std::string current_animation_name;
         std::shared_ptr<Animation> current_animation = nullptr;
         float current_time = 0.0f;
-        float speed = 1.0f;
-        bool loop = true;
         AnimationState state = AnimationState::STOPPED;
 
         std::vector<glm::mat4> final_bone_transforms;
