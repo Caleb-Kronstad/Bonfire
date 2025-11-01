@@ -18,64 +18,51 @@ namespace Bonfire
         }
     }
     
-    void SkeletalModel::Draw(Shader& shader,  std::vector<std::shared_ptr<Material>>& materials)
+    void SkeletalModel::Draw(Shader& shader,  std::shared_ptr<Material>& material)
     {
+        if (!material) return;
         // Draw all skeletal meshes
         for (size_t i = 0; i < skeletal_meshes.size(); i++)
         {
             const auto& mesh = skeletal_meshes[i];
-            size_t mat_idx = (mesh.material_index < materials.size()) ? mesh.material_index : 0;
-            if (materials.empty()) continue;
-
-            const auto& material = materials[mat_idx];
-            const auto& textures = material->textures;
             
-            for (const std::shared_ptr<Texture>& texture : textures)
+            for (size_t i = 0; i < TEXTURE_TYPE_COUNT; i++)
             {
-                unsigned int texture_unit = 0;
-                std::string texture_type_name = "diffuse";
-                switch (texture->type)
+                std::shared_ptr<Texture> texture = material->textures[i];
+                std::string texture_name;
+
+                switch (static_cast<TextureType>(i))
                 {
-                case TextureType::DIFFUSE:
-                    texture_unit = 0;
-                    texture_type_name = "diffuse";
-                    break;
-                case TextureType::SPECULAR:
-                    texture_unit = 1;
-                    texture_type_name = "specular";
-                    break;
-                case TextureType::NORMAL:
-                    texture_unit = 2;
-                    texture_type_name = "normal";
-                    break;
-                case TextureType::HEIGHT:
-                    texture_unit = 3;
-                    texture_type_name = "height";
-                    break;
-                case TextureType::EMISSION:
-                    texture_unit = 4;
-                    texture_type_name = "emission";
-                    break;
+                case TextureType::DIFFUSE: texture_name = "diffuse"; break;
+                case TextureType::SPECULAR: texture_name = "specular"; break;
+                case TextureType::NORMAL: texture_name = "normal"; break;
+                case TextureType::HEIGHT: texture_name = "height"; break;
+                case TextureType::EMISSION: texture_name = "emission"; break;
                 }
 
-                if (texture_unit == 4)
-                    shader.SetBool("is_emissive", true);
+                glActiveTexture(GL_TEXTURE0 + i);
+                shader.SetInt("material." + texture_name, i);
+                if (texture)
+                {
+                    glBindTexture(GL_TEXTURE_2D, texture->gl_id);
+                }
                 else
-                    shader.SetBool("is_emissive", false);
-			
-                glActiveTexture(GL_TEXTURE0+texture_unit);
-                shader.SetInt("material."+texture_type_name, static_cast<int>(texture_unit));
-                glBindTexture(GL_TEXTURE_2D, texture->gl_id);
+                {
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
             }
-        
+            
+            shader.SetFloat("material.shininess", 32.0f);
+             
             // bind and draw mesh
             glBindVertexArray(mesh.vertex_array);
             glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mesh.indices.size()), GL_UNSIGNED_INT, nullptr);
 
             // unbind
             glBindVertexArray(0);
-            glActiveTexture(GL_TEXTURE0);
         }
+        
+        glActiveTexture(GL_TEXTURE0);
     }
 
     AABB SkeletalModel::CalculateAABB() const

@@ -23,7 +23,6 @@ namespace Bonfire
 		Editor& project_editor = Project::GetEditor();
 		
 		background_color = project_editor.GetBackgroundColor();
-		manipulation_matrix = glm::mat4(1.0f);
 
 		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params", "Data/Params/materials.params", "Data/Params/audios.params");
 		
@@ -124,8 +123,8 @@ namespace Bonfire
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glm::mat4 projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
-		glm::mat4 view = editor.GetEngineCamera().GetViewMatrix();
+		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
+		view = editor.GetEngineCamera().GetViewMatrix();
 		
 		if (scene->GetDirectionalLight() != nullptr && scene->GetDirectionalLight()->enabled)
 		{
@@ -139,7 +138,7 @@ namespace Bonfire
 					ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 					if (model_component.model->casts_shadow)
 					{
-						shadow_entity->Draw(editor.GetEngineCamera(), scene->GetShadowMap()->shadow_map_shader, *scene, manipulation_matrix, view, projection);
+						shadow_entity->Draw(scene->GetShadowMap()->shadow_map_shader, *scene);
 					}
 				}
 			}
@@ -166,13 +165,12 @@ namespace Bonfire
 							ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 							if (model_component.model->casts_shadow)
 							{
-								shadow_entity->Draw(editor.GetEngineCamera(), scene->GetShadowMap()->point_shadow_map_shader, *scene, manipulation_matrix, view, projection);
+								shadow_entity->Draw(scene->GetShadowMap()->point_shadow_map_shader, *scene);
 							}
 						}
 					}
 
 					scene->GetShadowMap()->Reset(true);
-					shadow_rendered = true; 
 					break;
 				}
 			}
@@ -186,17 +184,14 @@ namespace Bonfire
 		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
 		view = editor.GetEngineCamera().GetViewMatrix();
 
+		// MOVE BELOW ENTITY DRAW LOOP
 		scene->GetShadowMap()->updated_this_frame = false;
 		for (auto& [shader_id, shader] : scene->GetShaders())
 			shader->updated_this_frame = false;
 		
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			if (entity->HasComponent<ModelComponent>())
-			{
-				ModelComponent& model_component = entity->GetComponent<ModelComponent>();;
-				entity->Draw(*scene->GetCurrentCamera(), model_component.shader, *scene, manipulation_matrix, view, projection);
-			}
+			DrawEntity(entity);
 		}
 
 		DrawColliders(projection, view);
@@ -239,7 +234,7 @@ namespace Bonfire
 					ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 					if (model_component.model->casts_shadow)
 					{
-						shadow_entity->Draw(*scene->GetCurrentCamera(), scene->GetShadowMap()->shadow_map_shader, *scene, manipulation_matrix, view, projection);
+						shadow_entity->Draw(scene->GetShadowMap()->shadow_map_shader, *scene);
 					}
 				}
 			}
@@ -266,13 +261,12 @@ namespace Bonfire
 							ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 							if (model_component.model->casts_shadow)
 							{
-								shadow_entity->Draw(*scene->GetCurrentCamera(), scene->GetShadowMap()->point_shadow_map_shader, *scene, manipulation_matrix, view, projection);
+								shadow_entity->Draw(scene->GetShadowMap()->point_shadow_map_shader, *scene);
 							}
 						}
 					}
 
 					scene->GetShadowMap()->Reset(true);
-					shadow_rendered = true; 
 					break;
 				}
 			}
@@ -292,11 +286,7 @@ namespace Bonfire
 		
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			if (entity->HasComponent<ModelComponent>())
-			{
-				ModelComponent& model_component = entity->GetComponent<ModelComponent>();
-				entity->Draw(*scene->GetCurrentCamera(), model_component.shader, *scene, manipulation_matrix, view, projection);
-			}
+			DrawEntity(entity);
 		}
 
 		projection = scene->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
@@ -305,6 +295,71 @@ namespace Bonfire
 
 		project_viewport_framebuffer->Unbind();
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
+	}
+
+	void Renderer::DrawEntity(std::shared_ptr<Entity> entity)
+	{
+		Editor& editor = Project::GetEditor();
+		
+		if (entity->HasComponent<ModelComponent>())
+			{
+				ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+				std::shared_ptr<Shader> shader = model_component.shader;
+				if (shader->name == "Lit" )
+				{
+					if (!shader->updated_this_frame)
+					{
+						shader->Use();
+						shader->SetMat4("projection", projection);
+						shader->SetMat4("view", view);
+						shader->SetVec3("view_pos", editor.GetEngineCamera().position);
+						shader->SetFloat("far_plane", scene->GetShadowMap()->far_plane);
+						shader->SetMat4("light_space_matrix", scene->GetShadowMap()->light_space_matrix);
+						scene->UpdateLightSources(*shader);
+						scene->GetShadowMap()->Draw();
+
+						bool has_emission = false;
+						if (model_component.material && model_component.material->HasTexture(TextureType::EMISSION))
+							has_emission = true;
+						shader->SetBool("is_emissive", has_emission);
+
+						shader->updated_this_frame = true;
+					}
+
+					if (model_component.model->IsAnimated() && entity->HasComponent<AnimationComponent>())
+					{
+						AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
+						if (!shader->updated_this_frame)
+						{
+							const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
+							Log::Info("Uploading " + std::to_string(bone_transforms.size()) + " bone transforms");
+
+							// Check first bone transform
+							if (!bone_transforms.empty())
+							{
+								glm::mat4 first = bone_transforms[0];
+								Log::Info("First bone: [" + std::to_string(first[0][0]) + ", " + std::to_string(first[1][1]) + ", " + std::to_string(first[2][2]) + ", " + std::to_string(first[3][3]) + "]");
+							}
+						}
+						if (animation_component.animator)
+						{
+							const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
+							for (size_t i = 0; i < bone_transforms.size() && i < MAX_BONES; i++)
+							{
+								shader->SetMat4("bone_transforms["+std::to_string(i)+"]", bone_transforms[i]);
+							}
+							shader->SetBool("is_animated", true);
+						}
+						else
+							shader->SetBool("is_animated", false);
+					}
+					else
+						shader->SetBool("is_animated", false);
+				}
+				
+				shader->SetBool("reverse_normals", false);
+				entity->Draw(model_component.shader, *scene);
+			}
 	}
 
 	void Renderer::DrawColliders(const glm::mat4& projection, const glm::mat4& view)

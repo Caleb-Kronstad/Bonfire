@@ -21,13 +21,14 @@ namespace Bonfire
         AUDIO
     };
 
+    inline constexpr uint8_t TEXTURE_TYPE_COUNT = 5;
     enum class TextureType : std::uint8_t
     {
         DIFFUSE,
         SPECULAR,
         NORMAL,
         HEIGHT,
-        EMISSION
+        EMISSION,
     };
 
     enum class PhysicsBodyType : std::uint8_t

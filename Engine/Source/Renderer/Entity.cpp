@@ -8,84 +8,19 @@
 namespace Bonfire
 {
 
-	void Entity::Draw(Camera& camera, std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix)
+	void Entity::Draw(std::shared_ptr<Shader> shader, Scene& scene)
 	{
 		if (!enabled) return;
 		if (!HasComponent<ModelComponent>()) return;
 		
 		ModelComponent& model_component = GetComponent<ModelComponent>();
 
-		if (!model_component.enabled || !model_component.model || !model_component.shader) return;
+		if (!model_component.enabled || !model_component.model || !shader) return;
 
-		manipulation_matrix = GetWorldTransformMatrix(scene.GetEntities());
-
-		shader->Use();
-		shader->SetMat4("projection", projection_matrix);
-		shader->SetMat4("view", view_matrix);\
-		
-		if (shader->name == "Unlit")
-		{
-		}
-		else if (shader->name == "Lit")
-		{
-			if (!shader->updated_this_frame)
-			{
-				shader->SetVec3("view_pos", camera.position);
-				shader->SetFloat("far_plane", scene.GetShadowMap()->far_plane);
-				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
-				shader->SetBool("reverse_normals", false);
-				scene.UpdateLightSources(*shader);
-				scene.GetShadowMap()->Draw();
-				scene.GetShadowMap()->updated_this_frame = true;
-			}
+		glm::mat4 manipulation_matrix = GetWorldTransformMatrix(scene.GetEntities());
 			
-			if (model_component.model->IsAnimated() && HasComponent<AnimationComponent>())
-			{
-				AnimationComponent& animation_component = GetComponent<AnimationComponent>();
-				if (!shader->updated_this_frame)
-				{
-					const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
-					Log::Info("Uploading " + std::to_string(bone_transforms.size()) + " bone transforms");
-
-					// Check first bone transform
-					if (!bone_transforms.empty())
-					{
-						glm::mat4 first = bone_transforms[0];
-						Log::Info("First bone: [" + std::to_string(first[0][0]) + ", " + std::to_string(first[1][1]) + ", " + std::to_string(first[2][2]) + ", " + std::to_string(first[3][3]) + "]");
-					}
-				}
-				if (animation_component.animator)
-				{
-					const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
-					for (size_t i = 0; i < bone_transforms.size() && i < MAX_BONES; i++)
-					{
-						shader->SetMat4("bone_transforms["+std::to_string(i)+"]", bone_transforms[i]);
-					}
-					shader->SetBool("is_animated", true);
-				}
-				else
-					shader->SetBool("is_animated", false);
-			}
-			else
-				shader->SetBool("is_animated", false);
-			
-			shader->updated_this_frame = true;
-		}
-		else if (shader->name == "Point Shadow Map")
-		{
-			if (!shader->updated_this_frame)
-			{
-				// i dont remember whats supposed to be here
-			}
-		}
-		else if (shader->name == "Shadow Map")
-		{
-			if (model_component.model->casts_shadow)
-				shader->SetMat4("light_space_matrix", scene.GetShadowMap()->light_space_matrix);
-		}
-		
 		shader->SetMat4("model", manipulation_matrix);
-		model_component.model->Draw(*shader, model_component.materials);
+		model_component.model->Draw(*shader, model_component.material);
 	}
 
 	void Entity::UpdateComponents(PhysicsSystem& physics_system)

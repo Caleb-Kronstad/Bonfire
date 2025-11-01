@@ -103,6 +103,9 @@ namespace Bonfire
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, directional_frame_buffer);
 		glClear(GL_DEPTH_BUFFER_BIT);
+
+		shadow_map_shader->Use();
+		shadow_map_shader->SetMat4("light_space_matrix", light_space_matrix);
 	}
 
 

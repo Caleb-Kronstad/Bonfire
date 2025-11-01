@@ -110,13 +110,19 @@ namespace Bonfire
         {
             std::shared_ptr<Material> material = std::make_shared<Material>(material_data.name);
             material->param_id = material_id;
-            for (uint32_t tex_id : material_data.texture_ids)
-            {
-                if (textures.contains(tex_id))
-                {
-                    material->AddTexture(textures.at(tex_id));
-                }
-            }
+
+            if (textures.find(material_data.diffuse_id) != textures.end())
+                material->textures[static_cast<size_t>(TextureType::DIFFUSE)] = textures.at(material_data.diffuse_id);
+            if (textures.find(material_data.specular_id) != textures.end())
+                material->textures[static_cast<size_t>(TextureType::SPECULAR)] = textures.at(material_data.specular_id);
+            if (textures.find(material_data.normal_id) != textures.end())
+                material->textures[static_cast<size_t>(TextureType::NORMAL)] = textures.at(material_data.normal_id);
+            if (textures.find(material_data.height_id) != textures.end())
+                material->textures[static_cast<size_t>(TextureType::HEIGHT)] = textures.at(material_data.height_id);
+            if (textures.find(material_data.emission_id) != textures.end())
+                material->textures[static_cast<size_t>(TextureType::EMISSION)] = textures.at(material_data.emission_id);
+
+            material->shininess = material_data.shininess;
             materials.insert_or_assign(material_id, std::move(material));
         }
         for (auto& [shader_id, shader_data] : param_database.shader_params)
@@ -214,9 +220,7 @@ namespace Bonfire
             model_json["enabled"] = model_component->enabled;
             model_json["model-id"] = model_component->model->param_id;
             model_json["shader-id"] = model_component->shader->param_id;
-            model_json["material-ids"] = nlohmann::json::array();
-            for (std::shared_ptr<Material> material : model_component->materials)
-                model_json["material-ids"].push_back(material->param_id);
+            model_json["material-id"] = model_component->material->param_id;
             models_json[std::to_string(id)] = model_json;
         }
         if (!models_json.empty())
@@ -431,29 +435,15 @@ namespace Bonfire
                     bool enabled = model_data["enabled"].get<bool>();
                     uint32_t model_id = model_data["model-id"].get<uint32_t>();
                     uint32_t shader_id = model_data["shader-id"].get<uint32_t>();
+                    uint32_t material_id = model_data["material-id"].get<uint32_t>();
                     
                     std::shared_ptr<Model> model = models.at(model_id);
                     std::shared_ptr<Shader> shader = shaders.at(shader_id);
-                    std::vector<std::shared_ptr<Material>> mats;
-                    if (model_data.contains("material-ids") && model_data["material-ids"].is_array())
-                    {
-                        for (const auto& mat_id : model_data["material-ids"])
-                        {
-                            uint32_t material_id = mat_id.get<uint32_t>();
-                            if (materials.contains(material_id))
-                                mats.push_back(materials.at(material_id));
-                        }
-                    }
-
-                    if (mats.empty() && !materials.empty())
-                    {
-                        size_t mesh_count = model->meshes.size();
-                        mats.resize(mesh_count, materials.begin()->second);
-                    }
+                    std::shared_ptr<Material> material = materials.at(material_id);
                     
-                    if (model && shader)
+                    if (model && shader && material)
                     {
-                        std::shared_ptr<ModelComponent> model_component = std::make_shared<ModelComponent>(id, enabled, model, shader, mats);
+                        std::shared_ptr<ModelComponent> model_component = std::make_shared<ModelComponent>(id, enabled, model, shader, material);
                         model_components.insert_or_assign(id, model_component);
                     }
                 }
@@ -693,20 +683,20 @@ namespace Bonfire
             }
         }
 
-        skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S10");
-        std::shared_ptr<Shader> point_shadow_map_shader;
+        skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S3");
         std::shared_ptr<Shader> shadow_map_shader;
+        std::shared_ptr<Shader> point_shadow_map_shader;
         std::vector<std::shared_ptr<Shader>> shadow_activated_shaders;
         for (auto& [shader_id, shader] : shaders)
         {
             if (shader->name == "Skybox")
                 skybox->Load(shader);
-            else if (shader->name == "Point Shadow Map")
-                point_shadow_map_shader = shader;
             else if (shader->name == "Lit")
                 shadow_activated_shaders.push_back(shader);
             else if (shader->name == "Shadow Map")
                 shadow_map_shader = shader;
+            else if (shader->name == "Point Shadow Map")
+                point_shadow_map_shader = shader;
         }
         shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, shadow_activated_shaders, "Data/Editor/Defaults/Textures/default.png");
 

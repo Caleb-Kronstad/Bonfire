@@ -33,6 +33,7 @@ namespace Bonfire
 		void RenderEditorViewport(const float& delta_time);
 		void RenderProjectViewport(const float& delta_time);
 		void DrawColliders(const glm::mat4& projection, const glm::mat4& view);
+		void DrawEntity(std::shared_ptr<Entity> entity);
 
 		Scene& GetScene() const { return *scene; }
 		ParamDatabase& GetParamDatabase() const { return *param_database; }
@@ -45,7 +46,8 @@ namespace Bonfire
 		float& GetDrawCollidersLineWidth() { return draw_colliders_line_width; }
 
 	private:
-        glm::mat4 manipulation_matrix;
+		glm::mat4 projection = glm::mat4(0.0f);
+		glm::mat4 view = glm::mat4(0.0f);
         glm::vec4 background_color;
         DebugType debug_type = DebugType::DEFAULT;
 		bool draw_colliders = false;

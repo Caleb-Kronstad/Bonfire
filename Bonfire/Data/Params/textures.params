@@ -1,26 +1,32 @@
 {
     "1000": {
         "flip": false,
-        "name": "Default",
-        "path": "Data/Editor/Defaults/Textures/default.png",
+        "name": "Default Diffuse",
+        "path": "Data/Editor/Defaults/Textures/default-diffuse.png",
         "type": 0
     },
     "1001": {
         "flip": false,
-        "name": "Wood",
-        "path": "Data/Resources/Textures/wood.png",
-        "type": 0
+        "name": "Default Specular",
+        "path": "Data/Editor/Defaults/Textures/default-specular.png",
+        "type": 1
     },
     "1002": {
         "flip": false,
-        "name": "albinauric",
-        "path": "Data/Resources/Textures/albinauric.jpg",
-        "type": 0
+        "name": "Default Normal",
+        "path": "Data/Editor/Defaults/Textures/default-normal.png",
+        "type": 2
     },
     "1003": {
         "flip": false,
-        "name": "grid_small",
-        "path": "Data/Resources/Textures/The Grid/grid_small.png",
-        "type": 0
+        "name": "Default Height",
+        "path": "Data/Editor/Defaults/Textures/default-height.png",
+        "type": 3
+    },
+    "1004": {
+        "flip": false,
+        "name": "Default Emission",
+        "path": "Data/Editor/Defaults/Textures/default-emission.png",
+        "type": 4
     }
 }

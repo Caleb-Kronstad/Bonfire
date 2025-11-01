@@ -115,7 +115,11 @@ namespace Bonfire
         std::unique_ptr<Texture> resize_icon;
         
         std::string default_model_path;
-        std::string default_texture_path;
+        std::string default_diffuse_path;
+        std::string default_specular_path;
+        std::string default_normal_path;
+        std::string default_height_path;
+        std::string default_emission_path;
         std::string default_shader_vert_path;
         std::string default_shader_frag_path;
         std::string default_shader_geom_path;

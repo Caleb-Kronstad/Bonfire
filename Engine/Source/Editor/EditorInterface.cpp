@@ -664,6 +664,9 @@ namespace Bonfire
     			if (ImGui::Button(model_component.shader->name.c_str(), ImVec2(100, 22)))
     				ImGui::OpenPopup("ChangeShaderModelComponent");
     			ImGui::SameLine(); ImGui::Text("Shader");
+    			if (ImGui::Button(model_component.material->name.c_str(), ImVec2(100, 22)))
+    				ImGui::OpenPopup("ChangeMaterialModelComponent");
+    			ImGui::SameLine(); ImGui::Text("Material");
 
     			if (ImGui::BeginPopup("ChangeModelModelComponent"))
     			{
@@ -693,28 +696,19 @@ namespace Bonfire
     				}
     				ImGui::EndPopup();
     			}
-    			ImGui::Text("Materials", model_component.materials.size());
-    			for (size_t i = 0; i < model_component.materials.size(); i++)
+    			if (ImGui::BeginPopup("ChangeMaterialModelComponent"))
     			{
-    				ImGui::PushID(&model_component.materials[i]);
-    				std::string label = "Mesh " + std::to_string(i);
-    				if (ImGui::Button(model_component.materials[i]->name.c_str(), ImVec2(100, 22)))
-    					ImGui::OpenPopup("ChangeMaterialMesh");
-    				ImGui::SameLine(); ImGui::Text(label.c_str());
-
-    				if (ImGui::BeginPopup("ChangeMaterialMesh"))
+    				for (auto& [id, scene_item] : scene.GetMaterials())
     				{
-    					for (auto& [id, mat] : scene.GetMaterials())
+    					ImGui::PushID(&id);
+    					if (ImGui::Selectable(scene_item->name.c_str(), false, 0))
     					{
-    						if (ImGui::Selectable(mat->name.c_str(), false, 0))
-    						{
-    							model_component.materials[i] = mat;
-    							ImGui::CloseCurrentPopup();
-    						}
+    						model_component.material = scene_item;
+    						ImGui::CloseCurrentPopup();
     					}
-    					ImGui::EndPopup();
+    					ImGui::PopID();
     				}
-    				ImGui::PopID();
+    				ImGui::EndPopup();
     			}
 
     			ImGui::PopID();
@@ -1233,85 +1227,6 @@ namespace Bonfire
 
 						new_model->param_id = next_id;
 						new_model->name = model_name;
-
-						std::vector<std::shared_ptr<Texture>> auto_textures;
-						for (const auto& [tex_path, tex_type] : new_model->extracted_texture_paths)
-						{
-							std::shared_ptr<Texture> existing_texture = nullptr;
-							for (const auto& [id, tex] : scene.GetTextures())
-							{
-								if (tex->path == tex_path)
-								{
-									existing_texture = tex;
-									break;
-								}
-							}
-
-							if (existing_texture)
-							{
-								auto_textures.push_back(existing_texture);
-							}
-							else
-							{
-								uint32_t tex_id = 1;
-								if (!scene.GetTextures().empty())
-								{
-									auto max_it = std::max_element(
-										scene.GetTextures().begin(),
-										scene.GetTextures().end(),
-										[](const auto& a, const auto& b) { return a.first < b.first; }
-									);
-									tex_id = max_it->first + 1;
-								}
-
-								std::filesystem::path tex_path_obj(tex_path);
-								std::string tex_name = tex_path_obj.stem().string();
-
-								std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(tex_path, tex_type, false);
-								new_texture->param_id = tex_id;
-								new_texture->name = tex_name;
-								new_texture->Load();
-
-								scene.GetTextures().insert_or_assign(tex_id, new_texture);
-								param_database.texture_params[tex_id] = TextureParamData(tex_name, tex_type, false, tex_path);
-
-								auto_textures.push_back(new_texture);
-								Log::Info("Loaded texture: " + tex_name);
-							}
-						}
-						if (!auto_textures.empty())
-						{
-							uint32_t mat_id = 1000;
-							if (!scene.GetMaterials().empty())
-							{
-								auto max_it = std::max_element(
-									scene.GetMaterials().begin(),
-									scene.GetMaterials().end(),
-									[](const auto& a, const auto& b) { return a.first < b.first; }
-								);
-								mat_id = max_it->first + 1;
-							}
-
-							std::string mat_name = model_name + "_material";
-							std::shared_ptr<Material> new_material = std::make_shared<Material>(mat_name);
-							new_material->param_id = mat_id;
-
-							for (auto& tex : auto_textures)
-							{
-								new_material->AddTexture(tex);
-							}
-
-							scene.GetMaterials().insert_or_assign(mat_id, new_material);
-
-							std::vector<uint32_t> texture_ids;
-							for (auto& tex : auto_textures)
-							{
-								texture_ids.push_back(tex->param_id);
-							}
-							param_database.material_params[mat_id] = MaterialParamData(mat_name, texture_ids);
-
-							Log::Info("Created material: " + mat_name + " with " + std::to_string(auto_textures.size()) + " texture(s)");
-						}
 						
 						scene.GetModels().insert_or_assign(next_id, new_model);
 						param_database.model_params.insert_or_assign(next_id, ModelParamData(model_name, default_model_path, new_model->IsAnimated()));
@@ -1390,13 +1305,13 @@ namespace Bonfire
 		    			size_t data_pos = abs_str.find("Data");
 		    			if (data_pos != std::string::npos)
 		    			{
-		    				default_texture_path = abs_str.substr(data_pos);
-		    				std::replace(default_texture_path.begin(), default_texture_path.end(), '\\', '/');
+		    				default_diffuse_path = abs_str.substr(data_pos);
+		    				std::replace(default_diffuse_path.begin(), default_diffuse_path.end(), '\\', '/');
 		    			}
 		    			else
-		    				default_texture_path = texture_file;
+		    				default_diffuse_path = texture_file;
 
-		    			Log::Info("File selected at " + default_texture_path);
+		    			Log::Info("File selected at " + default_diffuse_path);
 					
 		    			uint32_t next_id = 200001;
 		    			if (!scene.GetTextures().empty())
@@ -1409,15 +1324,15 @@ namespace Bonfire
 		    				next_id = max_it->first + 1;
 		    			}
 
-		    			std::filesystem::path path_obj(default_texture_path);
+		    			std::filesystem::path path_obj(default_diffuse_path);
 		    			std::string texture_name = path_obj.stem().string();
 					
-		    			std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(default_texture_path, TextureType::DIFFUSE, false);
+		    			std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(default_diffuse_path, TextureType::DIFFUSE, false);
 		    			new_texture->param_id = next_id;
 		    			new_texture->name = texture_name;
 		    			new_texture->Load();
 		    			scene.GetTextures().insert_or_assign(next_id, new_texture);
-		    			param_database.texture_params[next_id] = TextureParamData(texture_name, TextureType::DIFFUSE, false, default_texture_path);
+		    			param_database.texture_params[next_id] = TextureParamData(texture_name, TextureType::DIFFUSE, false, default_diffuse_path);
 		    		}
 		    		else
 		    			Log::Info("File operation cancelled");
@@ -1745,9 +1660,7 @@ namespace Bonfire
 			std::shared_ptr<Model> default_model = scene.GetModels().begin()->second;
 			std::shared_ptr<Shader> default_shader = scene.GetShaders().begin()->second;
 			std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
-			size_t mesh_count = default_model->meshes.size();
-			std::vector<std::shared_ptr<Material>> materials_vec(mesh_count, default_material);
-			std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, materials_vec);
+			std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, default_material);
 
 			scene.GetModelComponents().insert_or_assign(next_id, new_component);
 			selected_entity->AddComponent(ComponentType::MODEL, new_component);
@@ -2002,7 +1915,7 @@ namespace Bonfire
 				  original_component.enabled,
 				  original_component.model,
 				  original_component.shader,
-				  original_component.materials
+				  original_component.material
 				);
 
 				scene.GetModelComponents().insert_or_assign(next_comp_id, new_component);

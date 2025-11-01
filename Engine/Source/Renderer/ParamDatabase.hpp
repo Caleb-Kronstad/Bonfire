@@ -10,7 +10,7 @@ namespace Bonfire
         std::string path;
         bool is_animated;
 
-        ModelParamData() { name = ""; path = "";}
+        ModelParamData() { }
         ModelParamData(const std::string& name, const std::string& path, const bool& is_animated) : name(name), path(path), is_animated(is_animated) {}
     };
     struct TextureParamData
@@ -20,16 +20,22 @@ namespace Bonfire
         bool flip;
         std::string path;
 
-        TextureParamData() { name = "Texture"; type = TextureType::DIFFUSE; flip = false; path = ""; }
+        TextureParamData() { }
         TextureParamData(const std::string& name, const TextureType& type, const bool& flip, const std::string& path) : name(name), type(type), flip(flip), path(path) {}
     };
     struct MaterialParamData
     {
         std::string name;
-        std::vector<uint32_t> texture_ids;
+        uint32_t diffuse_id;
+        uint32_t specular_id;
+        uint32_t normal_id;
+        uint32_t height_id;
+        uint32_t emission_id;
+        uint32_t shininess;
 
-        MaterialParamData() { name = ""; }
-        MaterialParamData(const std::string& name, const std::vector<uint32_t>& texture_ids) : name(name), texture_ids(texture_ids) {}
+        MaterialParamData() { }
+        MaterialParamData(const std::string& name, const uint32_t& diffuse_id, const uint32_t& specular_id, const uint32_t& normal_id, const uint32_t& height_d, const uint32_t& emission_id, const uint32_t& shininess)
+            : name(name), diffuse_id(diffuse_id), specular_id(specular_id), normal_id(normal_id), height_id(height_d), emission_id(emission_id), shininess(shininess) {}
     };
     struct ShaderParamData
     {
@@ -38,7 +44,7 @@ namespace Bonfire
         std::string frag_path;
         std::string geom_path;
 
-        ShaderParamData() { name = "Shader"; vert_path = ""; frag_path = ""; geom_path = ""; }
+        ShaderParamData() { }
         ShaderParamData(const std::string& name, const std::string& vert_path, const std::string& frag_path, const std::string& geom_path) : name(name), vert_path(vert_path), frag_path(frag_path), geom_path(geom_path) {}
     };
     struct AudioParamData
@@ -46,7 +52,7 @@ namespace Bonfire
         std::string name;
         std::string path;
 
-        AudioParamData() { name = "Audio"; path = ""; }
+        AudioParamData() { }
         AudioParamData(const std::string& name, const std::string& path) : name(name), path(path) {}
     };
 

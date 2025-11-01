@@ -31,9 +31,9 @@ namespace Bonfire {
         {
         }
 
-        void Draw(Camera& camera, std::shared_ptr<Shader> shader, Scene& scene, glm::mat4& manipulation_matrix, glm::mat4& view_matrix, glm::mat4& projection_matrix);
-        void UpdateComponents(PhysicsSystem& physics_system);
+        void Draw(std::shared_ptr<Shader> shader, Scene& scene);
         
+        void UpdateComponents(PhysicsSystem& physics_system);
         bool AddComponent(ComponentType type, std::shared_ptr<Component> component);
         bool RemoveComponent(ComponentType type);
         template<typename T> T& GetComponent() { return *std::static_pointer_cast<T>(components.at(GetComponentType<T>())); }

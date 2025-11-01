@@ -9,13 +9,11 @@ namespace Bonfire
         : path(path)
     {
     }
-    void Model::Draw(Shader& shader, std::vector<std::shared_ptr<Material>>& materials)
+    void Model::Draw(Shader& shader, std::shared_ptr<Material>& material)
     {
-        for (size_t i = 0; i < meshes.size(); i++)
+        for (Mesh& mesh : meshes)
         {
-            size_t mat_idx = (i < mesh_material_indices.size()) ? mesh_material_indices[i] : 0;
-            mat_idx = (std::min)(mat_idx, materials.size() - 1);
-            meshes[i].Draw(shader, materials[mat_idx]);
+            mesh.Draw(shader, material);
         }
     }
 
@@ -97,8 +95,6 @@ namespace Bonfire
     {
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
-
-        mesh_material_indices.push_back(ai_mesh->mMaterialIndex);
 
         // process vertices
         for (unsigned int i = 0; i < ai_mesh->mNumVertices; i++)

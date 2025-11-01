@@ -1,1 +1,679 @@
-{"DATA-TYPE":{"type":"SCENE"},"cameras":[{"id":1100001,"pitch":-40.0,"position":[4.001056671142578,9.35599422454834,-2.25474214553833],"up":[0.0,1.0,0.0],"yaw":-1238.3013916015625}],"components":{"animations":{"100001":{"current-animation":"","enabled":true}},"light_sources":{"100002":{"color":[255.0,255.0,255.0],"enabled":true,"intensity":3.700000047683716,"light-enabled":true,"light-id":1001,"light-type":"point","position":[5.322877883911133,0.4261617064476013,-3.566850423812866],"scale":[0.01000003982335329,0.010000061243772507,0.010000026784837246]},"100003":{"color":[255.0,255.0,255.0],"enabled":true,"intensity":10.0,"light-enabled":true,"light-id":1002,"light-type":"point","position":[-10.896501541137695,2.0948264598846436,-9.145493507385254],"scale":[0.9999964237213135,1.0,0.9998819231987]}},"models":{"100001":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001},"100002":{"enabled":true,"material-ids":[1000],"model-id":1001,"shader-id":1001},"100003":{"enabled":true,"material-ids":[1001],"model-id":1000,"shader-id":1001},"100004":{"enabled":true,"material-ids":[1000,1000,1000,1000],"model-id":1002,"shader-id":1001},"100005":{"enabled":true,"material-ids":[1000],"model-id":1003,"shader-id":1001},"100006":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001},"100007":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001},"100008":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001},"100009":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001},"100010":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001},"100011":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001},"100012":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001},"100013":{"enabled":true,"material-ids":[1002],"model-id":1000,"shader-id":1001}},"physics":{"100001":{"body-type":1,"dimensions":[1.0,0.0,0.0],"enabled":true,"physics-enabled":true,"physics-id":1000,"physics-name":"Physics Object","shape-type":1},"100002":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":1001,"physics-name":"Physics Object","shape-type":0},"100003":{"body-type":0,"dimensions":[1.0,1.4574801921844482,3.267794132232666],"enabled":true,"physics-enabled":true,"physics-id":100003,"physics-name":"Physics Object","shape-type":0},"100004":{"body-type":1,"dimensions":[0.9999887347221375,1.0,0.0],"enabled":true,"physics-enabled":true,"physics-id":100004,"physics-name":"Physics Object","shape-type":2},"100005":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":100005,"physics-name":"Physics Object","shape-type":0},"100006":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":100006,"physics-name":"Physics Object","shape-type":0},"100007":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":100007,"physics-name":"Physics Object","shape-type":0},"100008":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":100008,"physics-name":"Physics Object","shape-type":0},"100009":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":100009,"physics-name":"Physics Object","shape-type":0},"100010":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":100010,"physics-name":"Physics Object","shape-type":0},"100011":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":100011,"physics-name":"Physics Object","shape-type":0},"100012":{"body-type":0,"dimensions":[50.0,0.2499999701976776,50.0],"enabled":true,"physics-enabled":true,"physics-id":100012,"physics-name":"Physics Object","shape-type":0}}},"directional_light":{"color":[255.0,255.0,255.0],"direction":[34.69900131225586,299.2770080566406,360.0],"id":1000001,"name":"Directional Light"},"entities":[{"components":{"model_component":100001,"physics_component":100002},"enabled":true,"id":1000001,"name":"Section","parent":1000007,"position":[0.0,0.0,0.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]},{"components":{"model_component":100002,"physics_component":100001},"enabled":true,"id":1000002,"name":"Ball","parent":0,"position":[-3.936561107635498,6.940011501312256,-4.228982925415039],"rotation":[0.0,-0.0,0.0],"scale":[1.25,1.25,1.25]},{"components":{"model_component":100003,"physics_component":100003},"enabled":true,"id":1000004,"name":"Ramp","parent":0,"position":[-3.7690675258636475,0.5735542178153992,-5.137673377990723],"rotation":[46.95590591430664,-0.0,0.0],"scale":[1.0,1.4574800729751587,3.267794132232666]},{"components":{"light_source_component":100003,"model_component":100004,"physics_component":100004},"enabled":true,"id":1000005,"name":"Bald Dude","parent":0,"position":[-10.896501541137695,2.0948264598846436,-9.145493507385254],"rotation":[-0.6740549802780151,56.972679138183594,-0.5608000755310059],"scale":[0.9999964237213135,1.0,0.9998819231987]},{"components":{"animation_component":100001,"light_source_component":100002,"model_component":100005},"enabled":true,"id":1000006,"name":"Yuup","parent":0,"position":[5.322877883911133,0.4261617064476013,-3.566850423812866],"rotation":[-94.45697021484375,-39.819496154785156,1.5934933423995972],"scale":[0.01000003982335329,0.010000061243772507,0.010000026784837246]},{"components":null,"enabled":true,"id":1000007,"name":"Grid","parent":0,"position":[0.0,0.0,0.0],"rotation":[0.0,0.0,0.0],"scale":[1.0,1.0,1.0]},{"components":{"model_component":100006,"physics_component":100005},"enabled":true,"id":1000008,"name":"Section","parent":1000007,"position":[10.0,0.0,0.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]},{"components":{"model_component":100007,"physics_component":100006},"enabled":true,"id":1000009,"name":"Section","parent":1000007,"position":[-10.0,0.0,0.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]},{"components":{"model_component":100008,"physics_component":100007},"enabled":true,"id":1000010,"name":"Section","parent":1000007,"position":[0.0,0.0,10.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]},{"components":{"model_component":100009,"physics_component":100008},"enabled":true,"id":1000011,"name":"Section","parent":1000007,"position":[0.0,0.0,-10.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]},{"components":{"model_component":100010,"physics_component":100009},"enabled":true,"id":1000012,"name":"Section","parent":1000007,"position":[10.0,0.0,-10.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]},{"components":{"model_component":100011,"physics_component":100010},"enabled":true,"id":1000013,"name":"Section","parent":1000007,"position":[-10.0,0.0,-10.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]},{"components":{"model_component":100012,"physics_component":100011},"enabled":true,"id":1000014,"name":"Section","parent":1000007,"position":[10.0,0.0,10.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]},{"components":{"model_component":100013,"physics_component":100012},"enabled":true,"id":1000015,"name":"Section","parent":1000007,"position":[-10.0,0.0,10.0],"rotation":[0.0,-0.0,0.0],"scale":[5.0,0.10000000149011612,5.0]}]}
+{
+  "DATA-TYPE": {
+    "type": "SCENE"
+  },
+  "cameras": [
+    {
+      "id": 1100001,
+      "pitch": -40,
+      "position": [
+        4.001056671142578,
+        9.35599422454834,
+        -2.25474214553833
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "yaw": -1238.3013916015625
+    }
+  ],
+  "components": {
+    "animations": {
+      "100001": {
+        "current-animation": "",
+        "enabled": true
+      }
+    },
+    "light_sources": {
+      "100002": {
+        "color": [
+          255,
+          255,
+          255
+        ],
+        "enabled": true,
+        "intensity": 3.700000047683716,
+        "light-enabled": true,
+        "light-id": 1001,
+        "light-type": "point",
+        "position": [
+          5.322877883911133,
+          0.4261617064476013,
+          -3.566850423812866
+        ],
+        "scale": [
+          0.01000003982335329,
+          0.010000061243772507,
+          0.010000026784837246
+        ]
+      },
+      "100003": {
+        "color": [
+          255,
+          255,
+          255
+        ],
+        "enabled": true,
+        "intensity": 10,
+        "light-enabled": true,
+        "light-id": 1002,
+        "light-type": "point",
+        "position": [
+          -10.896501541137695,
+          2.0948264598846436,
+          -9.145493507385254
+        ],
+        "scale": [
+          0.9999964237213135,
+          1,
+          0.9998819231987
+        ]
+      }
+    },
+    "models": {
+      "100001": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100002": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1001,
+        "shader-id": 1001
+      },
+      "100003": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100004": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1002,
+        "shader-id": 1001
+      },
+      "100005": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1003,
+        "shader-id": 1001
+      },
+      "100006": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100007": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100008": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100009": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100010": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100011": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100012": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      },
+      "100013": {
+        "enabled": true,
+        "material-id": 1000,
+        "model-id": 1000,
+        "shader-id": 1001
+      }
+    },
+    "physics": {
+      "100001": {
+        "body-type": 1,
+        "dimensions": [
+          1,
+          0,
+          0
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 1000,
+        "physics-name": "Physics Object",
+        "shape-type": 1
+      },
+      "100002": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 1001,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100003": {
+        "body-type": 0,
+        "dimensions": [
+          1,
+          1.4574801921844482,
+          3.267794132232666
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100003,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100004": {
+        "body-type": 1,
+        "dimensions": [
+          0.9999887347221375,
+          1,
+          0
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100004,
+        "physics-name": "Physics Object",
+        "shape-type": 2
+      },
+      "100005": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100005,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100006": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100006,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100007": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100007,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100008": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100008,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100009": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100009,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100010": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100010,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100011": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100011,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      },
+      "100012": {
+        "body-type": 0,
+        "dimensions": [
+          50,
+          0.2499999701976776,
+          50
+        ],
+        "enabled": true,
+        "physics-enabled": true,
+        "physics-id": 100012,
+        "physics-name": "Physics Object",
+        "shape-type": 0
+      }
+    }
+  },
+  "directional_light": {
+    "color": [
+      255,
+      255,
+      255
+    ],
+    "direction": [
+      34.69900131225586,
+      299.2770080566406,
+      360
+    ],
+    "id": 1000001,
+    "name": "Directional Light"
+  },
+  "entities": [
+    {
+      "components": {
+        "model_component": 100001,
+        "physics_component": 100002
+      },
+      "enabled": true,
+      "id": 1000001,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100002,
+        "physics_component": 100001
+      },
+      "enabled": true,
+      "id": 1000002,
+      "name": "Ball",
+      "parent": 0,
+      "position": [
+        -3.936561107635498,
+        6.940011501312256,
+        -4.228982925415039
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1.25,
+        1.25,
+        1.25
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100003,
+        "physics_component": 100003
+      },
+      "enabled": true,
+      "id": 1000004,
+      "name": "Ramp",
+      "parent": 0,
+      "position": [
+        -3.7690675258636475,
+        0.5735542178153992,
+        -5.137673377990723
+      ],
+      "rotation": [
+        46.95590591430664,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1.4574800729751587,
+        3.267794132232666
+      ]
+    },
+    {
+      "components": {
+        "light_source_component": 100003,
+        "model_component": 100004,
+        "physics_component": 100004
+      },
+      "enabled": true,
+      "id": 1000005,
+      "name": "Bald Dude",
+      "parent": 0,
+      "position": [
+        -10.896501541137695,
+        2.0948264598846436,
+        -9.145493507385254
+      ],
+      "rotation": [
+        -0.6740549802780151,
+        56.972679138183594,
+        -0.5608000755310059
+      ],
+      "scale": [
+        0.9999964237213135,
+        1,
+        0.9998819231987
+      ]
+    },
+    {
+      "components": {
+        "animation_component": 100001,
+        "light_source_component": 100002,
+        "model_component": 100005
+      },
+      "enabled": true,
+      "id": 1000006,
+      "name": "Yuup",
+      "parent": 0,
+      "position": [
+        5.322877883911133,
+        0.4261617064476013,
+        -3.566850423812866
+      ],
+      "rotation": [
+        -94.45697021484375,
+        -39.819496154785156,
+        1.5934933423995972
+      ],
+      "scale": [
+        0.01000003982335329,
+        0.010000061243772507,
+        0.010000026784837246
+      ]
+    },
+    {
+      "components": null,
+      "enabled": true,
+      "id": 1000007,
+      "name": "Grid",
+      "parent": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100006,
+        "physics_component": 100005
+      },
+      "enabled": true,
+      "id": 1000008,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        10,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100007,
+        "physics_component": 100006
+      },
+      "enabled": true,
+      "id": 1000009,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        -10,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100008,
+        "physics_component": 100007
+      },
+      "enabled": true,
+      "id": 1000010,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        0,
+        0,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100009,
+        "physics_component": 100008
+      },
+      "enabled": true,
+      "id": 1000011,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        0,
+        0,
+        -10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100010,
+        "physics_component": 100009
+      },
+      "enabled": true,
+      "id": 1000012,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        10,
+        0,
+        -10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100011,
+        "physics_component": 100010
+      },
+      "enabled": true,
+      "id": 1000013,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        -10,
+        0,
+        -10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100012,
+        "physics_component": 100011
+      },
+      "enabled": true,
+      "id": 1000014,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        10,
+        0,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    },
+    {
+      "components": {
+        "model_component": 100013,
+        "physics_component": 100012
+      },
+      "enabled": true,
+      "id": 1000015,
+      "name": "Section",
+      "parent": 1000007,
+      "position": [
+        -10,
+        0,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        5,
+        0.10000000149011612,
+        5
+      ]
+    }
+  ]
+}

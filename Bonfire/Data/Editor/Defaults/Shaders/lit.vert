@@ -3,8 +3,6 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
-//layout (location = 3) in vec3 aTangent;
-//layout (location = 4) in vec3 aBitangent;
 layout (location = 5) in ivec4 aBoneIds;
 layout (location = 6) in vec4 aBoneWeights;
 
@@ -13,7 +11,7 @@ out VERT_OUT {
     vec3 Normal;
     vec2 TexCoords;
     vec4 FragPosLightSpace;
-} vert_out;
+} VertOut;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -27,34 +25,34 @@ uniform bool is_animated;
 
 void main()
 {
-    vec4 skinnedPos = vec4(aPos, 1.0);
-    vec3 skinnedNormal = aNormal;
+    vec4 skinned_pos = vec4(aPos, 1.0);
+    vec3 skinned_normal = aNormal;
 
     if (is_animated)
     {
-        mat4 boneTransform = mat4(0.0);
+        mat4 bone_transform = mat4(0.0);
 
-        if (aBoneIds.x >= 0) boneTransform += bone_transforms[aBoneIds.x] * aBoneWeights.x;
-        if (aBoneIds.y >= 0) boneTransform += bone_transforms[aBoneIds.y] * aBoneWeights.y;
-        if (aBoneIds.z >= 0) boneTransform += bone_transforms[aBoneIds.z] * aBoneWeights.z;
-        if (aBoneIds.w >= 0) boneTransform += bone_transforms[aBoneIds.w] * aBoneWeights.w;
+        if (aBoneIds.x >= 0) bone_transform += bone_transforms[aBoneIds.x] * aBoneWeights.x;
+        if (aBoneIds.y >= 0) bone_transform += bone_transforms[aBoneIds.y] * aBoneWeights.y;
+        if (aBoneIds.z >= 0) bone_transform += bone_transforms[aBoneIds.z] * aBoneWeights.z;
+        if (aBoneIds.w >= 0) bone_transform += bone_transforms[aBoneIds.w] * aBoneWeights.w;
 
-        float totalWeight = aBoneWeights.x + aBoneWeights.y + aBoneWeights.z + aBoneWeights.w;
-        if (totalWeight > 0.0) {
-            skinnedPos = boneTransform * vec4(aPos, 1.0);
-            skinnedNormal = mat3(boneTransform) * aNormal;
+        float total_weight = aBoneWeights.x + aBoneWeights.y + aBoneWeights.z + aBoneWeights.w;
+        if (total_weight > 0.0) {
+            skinned_pos = bone_transform * vec4(aPos, 1.0);
+            skinned_normal = mat3(bone_transform) * aNormal;
         }
     }
 
-    vec4 worldPos = model * skinnedPos;
-    vert_out.FragPos = worldPos.xyz;
+    vec4 world_pos = model * skinned_pos;
+    VertOut.FragPos = world_pos.xyz;
 
-    mat3 normalMatrix = transpose(inverse(mat3(model)));
-    vert_out.Normal = normalize(normalMatrix * skinnedNormal);
+    mat3 normal_matrix = transpose(inverse(mat3(model)));
+    VertOut.Normal = normalize(normal_matrix * skinned_normal);
     if (reverse_normals)
-    vert_out.Normal = -vert_out.Normal;
+    VertOut.Normal = -VertOut.Normal;
 
-    vert_out.TexCoords = aTexCoords;
-    vert_out.FragPosLightSpace = light_space_matrix * worldPos;
-    gl_Position = projection * view * worldPos;
+    VertOut.TexCoords = aTexCoords;
+    VertOut.FragPosLightSpace = light_space_matrix * world_pos;
+    gl_Position = projection * view * world_pos;
 }

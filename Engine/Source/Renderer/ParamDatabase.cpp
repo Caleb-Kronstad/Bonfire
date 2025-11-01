@@ -91,14 +91,12 @@ namespace Bonfire
             uint32_t id = std::stoul(key);
             MaterialParamData material_data;
             material_data.name = value["name"].get<std::string>();
-
-            if (value.contains("texture_ids"))
-            {
-                for (auto& tex_id : value["texture_ids"])
-                {
-                    material_data.texture_ids.push_back(tex_id.get<uint32_t>());
-                }
-            }
+            material_data.diffuse_id = value["diffuse-id"].get<uint32_t>();
+            material_data.specular_id = value["specular-id"].get<uint32_t>();
+            material_data.normal_id = value["normal-id"].get<uint32_t>();
+            material_data.height_id = value["height-id"].get<uint32_t>();
+            material_data.emission_id = value["emission-id"].get<uint32_t>();
+            material_data.shininess = value["shininess"].get<uint32_t>();
 
             material_params[id] = material_data;
         }
@@ -232,23 +230,17 @@ namespace Bonfire
 
         // material params
         nlohmann::json material_json;
-        for (auto& [material_id, material_obj] : materials)
+        for (auto& [material_id, material] : materials)
         {
             if (material_params.contains(material_id))
             {
-                material_params[material_id].name = material_obj->name;
-                material_params[material_id].texture_ids.clear();
-
-                for (const auto& texture : material_obj->GetTextures())
-                    material_params[material_id].texture_ids.push_back(texture->param_id);
-            }
-            else
-            {
-                std::vector<uint32_t> texture_ids;
-                for (const auto& texture : material_obj->GetTextures())
-                    texture_ids.push_back(texture->param_id);
-                
-                material_params[material_id] = MaterialParamData(material_obj->name, texture_ids);
+                material_params[material_id].name = material->name;
+                material_params[material_id].diffuse_id = material->GetTexture(TextureType::DIFFUSE)->param_id;
+                material_params[material_id].specular_id = material->GetTexture(TextureType::SPECULAR)->param_id;
+                material_params[material_id].normal_id = material->GetTexture(TextureType::NORMAL)->param_id;
+                material_params[material_id].height_id = material->GetTexture(TextureType::HEIGHT)->param_id;
+                material_params[material_id].emission_id = material->GetTexture(TextureType::EMISSION)->param_id;
+                material_params[material_id].shininess = material->shininess;
             }
         }
 
@@ -256,7 +248,12 @@ namespace Bonfire
         {
             material_json[std::to_string(id)] = {
                 {"name", material_data.name},
-                {"texture_ids", material_data.texture_ids}
+                {"diffuse-id", material_data.diffuse_id},
+                {"specular-id", material_data.specular_id},
+                {"normal-id", material_data.normal_id},
+                {"height-id", material_data.height_id},
+                {"emission-id", material_data.emission_id},
+                {"shininess", material_data.shininess}
             };
         }
         

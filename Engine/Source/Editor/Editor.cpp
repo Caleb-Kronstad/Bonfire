@@ -47,7 +47,11 @@ namespace Bonfire
     	//font_body = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     	
     	default_model_path = "Data/Editor/Defaults/Models/Cube.obj";
-    	default_texture_path = "Data/Editor/Defaults/Textures/default.png";
+    	default_diffuse_path = "Data/Editor/Defaults/Textures/default-diffuse.png";
+    	default_specular_path = "Data/Editor/Defaults/Textures/default-specular.png";
+    	default_normal_path = "Data/Editor/Defaults/Textures/default-normal.png";
+    	default_height_path = "Data/Editor/Defaults/Textures/default-height.png";
+    	default_emission_path = "Data/Editor/Defaults/Textures/default-emission.png";
     	default_shader_vert_path = "Data/Editor/Defaults/Shaders/unlit.vert";
     	default_shader_frag_path = "Data/Editor/Defaults/Shaders/unlit.frag";
     	default_shader_geom_path = "Data/Editor/Defaults/Shaders/unlit.geom";

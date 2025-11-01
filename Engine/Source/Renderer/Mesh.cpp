@@ -17,13 +17,12 @@ namespace Bonfire
 	
     void Mesh::Draw(Shader& shader, std::shared_ptr<Material> material)
     {
-		const auto& textures = material->textures;
-    	
-    	for (const std::shared_ptr<Texture>& texture : textures)
+		for (size_t i = 0; i < TEXTURE_TYPE_COUNT; i++)
 		{
+			std::shared_ptr<Texture> texture = material->textures[i];
 			unsigned int texture_unit = 0;
 			std::string texture_type_name = "diffuse";
-			switch (texture->type)
+			switch (static_cast<TextureType>(i))
 			{
 			case TextureType::DIFFUSE:
 				texture_unit = 0;
@@ -46,19 +45,16 @@ namespace Bonfire
 				texture_type_name = "emission";
 				break;
 			}
-			
-		    glActiveTexture(GL_TEXTURE0+texture_unit);
-			shader.SetInt("material."+texture_type_name, static_cast<int>(texture_unit));
+			glActiveTexture(GL_TEXTURE0 + texture_unit);
+			shader.SetInt("material." + texture_type_name, static_cast<int>(texture_unit));
 			glBindTexture(GL_TEXTURE_2D, texture->gl_id);
 		}
-        
-        // bind and draw mesh
-        glBindVertexArray(vertex_array);
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
 
-        // unbind
-        glBindVertexArray(0);
-        glActiveTexture(GL_TEXTURE0);
+    	glBindVertexArray(vertex_array);
+    	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
+
+    	glBindVertexArray(0);
+    	glActiveTexture(GL_TEXTURE0);
     }
 
     void Mesh::Setup()

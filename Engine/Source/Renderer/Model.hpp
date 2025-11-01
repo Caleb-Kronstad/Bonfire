@@ -13,7 +13,7 @@ namespace Bonfire
         Model(std::string path);
         
         void Load();
-        virtual void Draw(Shader& shader, std::vector<std::shared_ptr<Material>>& materials);
+        virtual void Draw(Shader& shader, std::shared_ptr<Material>& material);
         void ProcessNode(aiNode* node, const aiScene* scene);
         Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
 
