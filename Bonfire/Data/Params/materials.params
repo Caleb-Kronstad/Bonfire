@@ -7,23 +7,5 @@
         "height-id": 1003,
         "emission-id": 1004,
         "shininess": 64.0
-    },
-    "1001": {
-        "name": "Default 2",
-        "diffuse-id": 1000,
-        "specular-id": 1001,
-        "normal-id": 1002,
-        "height-id": 1003,
-        "emission-id": 1004,
-        "shininess": 64.0
-    },
-    "1002": {
-        "name": "Default 3",
-        "diffuse-id": 1000,
-        "specular-id": 1001,
-        "normal-id": 1002,
-        "height-id": 1003,
-        "emission-id": 1004,
-        "shininess": 64.0
     }
 }

@@ -20,9 +20,8 @@ namespace Bonfire
 	{
 		Project& project = Project::GetInstance();
 		Window& project_window = project.GetWindow();
-		Editor& project_editor = Project::GetEditor();
 		
-		background_color = project_editor.GetBackgroundColor();
+		background_color = RgbaToGlmVec4(23, 23, 23);
 
 		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params", "Data/Params/materials.params", "Data/Params/audios.params");
 		
@@ -191,7 +190,7 @@ namespace Bonfire
 		
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			DrawEntity(entity);
+			DrawEntity(entity, editor.GetEngineCamera());
 		}
 
 		DrawColliders(projection, view);
@@ -219,8 +218,8 @@ namespace Bonfire
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glm::mat4 projection = scene->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
-		glm::mat4 view = scene->GetCurrentCamera()->GetViewMatrix();
+		projection = scene->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
+		view = scene->GetCurrentCamera()->GetViewMatrix();
 		
 		if (scene->GetDirectionalLight() != nullptr && scene->GetDirectionalLight()->enabled)
 		{
@@ -286,7 +285,7 @@ namespace Bonfire
 		
 		for (auto& [entity_id, entity] : scene->GetEntities())
 		{
-			DrawEntity(entity);
+			DrawEntity(entity, *scene->GetCurrentCamera());
 		}
 
 		projection = scene->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
@@ -297,7 +296,7 @@ namespace Bonfire
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
 	}
 
-	void Renderer::DrawEntity(std::shared_ptr<Entity> entity)
+	void Renderer::DrawEntity(std::shared_ptr<Entity> entity, Camera& camera)
 	{
 		Editor& editor = Project::GetEditor();
 		
@@ -312,7 +311,7 @@ namespace Bonfire
 						shader->Use();
 						shader->SetMat4("projection", projection);
 						shader->SetMat4("view", view);
-						shader->SetVec3("view_pos", editor.GetEngineCamera().position);
+						shader->SetVec3("view_pos", camera.position);
 						shader->SetFloat("far_plane", scene->GetShadowMap()->far_plane);
 						shader->SetMat4("light_space_matrix", scene->GetShadowMap()->light_space_matrix);
 						scene->UpdateLightSources(*shader);

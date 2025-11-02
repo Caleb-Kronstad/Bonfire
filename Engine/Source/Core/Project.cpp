@@ -60,10 +60,10 @@ namespace Bonfire
 		glfwSetScrollCallback(window.GetNativeWindow(), ScrollCallbackDispatch);
 		glfwSetFramebufferSizeCallback(window.GetNativeWindow(), FramebufferSizeCallbackDispatch);
 
-		static_editor->OnAttach();
 		static_audio_system->OnAttach();
 		static_physics_system->OnAttach();
 		static_renderer->OnAttach();
+		static_editor->OnAttach();
 		for (const auto& layer : layers)
 			layer->OnAttach();
 

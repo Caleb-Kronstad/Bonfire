@@ -37,7 +37,6 @@ namespace Bonfire
         void OnInterfaceEndUpdate();
         void UpdateInterfaceStyle();
 
-        glm::vec4 GetBackgroundColor() const { return RgbaToGlmVec4(background_secondary.x, background_secondary.y, background_secondary.z); }
         Entity& GetSelectedEntity() { return *selected_entity; }
         Camera& GetEngineCamera() { return *engine_camera; }
 
@@ -123,10 +122,12 @@ namespace Bonfire
         std::string default_shader_vert_path;
         std::string default_shader_frag_path;
         std::string default_shader_geom_path;
+
+        std::array<std::shared_ptr<Texture>, 5> default_textures;
+        float default_texture_shininess = 64.0f;
         
         // CUSTOMIZATION
-        //ImFont* font_title;
-        //ImFont* font_body;
+        ImFont* editor_font;
         ImVec4 text_primary;
         ImVec4 background_primary;
         ImVec4 background_secondary;

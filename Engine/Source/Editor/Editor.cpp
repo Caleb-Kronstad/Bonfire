@@ -42,9 +42,8 @@ namespace Bonfire
     	images[0].pixels = stbi_load("Data/Editor/Icons/bonfire-logo.png", &images[0].width, &images[0].height, channels, 0);
     	glfwSetWindowIcon(glfw_window, 1, images);
     	stbi_image_free(images[0].pixels);
-    	
-    	//font_title = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-    	//font_body = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+
+    	editor_font = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     	
     	default_model_path = "Data/Editor/Defaults/Models/Cube.obj";
     	default_diffuse_path = "Data/Editor/Defaults/Textures/default-diffuse.png";
@@ -55,6 +54,13 @@ namespace Bonfire
     	default_shader_vert_path = "Data/Editor/Defaults/Shaders/unlit.vert";
     	default_shader_frag_path = "Data/Editor/Defaults/Shaders/unlit.frag";
     	default_shader_geom_path = "Data/Editor/Defaults/Shaders/unlit.geom";
+
+    	auto& textures = scene.GetTextures();
+    	default_textures.at(0) = textures.at(1000);
+    	default_textures.at(1) = textures.at(1001);
+    	default_textures.at(2) = textures.at(1002);
+    	default_textures.at(3) = textures.at(1003);
+    	default_textures.at(4) = textures.at(1004);
 
     	play_icon = std::make_unique<Texture>("Data/Editor/Icons/play-icon.png", TextureType::DIFFUSE, false);
     	move_icon = std::make_unique<Texture>("Data/Editor/Icons/move-icon.png", TextureType::DIFFUSE, false);

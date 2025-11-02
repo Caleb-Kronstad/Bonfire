@@ -31,7 +31,7 @@ namespace Bonfire
 
 		ImGui::Begin("DockSpace", nullptr, window_flags);
 		ImGui::PopStyleVar(2);
-    	
+
 		DrawMenuBar();
 		DrawEditorViewport();
 		DrawProjectViewport();
@@ -132,6 +132,7 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 
+		ImGui::PushFont(editor_font);
 	    // Menu Bar
 	    if (ImGui::BeginMenuBar())
 	    {
@@ -176,6 +177,7 @@ namespace Bonfire
 	    ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
 	    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
+		ImGui::PopFont();
 	    ImGui::End();
 	}
 	
@@ -186,11 +188,13 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
+		ImGui::PushFont(editor_font);
 		editor_viewport_visible = ImGui::Begin("Viewport");
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
 		
 		if (!editor_viewport_visible)
 		{
+			ImGui::PopFont();
 			ImGui::End();
 			return;
 		}
@@ -294,7 +298,8 @@ namespace Bonfire
     		else
     			selected_entity = nullptr;
     	}
-    	
+
+		ImGui::PopFont();
     	ImGui::End();
     }
 
@@ -305,7 +310,7 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-		
+		ImGui::PushFont(editor_font);
 		project_viewport_visible = ImGui::Begin("Project Name Here");
 		DrawActiveTitleLine(highlight_primary, background_tertiary);
     	
@@ -321,15 +326,14 @@ namespace Bonfire
 				renderer.GetProjectViewportFramebuffer().Resize(renderer.GetProjectViewportSize().x, renderer.GetProjectViewportSize().y);
 			}
 		}
-
 		
-
 		ImGui::Image((void*)(intptr_t)renderer.GetProjectViewportFramebuffer().GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
 		ImVec2 viewport_min = ImGui::GetItemRectMin();
 		ImVec2 viewport_max = ImGui::GetItemRectMax();
 		float viewport_width = viewport_max.x - viewport_min.x;
 		float viewport_height = viewport_max.y - viewport_min.y;
 
+		ImGui::PopFont();
 		ImGui::End();
 	}
 
@@ -339,8 +343,8 @@ namespace Bonfire
 		Window& project_window = project.GetWindow();
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
-		
     	
+		ImGui::PushFont(editor_font);
     	ImGui::Begin("Debug Info", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
@@ -364,7 +368,8 @@ namespace Bonfire
     	{
     		renderer.GetDebugType() = static_cast<DebugType>(current_debug_type);
     	}
-    	
+
+		ImGui::PopFont();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
 	}
@@ -380,6 +385,7 @@ namespace Bonfire
 		
     	ImGuiWindowFlags toolbar_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
     	
+		ImGui::PushFont(editor_font);
     	ImGui::Begin("Toolbar", nullptr, toolbar_flags);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
@@ -445,7 +451,7 @@ namespace Bonfire
     	if (temp_gizmo_type == ImGuizmo::SCALE)
     		ImGui::PopStyleColor(1);
 
-    	
+		ImGui::PopFont();    	
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -457,13 +463,11 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-    	
+		ImGui::PushFont(editor_font);
     	ImGui::Begin("Project Settings", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing(); 
-    	
-    	
 
 		ImGui::PushItemWidth(100.0f);
     	ImGui::DragFloat("Drag Step", &drag_step, 0.1f, 0.1f, 100.0f, "%.2f");
@@ -481,7 +485,7 @@ namespace Bonfire
     	ImGui::SliderFloat3("Color", (float*)&scene.GetDirectionalLight()->color, 0.0f, 255.0f, "%1.f");
     	ImGui::PopItemWidth();
 		
-    	
+    	ImGui::PopFont();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -494,12 +498,11 @@ namespace Bonfire
 		
 		Scene& scene = renderer.GetScene();
     	
+		ImGui::PushFont(editor_font);
     	ImGui::Begin("Console", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	
-    	
 		
     	std::vector<std::string> lines = console_capture->GetLines();
     	for (const std::string& line : lines)
@@ -510,7 +513,7 @@ namespace Bonfire
     		ImGui::PopTextWrapPos();
     	}
 		
-    	
+    	ImGui::PopFont();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -522,13 +525,12 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-    	
+		ImGui::PushFont(editor_font);
     	ImGui::Begin("Hierarchy", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	
-    	
+		
     	ImGui::PushStyleColor(ImGuiCol_Header, background_primary);
     	
     	if (ImGui::BeginPopupContextWindow())
@@ -576,7 +578,8 @@ namespace Bonfire
     		ImGui::EndDragDropTarget();
     	}
     	ImGui::PopStyleColor(4);
-    	
+
+		ImGui::PopFont();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
 
@@ -605,13 +608,11 @@ namespace Bonfire
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
-    	
+		ImGui::PushFont(editor_font);
     	ImGui::Begin("Details", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	
-    	
 		
     	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
     	
@@ -1080,7 +1081,7 @@ namespace Bonfire
     		ImGui::PopID();
     	}
     	
-    	
+    	ImGui::PopFont();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -1094,13 +1095,11 @@ namespace Bonfire
 		Scene& scene = renderer.GetScene();
 		ParamDatabase& param_database = renderer.GetParamDatabase();
 		
-    	
+		ImGui::PushFont(editor_font);
     	ImGui::Begin("Param Editor", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
-    	
-    	
     	
 	    if (ImGui::BeginTabBar("ParamEditorTabs"))
 		{
@@ -1350,51 +1349,70 @@ namespace Bonfire
 					{
 						ImGui::SetNextItemWidth(200.0f);
 						ImGui::InputText("Name", &material_data->name);
-
+						ImGui::SameLine(); ImGui::Text(std::to_string(material_data->param_id).c_str());
 						ImGui::Text("Textures");
-
-						std::shared_ptr<Texture> texture_to_remove = nullptr;
 						
-						for (auto& texture_data : material_data->textures)
+						for (auto& texture : material_data->textures)
 						{
-							ImGui::PushID(&texture_data);
-							ImGui::Text("%u", texture_data->param_id);
-							ImGui::Image((void*)texture_data->gl_id, ImVec2(100,100));
-							if (ImGui::Button("-"))
+							ImGui::PushID(&texture);
+							ImGui::Text(texture->name.c_str());
+							ImGui::SameLine(); ImGui::Text(std::to_string(texture->param_id).c_str());
+
+							if (ImGui::ImageButton((void*)texture->gl_id, ImVec2(100,100)))
 							{
-								if (material_data->textures.size() > 1)
-									texture_to_remove = texture_data;
-								else
-									Log::Warning("Material must have at least 1 texture");
+								ImGui::OpenPopup("ChangeMaterialTexture");
+							}
+							if (ImGui::BeginPopup("ChangeMaterialTexture"))
+							{
+								for (auto& [texture_id, list_texture] : scene.GetTextures())
+								{
+									if (texture->type != list_texture->type) continue;
+									ImGui::PushID(&texture_id);
+									ImGui::Image((void*)(intptr_t)list_texture->gl_id, ImVec2(20, 20));
+									ImGui::SameLine();
+									if (ImGui::Selectable(list_texture->name.c_str(), false, 0, ImVec2(150, 20)))
+									{
+										texture = list_texture;
+										ImGui::CloseCurrentPopup();
+									}
+
+									ImGui::PopID();
+								}
+								ImGui::EndPopup();
 							}
 							ImGui::PopID();
 						}
-						if (texture_to_remove != nullptr)
-							material_data->RemoveTexture(texture_to_remove);
-
-						if (ImGui::Button("+"))
-						{
-							ImGui::OpenPopup("AddTextureMaterialPopup");
-						}
-						if (ImGui::BeginPopup("AddTextureMaterialPopup"))
-						{
-							for (auto& [texture_id, texture_data] : scene.GetTextures())
-							{
-								ImGui::PushID(&texture_id);
-								ImGui::Image((void*)(intptr_t)texture_data->gl_id, ImVec2(25, 25));
-								ImGui::SameLine(); 
-								if (ImGui::Selectable(texture_data->name.c_str(), false, 0, ImVec2(150, 25)))
-								{
-									scene.GetMaterials().at(material_id)->AddTexture(scene.GetTextures().at(texture_id));
-									ImGui::CloseCurrentPopup();
-								}
-
-								ImGui::PopID();
-							}
-							ImGui::EndPopup();
-						}
 					}
 					ImGui::PopID();
+				}
+
+				ImGui::Separator();
+
+				if (ImGui::Button("+"))
+				{
+					uint32_t next_id = 1000;
+					if (!scene.GetMaterials().empty())
+					{
+						auto max_it = std::max_element(
+							scene.GetMaterials().begin(),
+							scene.GetMaterials().end(),
+							[](const auto& a, const auto& b) { return a.first < b.first; }
+							);
+						next_id = max_it->first + 1;
+					}
+
+					std::shared_ptr<Material> new_material = std::make_shared<Material>("New Material");
+					new_material->param_id = next_id;
+					new_material->AddTexture(default_textures.at(0));
+					new_material->AddTexture(default_textures.at(1));
+					new_material->AddTexture(default_textures.at(2));
+					new_material->AddTexture(default_textures.at(3));
+					new_material->AddTexture(default_textures.at(4));
+					new_material->shininess = 64.0f;
+
+					scene.GetMaterials().insert_or_assign(next_id, new_material);
+					param_database.material_params.insert_or_assign(next_id, MaterialParamData(new_material->name,
+						default_textures.at(0)->param_id, default_textures.at(1)->param_id, default_textures.at(2)->param_id, default_textures.at(3)->param_id, default_textures.at(4)->param_id, 64.0f));
 				}
 				ImGui::EndTabItem();
 			}
@@ -1414,6 +1432,7 @@ namespace Bonfire
 					}
 					ImGui::PopID();
 				}
+				
 		        ImGui::EndTabItem();
 			}
 
@@ -1498,7 +1517,7 @@ namespace Bonfire
 			ImGui::PopStyleColor(4);
 		}
 		
-    	
+    	ImGui::PopFont();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }

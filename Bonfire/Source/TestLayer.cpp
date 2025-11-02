@@ -13,9 +13,9 @@ void TestLayer::OnAttach()
 {
 	Project& project = Project::GetInstance();
 	
-	player = Project::GetRenderer().GetScene().GetEntities().at(1000005);
+	/*player = Project::GetRenderer().GetScene().GetEntities().at(1000005);
 	PhysicsComponent& physics_component = player->GetComponent<PhysicsComponent>();
-	physics_component.physics_body->SetAllowedDOFS(true, true, true, false, false, false);
+	physics_component.physics_body->SetAllowedDOFS(true, true, true, false, false, false);*/
 }
 
 void TestLayer::OnDetach()
@@ -25,7 +25,7 @@ void TestLayer::OnDetach()
 
 void TestLayer::OnUpdate(const float& delta_time)
 {
-	Project& project = Project::GetInstance();
+	/*Project& project = Project::GetInstance();
 	Renderer& renderer = Project::GetRenderer();
 	Camera& camera = *renderer.GetScene().GetCurrentCamera();
 	
@@ -58,7 +58,7 @@ void TestLayer::OnUpdate(const float& delta_time)
 	glm::vec3 camera_offset = glm::vec3(-15.0f, 10.0f, 0.0f);
 	glm::vec3 player_no_y = glm::vec3(player->position.x, 0.0f, player->position.z);
 	camera.position = camera_offset + player_no_y;
-	camera.LookAt(player_no_y);
+	camera.LookAt(player_no_y);*/
 }
 void TestLayer::OnInterfaceUpdate()
 {

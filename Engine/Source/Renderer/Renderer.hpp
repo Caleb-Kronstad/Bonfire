@@ -33,7 +33,7 @@ namespace Bonfire
 		void RenderEditorViewport(const float& delta_time);
 		void RenderProjectViewport(const float& delta_time);
 		void DrawColliders(const glm::mat4& projection, const glm::mat4& view);
-		void DrawEntity(std::shared_ptr<Entity> entity);
+		void DrawEntity(std::shared_ptr<Entity> entity, Camera& camera);
 
 		Scene& GetScene() const { return *scene; }
 		ParamDatabase& GetParamDatabase() const { return *param_database; }
