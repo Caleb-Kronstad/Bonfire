@@ -19,7 +19,7 @@ namespace Bonfire
         std::string SerializeToString(ParamDatabase& param_database);
         bool DeserializeFromString(const std::string& json_str, ParamDatabase& param_database);
         
-        void UpdateLightSources(Shader& shader, float shininess = 64.0f);
+        void UpdateLightSources(Shader& shader);
 
         std::unordered_map<uint32_t, std::shared_ptr<Entity>>& GetEntities() { return entities; }
         std::unordered_map<uint32_t, std::shared_ptr<Model>>& GetModels() { return models; }

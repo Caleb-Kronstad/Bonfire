@@ -7,10 +7,8 @@
 
 namespace Bonfire
 {
-    void Scene::UpdateLightSources(Shader& shader, float shininess)
+    void Scene::UpdateLightSources(Shader& shader)
     {
-        shader.SetFloat("material.shininess", shininess);
-
         if (directional_light != nullptr)
         {
             shader.SetVec3("directional_light.direction", directional_light->direction);
@@ -123,6 +121,8 @@ namespace Bonfire
                 material->textures[static_cast<size_t>(TextureType::EMISSION)] = textures.at(material_data.emission_id);
 
             material->shininess = material_data.shininess;
+            material->texture_tiling = material_data.tiling;
+            material->texture_offset = material_data.offset;
             materials.insert_or_assign(material_id, std::move(material));
         }
         for (auto& [shader_id, shader_data] : param_database.shader_params)
@@ -698,7 +698,7 @@ namespace Bonfire
             else if (shader->name == "Point Shadow Map")
                 point_shadow_map_shader = shader;
         }
-        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, shadow_activated_shaders, "Data/Editor/Defaults/Textures/default.png");
+        shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, shadow_activated_shaders, "Data/Editor/Defaults/Textures/default-diffuse.png");
 
         return true;
     }

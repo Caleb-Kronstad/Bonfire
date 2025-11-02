@@ -2,8 +2,8 @@
 out vec4 FragColor;
 
 in VERT_OUT {
-	in vec3 FragPos;
-	in vec3 Normal;
+	vec3 FragPos;
+	vec3 Normal;
     vec2 TexCoords;
 } frag_in;
 

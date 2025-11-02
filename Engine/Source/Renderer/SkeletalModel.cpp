@@ -52,7 +52,9 @@ namespace Bonfire
                 }
             }
             
-            shader.SetFloat("material.shininess", 32.0f);
+            shader.SetFloat("material.shininess", material->shininess);
+            shader.SetVec2("texture_tiling", material->texture_tiling);
+            shader.SetVec2("texture_offset", material->texture_offset);
              
             // bind and draw mesh
             glBindVertexArray(mesh.vertex_array);

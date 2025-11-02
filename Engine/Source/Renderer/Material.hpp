@@ -17,9 +17,11 @@ namespace Bonfire
         std::array<std::shared_ptr<Texture>, TEXTURE_TYPE_COUNT>& GetTextures() { return textures; }
 
     public:
-        uint32_t shininess = 64.0f;
+        float shininess = 64.0f;
         uint32_t param_id = 0;
         std::string name;
         std::array<std::shared_ptr<Texture>, TEXTURE_TYPE_COUNT> textures;
+        glm::vec2 texture_tiling = glm::vec2(1.0f, 1.0f);
+        glm::vec2 texture_offset = glm::vec2(0.0f, 0.0f);
     };
 }

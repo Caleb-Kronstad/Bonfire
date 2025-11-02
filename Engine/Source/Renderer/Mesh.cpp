@@ -50,6 +50,10 @@ namespace Bonfire
 			glBindTexture(GL_TEXTURE_2D, texture->gl_id);
 		}
 
+    	shader.SetFloat("material.shininess", material->shininess);
+    	shader.SetVec2("texture_tiling", material->texture_tiling);
+    	shader.SetVec2("texture_offset", material->texture_offset);
+
     	glBindVertexArray(vertex_array);
     	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
 

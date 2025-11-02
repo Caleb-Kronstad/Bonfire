@@ -28,13 +28,12 @@ namespace Bonfire
         for (auto& [key, value] : model_json.items())
         {
             uint32_t id = std::stoul(key);
-            uint32_t ref(id);
 
             std::string name = value["name"].get<std::string>();
             std::string path = value["path"].get<std::string>();
             bool is_animated = value["is_animated"].get<bool>();
 
-            model_params[ref] = ModelParamData(name, path, is_animated);
+            model_params[id] = ModelParamData(name, path, is_animated);
         }
         model_file.close();
 
@@ -59,13 +58,12 @@ namespace Bonfire
         for (auto& [key,value] : texture_json.items())
         {
             uint32_t id = std::stoul(key);
-            uint32_t ref(id);
 
             std::string name = value["name"].get<std::string>();
             TextureType type = value["type"].get<TextureType>();
             bool flip = value["flip"].get<bool>();
             std::string path = value["path"].get<std::string>();
-            texture_params[ref] = TextureParamData(name, type, flip, path);
+            texture_params[id] = TextureParamData(name, type, flip, path);
         }
         texture_file.close();
 
@@ -97,6 +95,12 @@ namespace Bonfire
             material_data.height_id = value["height-id"].get<uint32_t>();
             material_data.emission_id = value["emission-id"].get<uint32_t>();
             material_data.shininess = value["shininess"].get<uint32_t>();
+            //std::vector<float> tiling_array = value["tiling"].get<std::vector<float>>();
+            //std::vector<float> offset_array = value["offset"].get<std::vector<float>>();
+            //material_data.tiling = glm::vec2(tiling_array[0], tiling_array[1]);
+            //material_data.offset = glm::vec2(offset_array[0], offset_array[1]);
+            material_data.tiling = glm::vec2(1.0f);
+            material_data.offset = glm::vec2(0.0f);
 
             material_params[id] = material_data;
         }
@@ -123,13 +127,12 @@ namespace Bonfire
         for (auto& [key, value] : shader_json.items())
         {
             uint32_t id = std::stoul(key);
-            uint32_t ref(id);
 
             std::string name = value["name"].get<std::string>();
             std::string vert_path = value["vert-path"].get<std::string>();
             std::string frag_path = value["frag-path"].get<std::string>();
             std::string geom_path = value["geom-path"].get<std::string>();
-            shader_params[ref] = ShaderParamData(name, vert_path, frag_path, geom_path);
+            shader_params[id] = ShaderParamData(name, vert_path, frag_path, geom_path);
         }
         shader_file.close();
 
@@ -154,11 +157,10 @@ namespace Bonfire
         for (auto& [key, value] : audio_json.items())
         {
             uint32_t id = std::stoul(key);
-            uint32_t ref(id);
 
             std::string name = value["name"].get<std::string>();
             std::string path = value["path"].get<std::string>();
-            audio_params[ref] = AudioParamData(name, path);
+            audio_params[id] = AudioParamData(name, path);
         }
 
         // load other param types
@@ -172,9 +174,9 @@ namespace Bonfire
         // model params
         nlohmann::json model_json;
 
-        for (const auto& [ref, data] : model_params)
+        for (const auto& [id, data] : model_params)
         {
-            std::string key = std::to_string(ref);
+            std::string key = std::to_string(id);
             model_json[key] = {
                 {"name", data.name},
                 {"path", data.path},
@@ -232,18 +234,17 @@ namespace Bonfire
         nlohmann::json material_json;
         for (auto& [material_id, material] : materials)
         {
-            if (material_params.contains(material_id))
-            {
-                material_params[material_id].name = material->name;
-                material_params[material_id].diffuse_id = material->GetTexture(TextureType::DIFFUSE)->param_id;
-                material_params[material_id].specular_id = material->GetTexture(TextureType::SPECULAR)->param_id;
-                material_params[material_id].normal_id = material->GetTexture(TextureType::NORMAL)->param_id;
-                material_params[material_id].height_id = material->GetTexture(TextureType::HEIGHT)->param_id;
-                material_params[material_id].emission_id = material->GetTexture(TextureType::EMISSION)->param_id;
-                material_params[material_id].shininess = material->shininess;
-            }
+            material_params[material_id].name = material->name;
+            material_params[material_id].diffuse_id = material->GetTexture(TextureType::DIFFUSE)->param_id;
+            material_params[material_id].specular_id = material->GetTexture(TextureType::SPECULAR)->param_id;
+            material_params[material_id].normal_id = material->GetTexture(TextureType::NORMAL)->param_id;
+            material_params[material_id].height_id = material->GetTexture(TextureType::HEIGHT)->param_id;
+            material_params[material_id].emission_id = material->GetTexture(TextureType::EMISSION)->param_id;
+            material_params[material_id].shininess = material->shininess;
+            material_params[material_id].tiling = material->texture_tiling;
+            material_params[material_id].offset = material->texture_offset;
         }
-
+        
         for (auto& [id, material_data] : material_params)
         {
             material_json[std::to_string(id)] = {
@@ -253,7 +254,9 @@ namespace Bonfire
                 {"normal-id", material_data.normal_id},
                 {"height-id", material_data.height_id},
                 {"emission-id", material_data.emission_id},
-                {"shininess", material_data.shininess}
+                {"shininess", material_data.shininess},
+                {"tiling", {material_data.tiling[0], material_data.tiling[1]}},
+                {"offset", {material_data.offset[0], material_data.offset[1]}}
             };
         }
         

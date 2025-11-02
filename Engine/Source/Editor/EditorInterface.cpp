@@ -1348,16 +1348,19 @@ namespace Bonfire
 					if (ImGui::CollapsingHeader(std::to_string(material_id).c_str()))
 					{
 						ImGui::SetNextItemWidth(200.0f);
-						ImGui::InputText("Name", &material_data->name);
+						ImGui::InputText("##1400", &material_data->name);
 						ImGui::SameLine(); ImGui::Text(std::to_string(material_data->param_id).c_str());
+						ImGui::SliderFloat2("Tiling", (float*)&material_data->texture_tiling, 1.0f, 100.0f, "%.f");
+						ImGui::SliderFloat2("Offset", (float*)&material_data->texture_offset, 0.1f, 10.0f, "%.2f");
+
+						ImGui::Spacing();
 						ImGui::Text("Textures");
-						
 						for (auto& texture : material_data->textures)
 						{
 							ImGui::PushID(&texture);
 							ImGui::Text(texture->name.c_str());
 							ImGui::SameLine(); ImGui::Text(std::to_string(texture->param_id).c_str());
-
+							
 							if (ImGui::ImageButton((void*)texture->gl_id, ImVec2(100,100)))
 							{
 								ImGui::OpenPopup("ChangeMaterialTexture");
@@ -1409,10 +1412,17 @@ namespace Bonfire
 					new_material->AddTexture(default_textures.at(3));
 					new_material->AddTexture(default_textures.at(4));
 					new_material->shininess = 64.0f;
+					new_material->texture_tiling = glm::vec2(1.0f, 1.0f);
+					new_material->texture_offset = glm::vec2(0.0f, 0.0f);
 
 					scene.GetMaterials().insert_or_assign(next_id, new_material);
-					param_database.material_params.insert_or_assign(next_id, MaterialParamData(new_material->name,
-						default_textures.at(0)->param_id, default_textures.at(1)->param_id, default_textures.at(2)->param_id, default_textures.at(3)->param_id, default_textures.at(4)->param_id, 64.0f));
+					param_database.material_params.insert_or_assign(
+						next_id,
+						MaterialParamData(new_material->name,
+						new_material->GetTexture(TextureType::DIFFUSE)->param_id, new_material->GetTexture(TextureType::SPECULAR)->param_id,new_material->GetTexture(TextureType::NORMAL)->param_id,
+						new_material->GetTexture(TextureType::HEIGHT)->param_id, new_material->GetTexture(TextureType::EMISSION)->param_id,
+						new_material->shininess, new_material->texture_tiling, new_material->texture_offset)
+						);
 				}
 				ImGui::EndTabItem();
 			}

@@ -31,11 +31,17 @@ namespace Bonfire
         uint32_t normal_id;
         uint32_t height_id;
         uint32_t emission_id;
-        uint32_t shininess;
+        float shininess;
+        glm::vec2 tiling;
+        glm::vec2 offset;
 
         MaterialParamData() { }
-        MaterialParamData(const std::string& name, const uint32_t& diffuse_id, const uint32_t& specular_id, const uint32_t& normal_id, const uint32_t& height_d, const uint32_t& emission_id, const uint32_t& shininess)
-            : name(name), diffuse_id(diffuse_id), specular_id(specular_id), normal_id(normal_id), height_id(height_d), emission_id(emission_id), shininess(shininess) {}
+        MaterialParamData(const std::string& name,
+            const uint32_t& diffuse_id, const uint32_t& specular_id, const uint32_t& normal_id, const uint32_t& height_d, const uint32_t& emission_id,
+            const float& shininess, const glm::vec2& tiling, const glm::vec2& offset)
+            : name(name),
+        diffuse_id(diffuse_id), specular_id(specular_id), normal_id(normal_id), height_id(height_d), emission_id(emission_id),
+        shininess(shininess), tiling(tiling), offset(offset) {}
     };
     struct ShaderParamData
     {

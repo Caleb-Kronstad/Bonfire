@@ -23,6 +23,9 @@ const int MAX_BONES = 128;
 uniform mat4 bone_transforms[MAX_BONES];
 uniform bool is_animated;
 
+uniform vec2 texture_tiling;
+uniform vec2 texture_offset;
+
 void main()
 {
     vec4 skinned_pos = vec4(aPos, 1.0);
@@ -52,7 +55,8 @@ void main()
     if (reverse_normals)
     VertOut.Normal = -VertOut.Normal;
 
-    VertOut.TexCoords = aTexCoords;
+    //VertOut.TexCoords = aTexCoords; // no tiling or offset
+    VertOut.TexCoords = aTexCoords * texture_tiling + texture_offset;
     VertOut.FragPosLightSpace = light_space_matrix * world_pos;
     gl_Position = projection * view * world_pos;
 }
