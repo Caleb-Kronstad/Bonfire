@@ -15,7 +15,7 @@ namespace Bonfire
 	{
 		
 	}
-
+ 
 	void Renderer::OnAttach()
 	{
 		Project& project = Project::GetInstance();
