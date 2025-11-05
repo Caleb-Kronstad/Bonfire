@@ -17,5 +17,5 @@ public:
 	void OnInput(Input& input) override;
 
 private:
-
+	std::shared_ptr<Entity> player;
 };

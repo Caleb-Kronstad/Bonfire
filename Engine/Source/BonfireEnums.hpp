@@ -19,7 +19,8 @@ namespace Bonfire
         PHYSICS,
         ANIMATION,
         AUDIO,
-        SCRIPT
+        SCRIPT,
+        CAMERA
     };
 
     inline constexpr uint8_t TEXTURE_TYPE_COUNT = 5;

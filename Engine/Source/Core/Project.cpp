@@ -56,6 +56,7 @@ namespace Bonfire
 		window->SetVSync(project_config.vsync);
 
 		editor_running = project_config.enable_editor;
+		project_running = !project_config.enable_editor;
 
 		InitializeOpenGL();
 
@@ -69,17 +70,13 @@ namespace Bonfire
 		static_physics_system->OnAttach();
 		
 		static_script_system->OnAttach();
-		if (project_config.project_manager_script_path != "")
-			static_script_system->ExecuteGlobalScript(project_config.project_manager_script_path);
+		static_script_system->ExecuteGlobalScript(project_config.project_manager_script_path);
 		
 		static_renderer->OnAttach();
 		std::unique_ptr<Scene> initial_scene = std::make_unique<Scene>(project_config.initial_scene_path);
 		static_renderer->AddScene(std::move(initial_scene));
 		static_renderer->Load();
-		
 		static_editor->OnAttach();
-		for (const auto& layer : layers)
-			layer->OnAttach();
 		
 		while (running)
 		{
@@ -116,8 +113,6 @@ namespace Bonfire
 				running = false;
 		}
 
-		for (const auto& layer : layers)
-			layer->OnDetach();
 		static_script_system->OnDetach();
 		static_renderer->OnDetach();
 		static_audio_system->OnDetach();

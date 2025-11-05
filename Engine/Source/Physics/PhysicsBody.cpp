@@ -32,7 +32,7 @@ namespace Bonfire
         {
             JPH::Body& body = lock.GetBody();
 
-            JPH::EAllowedDOFs allowed_dofs = JPH::EAllowedDOFs::None;
+            JPH::EAllowedDOFs allowed_dofs = JPH::EAllowedDOFs::All;
             if (translation_x && translation_y && translation_z && rotation_x && rotation_y && rotation_z)
                 allowed_dofs = JPH::EAllowedDOFs::All;
             else if (translation_x && translation_y && translation_z && !rotation_x && !rotation_y && !rotation_z)

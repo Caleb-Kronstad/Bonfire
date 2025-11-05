@@ -3,8 +3,8 @@
 
 namespace Bonfire
 {
-    Camera::Camera(uint32_t id, glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-        : id(id), front(glm::vec3(0.0f, 0.0f, -1.0f)), fov(60.0f)
+    Camera::Camera(uint32_t id, glm::vec3 position, glm::vec3 up, float yaw, float pitch, float fov)
+        : id(id), front(glm::vec3(0.0f, 0.0f, -1.0f)), fov(fov)
     {
         this->position = position;
         this->world_up = up;

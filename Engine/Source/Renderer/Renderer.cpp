@@ -188,6 +188,7 @@ namespace Bonfire
 		
 		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 		{
+			entity->UpdateComponents();
 			DrawEntity(entity, editor.GetEngineCamera());
 		}
 
@@ -283,6 +284,7 @@ namespace Bonfire
 		
 		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 		{
+			entity->UpdateComponents();
 			DrawEntity(entity, *scenes.at(current_scene_index)->GetCurrentCamera());
 		}
 

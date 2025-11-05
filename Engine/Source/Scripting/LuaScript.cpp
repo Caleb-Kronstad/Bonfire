@@ -88,7 +88,7 @@ namespace Bonfire
         bool result = CallLuaFunction("OnStart", entity);
         if (result)
             state = ScriptState::STARTED;
-
+        
         return result;
     }
 
@@ -96,7 +96,7 @@ namespace Bonfire
     {
         if (state != ScriptState::STARTED || !enabled)
             return false;
-
+        
         return CallLuaFunction("OnUpdate", entity, delta_time);
     }
 

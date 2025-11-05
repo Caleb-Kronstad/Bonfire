@@ -10,7 +10,6 @@ namespace Bonfire
         static void RegisterEntityBindings(lua_State* L);
         static void RegisterVec3Bindings(lua_State* L);
         static void RegisterInputBindings(lua_State* L);
-        static void RegisterCameraBindings(lua_State* L);
         static void RegisterSceneBindings(lua_State* L);
         static void RegisterProjectBindings(lua_State* L);
 

@@ -76,6 +76,7 @@ namespace Bonfire
         void CreateAnimationComponent();
         void CreateAudioComponent();
         void CreateScriptComponent();
+        void CreateCameraComponent();
 
         void BuildProject();
 

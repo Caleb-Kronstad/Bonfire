@@ -141,12 +141,12 @@ namespace Bonfire
     {
         const int collision_steps = 1;
         jolt_physics_system->Update(delta_time, collision_steps, temp_allocator.get(), job_system.get());
-        SyncPhysicsToEntities();
+        //SyncPhysicsToEntities();
     }
 
     void PhysicsSystem::SyncPhysicsToEntities()
     {
-        Scene& scene = Project::GetRenderer().GetScene();
+        /*Scene& scene = Project::GetRenderer().GetScene();
 
         for (auto& [entity_id, entity] : scene.GetEntities())
         {
@@ -157,7 +157,7 @@ namespace Bonfire
                 entity->position = physics_body->GetPosition();
                 entity->rotation = glm::degrees(glm::eulerAngles(physics_body->GetRotation()));
             }
-        }
+        }*/
     }
 
     std::shared_ptr<PhysicsBody> PhysicsSystem::CreateBoxBody(

@@ -117,11 +117,6 @@ namespace Bonfire
 
         lua_register(lua_state, "Vec3", lua_vec3_new);
     }
-
-    void LuaBindings::RegisterCameraBindings(lua_State* lua_state)
-    {
-        // add camera bindings    
-    }
     
     void LuaBindings::RegisterSceneBindings(lua_State* lua_state)
     {
@@ -253,6 +248,227 @@ namespace Bonfire
         LuaBindings::PushVec3(lua_state, entity->GetUpVector());
         return 1;
     }
+    
+    // PHYSICS COMPONENT BINDINGS
+    static int lua_entity_has_physics(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        bool has_physics = entity->HasComponent<PhysicsComponent>();
+        lua_pushboolean(lua_state, has_physics);
+        return 1;
+    }
+    
+    static int lua_entity_get_physics_velocity(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+  
+        if (!entity->HasComponent<PhysicsComponent>())
+        {
+            lua_pushnil(lua_state);
+            return 1;
+        }
+  
+        PhysicsComponent& physics_comp = entity->GetComponent<PhysicsComponent>();
+        if (!physics_comp.physics_body)
+        {
+            lua_pushnil(lua_state);
+            return 1;
+        }
+  
+        glm::vec3 velocity = physics_comp.physics_body->GetLinearVelocity();
+        LuaBindings::PushVec3(lua_state, velocity);
+        return 1;
+    }
+  
+    static int lua_entity_set_physics_velocity(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        glm::vec3 velocity = LuaBindings::CheckVec3(lua_state, 2);
+  
+        if (!entity->HasComponent<PhysicsComponent>())
+            return 0;
+  
+        PhysicsComponent& physics_comp = entity->GetComponent<PhysicsComponent>();
+        if (!physics_comp.physics_body)
+            return 0;
+  
+        physics_comp.physics_body->SetLinearVelocity(velocity);
+        return 0;
+    }
+    
+    static int lua_entity_add_physics_impulse(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        glm::vec3 impulse = LuaBindings::CheckVec3(lua_state, 2);
+  
+        if (!entity->HasComponent<PhysicsComponent>())
+            return 0;
+  
+        PhysicsComponent& physics_comp = entity->GetComponent<PhysicsComponent>();
+        if (!physics_comp.physics_body)
+            return 0;
+  
+        physics_comp.physics_body->AddImpulse(impulse);
+        return 0;
+    }
+  
+    static int lua_entity_set_physics_gravity(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        float gravity_factor = static_cast<float>(luaL_checknumber(lua_state, 2));
+  
+        if (!entity->HasComponent<PhysicsComponent>())
+            return 0;
+  
+        PhysicsComponent& physics_comp = entity->GetComponent<PhysicsComponent>();
+        if (!physics_comp.physics_body)
+            return 0;
+  
+        physics_comp.physics_body->SetGravityFactor(gravity_factor);
+        return 0;
+    }
+
+    static int lua_entity_set_physics_rotation_yaw(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        float yaw_degrees = static_cast<float>(luaL_checknumber(lua_state, 2));
+
+        if (!entity->HasComponent<PhysicsComponent>())
+            return 0;
+
+        PhysicsComponent& physics_comp = entity->GetComponent<PhysicsComponent>();
+        if (!physics_comp.physics_body)
+            return 0;
+
+        glm::quat current_quat = physics_comp.physics_body->GetRotation();
+        glm::vec3 current_euler = glm::degrees(glm::eulerAngles(current_quat));
+        glm::vec3 new_euler = glm::vec3(current_euler.x, yaw_degrees, current_euler.z);
+
+        physics_comp.physics_body->SetRotation(glm::quat(glm::radians(new_euler)));
+        return 0;
+    }
+    
+    // CAMERA COMPONENT BINDINGS
+    static int lua_entity_has_camera(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        bool has_camera = entity->HasComponent<CameraComponent>();
+        lua_pushboolean(lua_state, has_camera);
+        return 1;
+    }
+    
+    static int lua_entity_get_camera_position(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+  
+        if (!entity->HasComponent<CameraComponent>())
+        {
+            lua_pushnil(lua_state);
+            return 1;
+        }
+  
+        CameraComponent& camera_comp = entity->GetComponent<CameraComponent>();
+        if (!camera_comp.camera)
+        {
+            lua_pushnil(lua_state);
+            return 1;
+        }
+  
+        LuaBindings::PushVec3(lua_state, camera_comp.camera->position);
+        return 1;
+    }
+  
+    static int lua_entity_set_camera_position(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        glm::vec3 position = LuaBindings::CheckVec3(lua_state, 2);
+  
+        if (!entity->HasComponent<CameraComponent>())
+            return 0;
+  
+        CameraComponent& camera_comp = entity->GetComponent<CameraComponent>();
+        if (!camera_comp.camera)
+            return 0;
+  
+        camera_comp.camera->position = position;
+        return 0;
+    }
+    
+    static int lua_entity_get_camera_yaw(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+  
+        if (!entity->HasComponent<CameraComponent>())
+        {
+            lua_pushnumber(lua_state, 0.0f);
+            return 1;
+        }
+  
+        CameraComponent& camera_comp = entity->GetComponent<CameraComponent>();
+        if (!camera_comp.camera)
+        {
+            lua_pushnumber(lua_state, 0.0f);
+            return 1;
+        }
+  
+        lua_pushnumber(lua_state, camera_comp.camera->yaw);
+        return 1;
+    }
+  
+    static int lua_entity_set_camera_yaw(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        float yaw = static_cast<float>(luaL_checknumber(lua_state, 2));
+  
+        if (!entity->HasComponent<CameraComponent>())
+            return 0;
+  
+        CameraComponent& camera_comp = entity->GetComponent<CameraComponent>();
+        if (!camera_comp.camera)
+            return 0;
+  
+        camera_comp.camera->yaw = yaw;
+        camera_comp.camera->UpdateCameraVectors();
+        return 0;
+    }
+    
+    static int lua_entity_get_camera_pitch(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+  
+        if (!entity->HasComponent<CameraComponent>())
+        {
+            lua_pushnumber(lua_state, 0.0f);
+            return 1;
+        }
+  
+        CameraComponent& camera_comp = entity->GetComponent<CameraComponent>();
+        if (!camera_comp.camera)
+        {
+            lua_pushnumber(lua_state, 0.0f);
+            return 1;
+        }
+  
+        lua_pushnumber(lua_state, camera_comp.camera->pitch);
+        return 1;
+    }
+  
+    static int lua_entity_set_camera_pitch(lua_State* lua_state)
+    {
+        Entity* entity = LuaBindings::CheckEntity(lua_state, 1);
+        float pitch = static_cast<float>(luaL_checknumber(lua_state, 2));
+  
+        if (!entity->HasComponent<CameraComponent>())
+            return 0;
+  
+        CameraComponent& camera_comp = entity->GetComponent<CameraComponent>();
+        if (!camera_comp.camera)
+            return 0;
+  
+        camera_comp.camera->pitch = pitch;
+        camera_comp.camera->UpdateCameraVectors();
+        return 0;
+    }
 
     void LuaBindings::RegisterEntityBindings(lua_State* lua_state)
     {
@@ -311,6 +527,58 @@ namespace Bonfire
 
         lua_pushstring(lua_state, "GetUp");
         lua_pushcfunction(lua_state, lua_entity_get_up);
+        lua_settable(lua_state, -3);
+        
+        lua_pushstring(lua_state, "HasPhysics");
+        lua_pushcfunction(lua_state, lua_entity_has_physics);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "GetPhysicsVelocity");
+        lua_pushcfunction(lua_state, lua_entity_get_physics_velocity);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "SetPhysicsVelocity");
+        lua_pushcfunction(lua_state, lua_entity_set_physics_velocity);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "AddPhysicsImpulse");
+        lua_pushcfunction(lua_state, lua_entity_add_physics_impulse);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "SetPhysicsGravity");
+        lua_pushcfunction(lua_state, lua_entity_set_physics_gravity);
+        lua_settable(lua_state, -3);
+
+        lua_pushstring(lua_state, "SetPhysicsRotationYaw");
+        lua_pushcfunction(lua_state, lua_entity_set_physics_rotation_yaw);
+        lua_settable(lua_state, -3);
+        
+        lua_pushstring(lua_state, "HasCamera");
+        lua_pushcfunction(lua_state, lua_entity_has_camera);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "GetCameraPosition");
+        lua_pushcfunction(lua_state, lua_entity_get_camera_position);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "SetCameraPosition");
+        lua_pushcfunction(lua_state, lua_entity_set_camera_position);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "GetCameraYaw");
+        lua_pushcfunction(lua_state, lua_entity_get_camera_yaw);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "SetCameraYaw");
+        lua_pushcfunction(lua_state, lua_entity_set_camera_yaw);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "GetCameraPitch");
+        lua_pushcfunction(lua_state, lua_entity_get_camera_pitch);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "SetCameraPitch");
+        lua_pushcfunction(lua_state, lua_entity_set_camera_pitch);
         lua_settable(lua_state, -3);
 
         lua_settable(lua_state, -3);
@@ -382,6 +650,22 @@ namespace Bonfire
     
        lua_pushnumber(lua_state, ypos);
        return 1;
+    }
+    
+    static int lua_input_set_cursor_mode(lua_State* lua_state)
+    {
+        int mode = luaL_checkinteger(lua_state, 1);
+  
+        Project& project = Project::GetInstance();
+        Window& window = project.GetWindow();
+        GLFWwindow* glfw_window = window.GetNativeWindow();
+  
+        if (glfw_window)
+        {
+            glfwSetInputMode(glfw_window, GLFW_CURSOR, mode);
+        }
+  
+        return 0;
     }
 
     void LuaBindings::RegisterInputBindings(lua_State* lua_state)
@@ -457,44 +741,44 @@ namespace Bonfire
   
         // Letter keys
        lua_pushstring(lua_state, "KEY_A");
-       lua_pushinteger(lua_state, InputCode::A);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_B");
-       lua_pushinteger(lua_state, InputCode::B);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_C");
-       lua_pushinteger(lua_state, InputCode::C);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_D");
-       lua_pushinteger(lua_state, InputCode::D);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_E");
-       lua_pushinteger(lua_state, InputCode::E);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_F");
-       lua_pushinteger(lua_state, InputCode::F);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_G");
-       lua_pushinteger(lua_state, InputCode::G);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_H");
-       lua_pushinteger(lua_state, InputCode::H);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_I");
-       lua_pushinteger(lua_state, InputCode::I);
-       lua_settable(lua_state, -3);
-
-       lua_pushstring(lua_state, "KEY_J");
-       lua_pushinteger(lua_state, InputCode::J);
-       lua_settable(lua_state, -3);
+        lua_pushinteger(lua_state, InputCode::A);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_B");
+        lua_pushinteger(lua_state, InputCode::B);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_C");
+        lua_pushinteger(lua_state, InputCode::C);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_D");
+        lua_pushinteger(lua_state, InputCode::D);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_E");
+        lua_pushinteger(lua_state, InputCode::E);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_F");
+        lua_pushinteger(lua_state, InputCode::F);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_G");
+        lua_pushinteger(lua_state, InputCode::G);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_H");
+        lua_pushinteger(lua_state, InputCode::H);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_I");
+        lua_pushinteger(lua_state, InputCode::I);
+        lua_settable(lua_state, -3);
+ 
+        lua_pushstring(lua_state, "KEY_J");
+        lua_pushinteger(lua_state, InputCode::J);
+        lua_settable(lua_state, -3);
 
         lua_pushstring(lua_state, "KEY_K");
         lua_pushinteger(lua_state, InputCode::K);
@@ -723,6 +1007,24 @@ namespace Bonfire
 
         lua_pushstring(lua_state, "MOUSE_BUTTON_8");
         lua_pushinteger(lua_state, InputCode::Button7);
+        lua_settable(lua_state, -3);
+        
+        // Cursor control function
+        lua_pushstring(lua_state, "SetCursorMode");
+        lua_pushcfunction(lua_state, lua_input_set_cursor_mode);
+        lua_settable(lua_state, -3);
+      
+        // Cursor mode constants
+        lua_pushstring(lua_state, "CURSOR_NORMAL");
+        lua_pushinteger(lua_state, GLFW_CURSOR_NORMAL);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "CURSOR_HIDDEN");
+        lua_pushinteger(lua_state, GLFW_CURSOR_HIDDEN);
+        lua_settable(lua_state, -3);
+      
+        lua_pushstring(lua_state, "CURSOR_DISABLED");
+        lua_pushinteger(lua_state, GLFW_CURSOR_DISABLED);
         lua_settable(lua_state, -3);
   
         lua_setglobal(lua_state, "Input");

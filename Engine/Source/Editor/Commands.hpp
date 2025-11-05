@@ -50,7 +50,7 @@ namespace Bonfire
                 entity->position = position;
                 entity->rotation = rotation;
                 entity->scale = scale;
-                entity->UpdateComponents(*physics_system);
+                entity->UpdateComponents();
             }
         }
     };

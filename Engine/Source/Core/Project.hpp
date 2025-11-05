@@ -51,6 +51,7 @@ namespace Bonfire
 		const std::string& GetProjectName() const { return project_config.project_name; }
 		const float& GetDeltaTime() const { return delta_time; }
 		Window& GetWindow() const { return *window; }
+		std::vector<std::shared_ptr<Layer>>& GetLayers() { return layers; }
 
 		void SetProjectRunState(bool state) { project_running = state; }
 		void SetEngineRunState(bool state) { editor_running = state; }

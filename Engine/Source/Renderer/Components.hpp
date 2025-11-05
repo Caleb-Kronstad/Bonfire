@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include "Material.hpp"
 #include "Lighting.hpp"
+#include "Camera.hpp"
 #include "Physics/PhysicsBody.hpp"
 #include "Animation/Animator.hpp"
 #include "Audio/Audio.hpp"
@@ -55,13 +56,17 @@ namespace Bonfire
     struct PhysicsComponent : Component
     {
         std::shared_ptr<PhysicsBody> physics_body;
+        std::array<bool, 3> can_move_axis;
+        std::array<bool, 3> can_rotate_axis;
         
         PhysicsComponent() {}
-        PhysicsComponent(uint32_t id, bool enabled, std::shared_ptr<PhysicsBody> physics_body)
+        PhysicsComponent(uint32_t id, bool enabled, std::shared_ptr<PhysicsBody> physics_body, std::array<bool, 3> can_move_axis, std::array<bool, 3> can_rotate_axis)
         {
             this->id = id;
             this->enabled = enabled;
             this->physics_body = physics_body;
+            this->can_move_axis = can_move_axis;
+            this->can_rotate_axis = can_rotate_axis;
         }
     };
 
@@ -101,6 +106,19 @@ namespace Bonfire
             this->id = id;
             this->enabled = enabled;
             this->script = script;
+        }
+    };
+
+    struct CameraComponent : Component
+    {
+        std::shared_ptr<Camera> camera;
+
+        CameraComponent() {}
+        CameraComponent(uint32_t id, bool enabled, std::shared_ptr<Camera> camera)
+        {
+            this->id = id;
+            this->enabled = enabled;
+            this->camera = camera;
         }
     };
 }

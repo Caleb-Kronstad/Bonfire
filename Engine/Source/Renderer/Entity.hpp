@@ -24,6 +24,8 @@ namespace Bonfire {
     inline ComponentType GetComponentType<AudioComponent>() { return ComponentType::AUDIO; }
     template<>
     inline ComponentType GetComponentType<ScriptComponent>() { return ComponentType::SCRIPT; }
+    template<>
+    inline ComponentType GetComponentType<CameraComponent>() { return ComponentType::CAMERA; }
     
     class Entity
     {
@@ -35,7 +37,8 @@ namespace Bonfire {
 
         void Draw(std::shared_ptr<Shader> shader, Scene& scene);
         
-        void UpdateComponents(PhysicsSystem& physics_system);
+        void UpdateComponents();
+        void ValidateDOFS();
         bool AddComponent(ComponentType type, std::shared_ptr<Component> component);
         bool RemoveComponent(ComponentType type);
         template<typename T> T& GetComponent() { return *std::static_pointer_cast<T>(components.at(GetComponentType<T>())); }

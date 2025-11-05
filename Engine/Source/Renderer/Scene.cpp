@@ -7,6 +7,33 @@
 
 namespace Bonfire
 {
+    bool Scene::SetCurrentCamera(uint32_t id)
+    {
+        if (cameras.contains(id))
+        {
+            current_camera_id = id;
+            return true;
+        }
+        Log::Warning("Camera with ID: " + std::to_string(id) + " not found");
+        return false;
+    }
+
+    std::shared_ptr<Entity> Scene::GetEntityByName(const std::string& name)
+    {
+        for (auto& [entity_id, entity] : GetEntities())
+        {
+            if (entity->name == name)
+                return entity;
+        }
+        return nullptr;
+    }
+    std::shared_ptr<Entity> Scene::GetEntityById(uint32_t id)
+    {
+        if (entities.contains(id))
+            return entities.at(id);
+        return nullptr;
+    }
+    
     void Scene::UpdateLightSources(Shader& shader)
     {
         if (directional_light != nullptr)
@@ -57,6 +84,7 @@ namespace Bonfire
     
     bool Scene::LoadScene(ParamDatabase& param_database)
     {
+        cameras.clear();
         entities.clear();
         models.clear();
         textures.clear();
@@ -70,10 +98,11 @@ namespace Bonfire
         animation_components.clear();
         audio_components.clear();
         script_components.clear();
+        camera_components.clear();
         directional_light = nullptr;
-        current_camera = nullptr;
         skybox = nullptr;
         shadow_map = nullptr;
+        current_camera_id = 0;
 
         // LOAD COMPONENT TYPES FROM PARAM DATABASE
         for (auto& [model_id, model_data] : param_database.model_params)
@@ -154,7 +183,13 @@ namespace Bonfire
         buffer << file.rdbuf();
         std::string json_string = buffer.str();
 
-        current_camera = std::make_unique<Camera>(0);
+        std::shared_ptr<Camera> default_camera = std::make_shared<Camera>(0);
+        cameras.insert_or_assign(0, default_camera);
+        current_camera_id = 0;
+
+        std::shared_ptr<CameraComponent> default_camera_component = std::make_shared<CameraComponent>(1000, true, default_camera);
+        camera_components.insert_or_assign(1000, default_camera_component);
+        
         directional_light = std::make_unique<DirectionalLight>();
 
         if (!DeserializeFromString(json_string, param_database))
@@ -195,18 +230,7 @@ namespace Bonfire
     std::string Scene::SerializeToString(ParamDatabase& param_database)
     {
         nlohmann::json json;
-        nlohmann::json camera_array = nlohmann::json::array();
         nlohmann::json entities_array = nlohmann::json::array();
-
-        nlohmann::json camera_json;
-        camera_json["id"] = current_camera->GetID();
-        camera_json["yaw"] = current_camera->yaw;
-        camera_json["pitch"] = current_camera->pitch;
-        camera_json["position"] = {current_camera->position.x, current_camera->position.y,
-            current_camera->position.z};
-        camera_json["up"] = {current_camera->GetWorldUpVector().x, current_camera->GetWorldUpVector().y,
-            current_camera->GetWorldUpVector().z};
-        camera_array.push_back(camera_json);
 
         nlohmann::json directional_light_json;
         directional_light_json["id"] = directional_light->id;
@@ -217,6 +241,24 @@ namespace Bonfire
             directional_light->direction.z};
 
         nlohmann::json components_json;
+
+        nlohmann::json cameras_json;
+        for (const auto& [id, camera_component] : camera_components)
+        {
+            nlohmann::json camera_json;
+            camera_json["camera-id"] = camera_component->camera->id;
+            camera_json["enabled"] = camera_component->enabled;
+            camera_json["yaw"] = camera_component->camera->yaw;
+            camera_json["pitch"] = camera_component->camera->pitch;
+            camera_json["fov"] = camera_component->camera->fov;
+            camera_json["position"] = {camera_component->camera->position.x, camera_component->camera->position.y,
+            camera_component->camera->position.z};
+            camera_json["up"] = {camera_component->camera->GetWorldUpVector().x, camera_component->camera->GetWorldUpVector().y,
+            camera_component->camera->GetWorldUpVector().z};
+            cameras_json[std::to_string(id)] = camera_json;
+        }
+        if (!cameras_json.empty())
+            components_json["cameras"] = cameras_json;
 
         nlohmann::json models_json;
         for (const auto& [id, model_component] : model_components)
@@ -270,6 +312,8 @@ namespace Bonfire
             phys_json["physics-enabled"] = physics_component->physics_body->enabled;
             phys_json["physics-name"] = physics_component->physics_body->name;
             phys_json["body-type"] = physics_component->physics_body->GetBodyType();
+            phys_json["can-move-axis"] = { physics_component->can_move_axis[0], physics_component->can_move_axis[1], physics_component->can_move_axis[2] };
+            phys_json["can-rotate-axis"] = { physics_component->can_rotate_axis[0], physics_component->can_rotate_axis[1], physics_component->can_rotate_axis[2] };
 
             auto shape_data = physics_component->physics_body->GetShapeData();
             phys_json["shape-type"] = shape_data.type;
@@ -361,13 +405,17 @@ namespace Bonfire
                 ScriptComponent& script_component = entity->GetComponent<ScriptComponent>();
                 entity_components_json["script_component"] = script_component.id;
             }
+            if (entity->HasComponent<CameraComponent>())
+            {
+                CameraComponent& camera_component = entity->GetComponent<CameraComponent>();
+                entity_components_json["camera_component"] = camera_component.id;
+            }
 
             entity_json["components"] = entity_components_json;
             entities_array.push_back(entity_json);
         }
 
         json["DATA-TYPE"]["type"] = "SCENE";
-        json["cameras"] = camera_array;
         json["directional_light"] = directional_light_json;
         json["components"] = components_json;
         json["entities"] = entities_array;
@@ -386,6 +434,7 @@ namespace Bonfire
         physics_components.clear();
         audio_components.clear();
         script_components.clear();
+        camera_components.clear();
 
         nlohmann::json json;
         try
@@ -410,29 +459,6 @@ namespace Bonfire
             return false;
         }
 
-        if (json.contains("cameras"))
-        {
-            if (!current_camera)
-            {
-                Log::Error("Cannot deserialize: camera not initialized. Load scene first.");
-                return false;
-            }
-            for (const auto& camera_json : json["cameras"])
-            {
-                current_camera->SetID(camera_json["id"].get<uint32_t>());
-                current_camera->yaw = camera_json["yaw"].get<float>();
-                current_camera->pitch = camera_json["pitch"].get<float>();
-
-                auto position_array = camera_json["position"].get<std::vector<float>>();
-                current_camera->position = glm::vec3(position_array[0], position_array[1], position_array[2]);
-
-                auto up_array = camera_json["up"].get<std::vector<float>>();
-                current_camera->SetWorldUpVector(glm::vec3(up_array[0], up_array[1], up_array[2]));
-
-                current_camera->UpdateCameraVectors();
-            }
-        }
-
         if (json.contains("directional_light"))
         {
             const auto& dir_light_json = json["directional_light"];
@@ -450,6 +476,35 @@ namespace Bonfire
         {
             const auto& components = json["components"];
 
+            if (components.contains("cameras"))
+            {
+                for (const auto& [camera_component_id, camera_data] : components["cameras"].items())
+                {
+                    uint32_t id = std::stoul(camera_component_id);
+                    bool enabled = camera_data["enabled"].get<bool>();
+                    uint32_t camera_id = camera_data["camera-id"].get<uint32_t>();
+                    float yaw = camera_data["yaw"].get<float>();
+                    float pitch = camera_data["pitch"].get<float>();
+                    float fov = camera_data["fov"].get<float>();
+                    auto position_array = camera_data["position"].get<std::vector<float>>();
+                    auto up_array = camera_data["up"].get<std::vector<float>>();
+                    glm::vec3 position = glm::vec3(position_array[0], position_array[1], position_array[2]);
+                    glm::vec3 up = glm::vec3(up_array[0], up_array[1], up_array[2]);
+
+                    if (GetCameras().begin()->second->id == 0)
+                    {
+                        GetCameras().erase(0);
+                        SetCurrentCamera(camera_id);
+                    }
+
+                    std::shared_ptr<Camera> new_camera = std::make_shared<Camera>(camera_id, position, up, yaw, pitch, fov);
+                    cameras.insert_or_assign(camera_id, new_camera);
+                    
+                    std::shared_ptr<CameraComponent> new_camera_component = std::make_shared<CameraComponent>(id, enabled, new_camera);
+                    camera_components.insert_or_assign(id, new_camera_component);
+                }
+            }
+            
             if (components.contains("models"))
             {
                 for (const auto& [model_component_id, model_data] : components["models"].items())
@@ -540,6 +595,11 @@ namespace Bonfire
                     PhysicsBodyType body_type = static_cast<PhysicsBodyType>(physics_data["body-type"].get<uint8_t>());
                     PhysicsShapeType shape_type = static_cast<PhysicsShapeType>(physics_data["shape-type"].get<uint8_t>());
 
+                    auto can_move_axis_array = physics_data["can-move-axis"].get<std::vector<bool>>();
+                    auto can_rotate_axis_array = physics_data["can-rotate-axis"].get<std::vector<bool>>();
+                    std::array<bool, 3> can_move_axis = { can_move_axis_array[0], can_move_axis_array[1], can_move_axis_array[2] };
+                    std::array<bool, 3> can_rotate_axis = { can_rotate_axis_array[0], can_rotate_axis_array[1], can_rotate_axis_array[2] };
+
                     auto dims_array = physics_data["dimensions"].get<std::vector<float>>();
                     glm::vec3 dimensions(dims_array[0], dims_array[1], dims_array[2]);
 
@@ -559,7 +619,10 @@ namespace Bonfire
                         physics_body->SetEnabled(enabled);
                         physics_body->name = physics_name;
 
-                        std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(id, enabled, physics_body);
+                        std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(id, enabled, physics_body, can_move_axis, can_rotate_axis);
+                        physics_body->SetAllowedDOFS(
+                            physics_component->can_move_axis[0], physics_component->can_move_axis[1], physics_component->can_move_axis[2],
+                            physics_component->can_rotate_axis[0], physics_component->can_rotate_axis[1], physics_component->can_rotate_axis[2]);
                         physics_components.insert_or_assign(id, physics_component);
                     }
                 }
@@ -683,6 +746,11 @@ namespace Bonfire
                 {
                     uint32_t script_id = entity_components["script_component"].get<uint32_t>();
                     entity->AddComponent(ComponentType::SCRIPT, script_components.at(script_id));
+                }
+                if (entity_components.contains("camera_component"))
+                {
+                    uint32_t camera_id = entity_components["camera_component"].get<uint32_t>();
+                    entity->AddComponent(ComponentType::CAMERA, camera_components.at(camera_id));
                 }
 
                 entities.insert_or_assign(id, entity);

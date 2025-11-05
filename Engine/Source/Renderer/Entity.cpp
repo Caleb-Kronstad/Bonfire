@@ -4,6 +4,7 @@
 #include "Shader.hpp"
 #include "Scene.hpp"
 #include "Animation/Animator.hpp"
+#include "Core/Project.hpp"
 
 namespace Bonfire
 {
@@ -23,7 +24,7 @@ namespace Bonfire
 		model_component.model->Draw(*shader, model_component.material);
 	}
 
-	void Entity::UpdateComponents(PhysicsSystem& physics_system)
+	void Entity::UpdateComponents()
 	{
 		if (HasComponent<LightSourceComponent>())
 		{
@@ -43,9 +44,17 @@ namespace Bonfire
 		{
 			PhysicsComponent& physics_component = GetComponent<PhysicsComponent>();
 			std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
-                
-			physics_body->SetPosition(position);
-			physics_body->SetRotation(glm::quat(glm::radians(rotation)));
+
+			if (Project::GetInstance().GetProjectRunState())
+			{
+				position = physics_body->GetPosition();
+				rotation = glm::degrees(glm::eulerAngles(physics_body->GetRotation()));
+			}
+			else
+			{
+				physics_body->SetPosition(position);
+				physics_body->SetRotation(glm::quat(glm::radians(rotation)));
+			}
 		}
 		if (HasComponent<AudioComponent>())
 		{
@@ -59,6 +68,17 @@ namespace Bonfire
 		}
 	}
 
+	void Entity::ValidateDOFS()
+	{
+		if (HasComponent<PhysicsComponent>())
+		{
+			PhysicsComponent& physics_component = GetComponent<PhysicsComponent>();
+			PhysicsBody& physics_body = *physics_component.physics_body;
+			physics_body.SetAllowedDOFS(
+				physics_component.can_move_axis[0], physics_component.can_move_axis[1], physics_component.can_move_axis[2],
+				physics_component.can_rotate_axis[0], physics_component.can_rotate_axis[1], physics_component.can_rotate_axis[2]);
+		}
+	}
 
 	AABB Entity::GetWorldAABB(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities)
 	{

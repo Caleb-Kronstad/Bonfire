@@ -282,7 +282,7 @@ namespace Bonfire
     			selected_entity->scale.x = (std::max)(scale.x, 0.01f);
     			selected_entity->scale.y = (std::max)(scale.y, 0.01f);
     			selected_entity->scale.z = (std::max)(scale.z, 0.01f);
-    			selected_entity->UpdateComponents(Project::GetPhysicsSystem());
+    			selected_entity->UpdateComponents();
     		}
     		else if (is_modifying_transform && (!ImGuizmo::IsUsing() || ImGui::IsMouseReleased(ImGuiMouseButton_Left)))
     		{
@@ -444,6 +444,8 @@ namespace Bonfire
     		{
     			Log::Info("Running...");
     			serialized_scene_data = scene.SerializeToString(param_database);
+    			for (std::shared_ptr<Layer> layer : project.GetLayers())
+    				layer->OnAttach();
     			project.SetProjectRunState(true);
     			selected_entity = nullptr;
     			Project::GetScriptSystem().StartScripts(scene);
@@ -454,9 +456,11 @@ namespace Bonfire
     		{
     			Log::Info("Stopping...");
     			project.SetProjectRunState(false);
+    			Project::GetScriptSystem().DestroyScripts(scene);
+    			for (std::shared_ptr<Layer> layer : project.GetLayers())
+    				layer->OnDetach();
     			scene.DeserializeFromString(serialized_scene_data, param_database);
     			selected_entity = nullptr;
-    			Project::GetScriptSystem().DestroyScripts(scene);
     			ImGui::SetWindowFocus("Viewport");
     		}
     	}
@@ -676,12 +680,33 @@ namespace Bonfire
 		
     		ImGui::PushItemWidth(200.0f);
     		if (ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000.0f, 1000.0f, "%.3f"))
-    			selected_entity->UpdateComponents(physics_system);
+    			selected_entity->UpdateComponents();
     		if (ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0.01f, 1000.0f, "%.3f"))
-    			selected_entity->UpdateComponents(physics_system);
+    			selected_entity->UpdateComponents();
     		if (ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0.0f, 360.0f, "%.3f"))
-    			selected_entity->UpdateComponents(physics_system);
+    			selected_entity->UpdateComponents();
     		ImGui::PopItemWidth();
+
+    		// CAMERA COMPONENT
+    		if (selected_entity->HasComponent<CameraComponent>())
+    		{
+    			CameraComponent& camera_component = selected_entity->GetComponent<CameraComponent>();
+
+    			ImGui::PushID(&camera_component);
+    			ImGui::Separator();
+
+    			ImGui::Checkbox("##Enabled", &camera_component.enabled);
+    			ImGui::SameLine();
+    			ImGui::Text("Camera Component");
+    			ImGui::SameLine();
+    			ImGui::Text(std::to_string(camera_component.id).c_str());
+    			ImGui::Spacing();
+
+    			ImGui::Text(std::to_string(camera_component.camera->id).c_str());
+    			ImGui::DragFloat3("Position", (float*)&camera_component.camera->position, drag_step, -1000.0f, 1000.0f, "%.3f");
+    			ImGui::SliderFloat("FOV", &camera_component.camera->fov, 1.0f, 120.0f, "%.f");
+    			ImGui::PopID();
+    		}
 
     		// MODEL COMPONENT
     		if (selected_entity->HasComponent<ModelComponent>())
@@ -923,7 +948,16 @@ namespace Bonfire
     			ImGui::DragFloat3("Collider Dimensions", (float*)&physics_component.physics_body->GetShapeData().dimensions, drag_step, 0.1f, 100.0f);
 				physics_component.physics_body->SetScale(physics_component.physics_body->GetShapeData().dimensions);
 
-    			selected_entity->UpdateComponents(physics_system);
+    			ImGui::Spacing();
+
+    			ImGui::Text("Can Move");
+    			ImGui::Checkbox("x##p", &physics_component.can_move_axis[0]); ImGui::SameLine(); ImGui::Checkbox("y##p", &physics_component.can_move_axis[1]); ImGui::SameLine(); ImGui::Checkbox("z##p", &physics_component.can_move_axis[2]);
+    			ImGui::Text("Can Rotate");
+    			ImGui::Checkbox("x##r", &physics_component.can_rotate_axis[0]); ImGui::SameLine(); ImGui::Checkbox("y##r", &physics_component.can_rotate_axis[1]); ImGui::SameLine(); ImGui::Checkbox("z##r", &physics_component.can_rotate_axis[2]);
+    			ImGui::Spacing();
+
+    			selected_entity->ValidateDOFS();
+    			selected_entity->UpdateComponents();
     			
     			ImGui::PopID();
     		}
@@ -1088,6 +1122,20 @@ namespace Bonfire
 
     		if (ImGui::BeginPopup("AddComponentPopup"))
     		{
+    			if (ImGui::MenuItem("Camera Component"))
+    			{
+    				if (!selected_entity->HasComponent<CameraComponent>())
+    				{
+    					CreateCameraComponent();
+    					ImGui::CloseCurrentPopup();
+    				}
+				    else
+				    {
+					    Log::Warning("Entity already has camera component");
+				    	ImGui::CloseCurrentPopup();
+				    }
+    			}
+    			
     			if (ImGui::MenuItem("Model Component"))
     			{
     				if (!selected_entity->HasComponent<ModelComponent>())
@@ -1875,8 +1923,11 @@ namespace Bonfire
 		physics_body->enabled = true;
 		physics_body->SetEnabled(true);
 		physics_body->name = physics_name;
+		
+		std::array<bool, 3> default_can_move_axis = { true, true, true };
+		std::array<bool, 3> default_can_rotate_axis = { true, true, true };
 
-		std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body);
+		std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body, default_can_move_axis, default_can_rotate_axis);
 		scene.GetPhysicsComponents().insert_or_assign(next_id, physics_component);
 		selected_entity->AddComponent(ComponentType::PHYSICS, physics_component);
 	}
@@ -1997,6 +2048,47 @@ namespace Bonfire
 		selected_entity->AddComponent(ComponentType::SCRIPT, script_component);
 
 		ImGui::CloseCurrentPopup();
+	}
+	void Editor::CreateCameraComponent()
+	{
+		Scene& scene = Project::GetRenderer().GetScene();
+
+		uint32_t next_id = 100001;
+		if (!scene.GetCameraComponents().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetCameraComponents().begin(),
+				scene.GetCameraComponents().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_id = max_it->first + 1;
+		}
+
+		bool is_first_camera = false;
+		if (scene.GetCameras().begin()->second->id == 0)
+		{
+			scene.GetCameras().erase(0);
+			is_first_camera = true;
+		}
+		
+		uint32_t next_camera_id = 1000;
+		if (!scene.GetCameras().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetCameras().begin(),
+				scene.GetCameras().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_camera_id = max_it->first + 1;
+		}
+
+		std::shared_ptr<Camera> new_camera = std::make_shared<Camera>(next_camera_id, selected_entity->position);
+		scene.GetCameras().insert_or_assign(next_camera_id, new_camera);
+		std::shared_ptr<CameraComponent> new_camera_component = std::make_shared<CameraComponent>(next_id, true, new_camera);
+		scene.GetCameraComponents().insert_or_assign(next_id, new_camera_component);
+		selected_entity->AddComponent(ComponentType::CAMERA, new_camera_component);
+		if (is_first_camera)
+			scene.SetCurrentCamera(next_camera_id);
 	}
 
 
@@ -2208,8 +2300,14 @@ namespace Bonfire
 		            std::shared_ptr<PhysicsComponent> new_component = std::make_shared<PhysicsComponent>(
 		                next_comp_id,
 		                original_component.enabled,
-		                new_physics_body
+		                new_physics_body,
+		                original_component.can_move_axis,
+						original_component.can_rotate_axis
 		                );
+
+		        	new_physics_body->SetAllowedDOFS(
+		        		original_component.can_move_axis[0], original_component.can_move_axis[1], original_component.can_move_axis[2],
+		        		original_component.can_rotate_axis[0], original_component.can_rotate_axis[1], original_component.can_rotate_axis[2]);
 
 		            scene.GetPhysicsComponents().insert_or_assign(next_comp_id, new_component);
 		            duplicated->RemoveComponent(ComponentType::PHYSICS);
@@ -2307,6 +2405,38 @@ namespace Bonfire
 				scene.GetScriptComponents().insert_or_assign(next_comp_id, new_component);
 				duplicated->RemoveComponent(ComponentType::SCRIPT);
 				duplicated->AddComponent(ComponentType::SCRIPT, new_component);
+			}
+
+			if (ent->HasComponent<CameraComponent>())
+			{
+				CameraComponent& original_component = ent->GetComponent<CameraComponent>();
+				uint32_t next_comp_id = 100001;
+				if (!scene.GetCameraComponents().empty())
+				{
+					auto max_comp = std::max_element(
+						scene.GetCameraComponents().begin(),
+						scene.GetCameraComponents().end(),
+						[](const auto& a, const auto& b) { return a.first < b.first; }
+					);
+					next_comp_id = max_comp->first + 1;
+				}
+				uint32_t next_camera_id = 1000;
+				if (!scene.GetCameraComponents().empty())
+				{
+					auto max_comp = std::max_element(
+						scene.GetCameraComponents().begin(),
+						scene.GetCameraComponents().end(),
+						[](const auto& a, const auto& b) { return a.first < b.first; }
+					);
+					next_camera_id = max_comp->first + 1;
+				}
+				
+				std::shared_ptr<Camera> new_camera = std::make_shared<Camera>(next_camera_id, duplicated->position);
+				scene.GetCameras().insert_or_assign(next_camera_id, new_camera);
+				std::shared_ptr<CameraComponent> new_camera_component = std::make_shared<CameraComponent>(next_comp_id, true, new_camera);
+				scene.GetCameraComponents().insert_or_assign(next_comp_id, new_camera_component);
+				duplicated->RemoveComponent(ComponentType::CAMERA);
+				duplicated->AddComponent(ComponentType::CAMERA, new_camera_component);
 			}
 			
 		    scene.GetEntities().insert_or_assign(next_entity_id, duplicated);
@@ -2411,6 +2541,12 @@ namespace Bonfire
 			{
 				auto& script_component = ent->GetComponent<ScriptComponent>();
 				scene.GetScriptComponents().erase(script_component.id);
+			}
+			if (ent->HasComponent<CameraComponent>())
+			{
+				auto& camera_component = ent->GetComponent<CameraComponent>();
+				scene.GetCameras().erase(camera_component.camera->id);
+				scene.GetCameraComponents().erase(camera_component.id);
 			}
 
 			if (selected_entity == ent)

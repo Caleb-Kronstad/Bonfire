@@ -160,6 +160,7 @@ namespace Bonfire
             std::string path = value["path"].get<std::string>();
             audio_params[id] = AudioParamData(name, path);
         }
+        audio_file.close();
 
         // script params
         std::ifstream script_file(script_path);
@@ -187,6 +188,7 @@ namespace Bonfire
             std::string path = value["path"].get<std::string>();
             script_params[id] = ScriptParamData(name, path);
         }
+        script_file.close();
 
         // load other param types
 

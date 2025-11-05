@@ -75,6 +75,17 @@ namespace Bonfire
 
     	LoadEditorConfig();
 		command_history = std::make_unique<CommandHistory>(undo_redo_steps); // we need to load editor config first to make sure we have the correct undo/redo steps value :)
+
+    	if (project.GetProjectRunState())
+    	{
+    		Log::Info("Running...");
+    		serialized_scene_data = scene.SerializeToString(renderer.GetParamDatabase());
+    		for (std::shared_ptr<Layer> layer : project.GetLayers())
+    			layer->OnAttach();
+    		selected_entity = nullptr;
+    		Project::GetScriptSystem().StartScripts(scene);
+    		ImGui::SetWindowFocus("Project Name Here");
+    	}
     }
     void Editor::OnDetach()
     {
@@ -137,6 +148,30 @@ namespace Bonfire
 				{
 					if (CTRL_DOWN && selected_entity != nullptr && editor_viewport_focused)
 						DuplicateEntity(selected_entity);
+				}
+
+				if (key_input.GetKeyCode() == InputCode::F5)
+				{
+					// play
+					if (!project.GetProjectRunState())
+					{
+						Log::Info("Running...");
+						serialized_scene_data = scene.SerializeToString(renderer.GetParamDatabase());
+						project.SetProjectRunState(true);
+						selected_entity = nullptr;
+						Project::GetScriptSystem().StartScripts(scene);
+						ImGui::SetWindowFocus("Project Name Here");
+					}
+					// stop playing
+					else if (project.GetProjectRunState())
+					{
+						Log::Info("Stopping...");
+						project.SetProjectRunState(false);
+						Project::GetScriptSystem().DestroyScripts(scene);
+						scene.DeserializeFromString(serialized_scene_data, renderer.GetParamDatabase());
+						selected_entity = nullptr;
+						ImGui::SetWindowFocus("Viewport");
+					}
 				}
 				
 				break;
