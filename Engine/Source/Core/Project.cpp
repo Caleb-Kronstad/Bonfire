@@ -10,6 +10,7 @@ namespace Bonfire
 	Renderer* Project::static_renderer = nullptr;
 	PhysicsSystem* Project::static_physics_system = nullptr;
 	AudioSystem* Project::static_audio_system = nullptr;
+	ScriptSystem* Project::static_script_system = nullptr;
 
 	Project::Project(std::string projectName)
 	{
@@ -19,11 +20,9 @@ namespace Bonfire
 		static_renderer = new Renderer();
 		static_physics_system = new PhysicsSystem();
 		static_audio_system = new AudioSystem();
+		static_script_system = new ScriptSystem();
 
 		window = Window(WindowProperties(1280, 720, 0, 0, project_name));
-		/*unsigned int viewportWidth = window.GetWidth() * viewportSizeAdjust;
-		unsigned int viewportHeight = window.GetHeight() * viewportSizeAdjust;
-		m_ViewportProps = WindowProperties(viewportWidth, viewportHeight, window.GetWidth() - viewportWidth, window.GetHeight() - viewportHeight, "Viewport");*/
 	}
 
 	Project::~Project()
@@ -62,6 +61,7 @@ namespace Bonfire
 
 		static_audio_system->OnAttach();
 		static_physics_system->OnAttach();
+		static_script_system->OnAttach();
 		static_renderer->OnAttach();
 		static_editor->OnAttach();
 		for (const auto& layer : layers)
@@ -76,6 +76,7 @@ namespace Bonfire
 				static_editor->OnUpdate(delta_time);
 			if (project_running)
 			{
+				static_script_system->OnUpdate(delta_time);
 				static_physics_system->OnUpdate(delta_time);
 				static_audio_system->OnUpdate(delta_time);
 			}
@@ -106,12 +107,14 @@ namespace Bonfire
 
 		for (const auto& layer : layers)
 			layer->OnDetach();
+		static_script_system->OnDetach();
 		static_renderer->OnDetach();
 		static_audio_system->OnDetach();
 		static_physics_system->OnDetach();
 		static_editor->OnDetach();
 		glfwDestroyWindow(window.GetNativeWindow());
 		glfwTerminate();
+		delete static_script_system;
 		delete static_editor;
 		delete static_audio_system;
 		delete static_physics_system;

@@ -61,12 +61,24 @@ namespace Bonfire
         AudioParamData() { }
         AudioParamData(const std::string& name, const std::string& path) : name(name), path(path) {}
     };
+    struct ScriptParamData
+    {
+        std::string name;
+        std::string path;
+
+        ScriptParamData() { }
+        ScriptParamData(const std::string& name, const std::string& path) : name(name), path(path) {}
+    };
 
     class ParamDatabase
     {
     public:
-        ParamDatabase(const std::string& model_path = "", const std::string& texture_path = "", const std::string& shader_path = "", const std::string& material_path = "", const std::string& audio_path = "")
-            : model_path(model_path), texture_path(texture_path), shader_path(shader_path), material_path(material_path), audio_path(audio_path)
+        ParamDatabase(
+            const std::string& model_path = "", const std::string& texture_path = "", const std::string& shader_path = "",
+            const std::string& material_path = "", const std::string& audio_path = "", const std::string& script_path = "")
+        :
+        model_path(model_path), texture_path(texture_path), shader_path(shader_path),
+        material_path(material_path), audio_path(audio_path), script_path(script_path)
         {
         }
         
@@ -78,6 +90,7 @@ namespace Bonfire
         ShaderParamData& GetShaderParam(uint32_t id) { return shader_params.at(id); }
         MaterialParamData& GetMaterialParam(uint32_t id) { return material_params.at(id); }
         AudioParamData& GetAudioParam(uint32_t id) { return audio_params.at(id); }
+        ScriptParamData& GetScriptParam(uint32_t id) { return script_params.at(id); }
 
     public:
         std::unordered_map<uint32_t, ModelParamData> model_params;
@@ -85,12 +98,14 @@ namespace Bonfire
         std::unordered_map<uint32_t, ShaderParamData> shader_params;
         std::unordered_map<uint32_t, MaterialParamData> material_params;
         std::unordered_map<uint32_t, AudioParamData> audio_params;
+        std::unordered_map<uint32_t, ScriptParamData> script_params;
 
     private:
         std::string model_path;
         std::string texture_path;
         std::string shader_path;
         std::string material_path;
-        std::string audio_path;
+        std::string audio_path;;
+        std::string script_path;
     };
 }

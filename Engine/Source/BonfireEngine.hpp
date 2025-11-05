@@ -40,10 +40,18 @@
 #include "Renderer/Model.hpp"
 #include "Renderer/SkeletalModel.hpp"
 #include "Renderer/ParamDatabase.hpp"
+#include "Renderer/Components.hpp"
 #include "Renderer/Entity.hpp"
 #include "Renderer/Scene.hpp"
 #include "Renderer/Renderer.hpp"
 
+// Scripting
+#include "Scripting/LuaScript.hpp"
+#include "Scripting/LuaBindings.hpp"
+#include "Scripting/ScriptSystem.hpp"
+
 // Editor
+#include "Editor/Command.hpp"
+#include "Editor/Commands.hpp"
 #include "Editor/ConsoleCapture.hpp"
 #include "Editor/Editor.hpp"

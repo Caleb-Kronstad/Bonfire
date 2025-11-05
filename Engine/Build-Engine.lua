@@ -29,7 +29,7 @@ project "Engine"
         "%{IncludeDir.JSON}",
         "%{IncludeDir.JOLT}",
         "%{IncludeDir.ASIO}",
-        --"%{IncludeDir.LUA}",
+        "%{IncludeDir.LUA}",
         "%{IncludeDir.MINIAUDIO}",
         "Source"
     }
@@ -42,7 +42,7 @@ project "Engine"
         "GLM",
         "IMGUIZMO",
         "JOLT",
-        --"LUA"
+        "LUA"
     }
     
     targetdir ("%{wks.location}/../Build/Binaries/" .. OutputDir .. "/%{prj.name}")

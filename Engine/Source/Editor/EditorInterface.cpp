@@ -1,4 +1,6 @@
 ﻿#include "bonfire_pch.hpp"
+
+#include "Commands.hpp"
 #include "Editor.hpp"
 
 #include "Core/Utility.hpp"
@@ -155,12 +157,16 @@ namespace Bonfire
 	        
 	        if (ImGui::BeginMenu("Edit"))
 	        {
-	            if (ImGui::MenuItem("Undo", "Ctrl+Z")) { Log::Info("Undo"); }
-	            if (ImGui::MenuItem("Redo", "Ctrl+Y")) { Log::Info("Redo"); }
-	            ImGui::Separator();
-	            if (ImGui::MenuItem("Cut", "Ctrl+X")) { Log::Info("Cut"); }
-	            if (ImGui::MenuItem("Copy", "Ctrl+C")) { Log::Info("Copy"); }
-	            if (ImGui::MenuItem("Paste", "Ctrl+V")) { Log::Info("Paste"); }
+	            if (ImGui::MenuItem("Undo", "Ctrl+Z"))
+	            {
+	            	if (command_history->CanUndo())
+	            		command_history->Undo();
+	            }
+	            if (ImGui::MenuItem("Redo", "Ctrl+Y"))
+	            {
+		            if (command_history->CanRedo())
+		            	command_history->Redo();
+	            }
 	            ImGui::EndMenu();
 	        }
 	        
@@ -185,6 +191,7 @@ namespace Bonfire
     {
 		Project& project = Project::GetInstance();
 		Window& project_window = project.GetWindow();
+		PhysicsSystem& physics_system = project.GetPhysicsSystem();
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
 		
@@ -237,6 +244,14 @@ namespace Bonfire
 
     		if (ImGuizmo::IsUsing())
     		{
+    			if (!is_modifying_transform)
+    			{
+    				transform_start_position = selected_entity->position;
+    				transform_start_rotation = selected_entity->rotation;
+    				transform_start_scale = selected_entity->scale;
+    				is_modifying_transform = true;
+    			}
+    			
     			glm::mat4 local_transform = transform;
 
     			if (!selected_entity->IsRoot() && scene.GetEntities().contains(selected_entity->parent))
@@ -252,6 +267,14 @@ namespace Bonfire
     			selected_entity->scale.y = (std::max)(scale.y, 0.01f);
     			selected_entity->scale.z = (std::max)(scale.z, 0.01f);
     			selected_entity->UpdateComponents(Project::GetPhysicsSystem());
+    		}
+    		else if (is_modifying_transform && (!ImGuizmo::IsUsing() || ImGui::IsMouseReleased(ImGuiMouseButton_Left)))
+    		{
+    			std::shared_ptr<SetTransformCommand> command = std::make_unique<SetTransformCommand>(
+    				&scene, &physics_system, selected_entity->id, transform_start_position, transform_start_rotation, transform_start_scale,
+    				selected_entity->position, selected_entity->rotation, selected_entity->scale);
+    			command_history->ExecuteCommand(command);
+    			is_modifying_transform = false;
     		}
     	}
 
@@ -410,6 +433,7 @@ namespace Bonfire
     			serialized_scene_data = scene.SerializeToString(param_database);
     			project.SetProjectRunState(true);
     			selected_entity = nullptr;
+    			Project::GetScriptSystem().StartScripts(scene);
     			ImGui::SetWindowFocus("Project Name Here");
     		}
     		// stop playing
@@ -419,6 +443,7 @@ namespace Bonfire
     			project.SetProjectRunState(false);
     			scene.DeserializeFromString(serialized_scene_data, param_database);
     			selected_entity = nullptr;
+    			Project::GetScriptSystem().DestroyScripts(scene);
     			ImGui::SetWindowFocus("Viewport");
     		}
     	}
@@ -471,6 +496,9 @@ namespace Bonfire
 
 		ImGui::PushItemWidth(100.0f);
     	ImGui::DragFloat("Drag Step", &drag_step, 0.1f, 0.1f, 100.0f, "%.2f");
+		int temp_undo_redo_steps = undo_redo_steps;
+		ImGui::SliderInt("Undo/Redo Steps", &temp_undo_redo_steps, 1, 256);
+		undo_redo_steps = (uint8_t)temp_undo_redo_steps;
 
 		ImGui::Separator();
 		ImGui::Text("Engine Camera");
@@ -996,6 +1024,47 @@ namespace Bonfire
     			ImGui::PopID();
     		}
 
+    		if (selected_entity->HasComponent<ScriptComponent>())
+    		{
+    			ScriptComponent& script_component = selected_entity->GetComponent<ScriptComponent>();
+
+    			ImGui::PushID(&script_component);
+    			ImGui::Separator();
+
+    			ImGui::Checkbox("##Enabled", &script_component.enabled);
+    			ImGui::SameLine();
+    			ImGui::Text("Script Component");
+    			ImGui::SameLine();
+    			ImGui::Text(std::to_string(script_component.id).c_str());
+    			ImGui::Spacing();
+
+    			if (script_component.script)
+    			{
+    				if (ImGui::Button(script_component.script->name.c_str(), ImVec2(150, 22)))
+    					ImGui::OpenPopup("ChangeScriptScriptComponent");
+    				ImGui::SameLine();
+    				ImGui::Text("Script");
+
+    				if (ImGui::BeginPopup("ChangeScriptScriptComponent"))
+    				{
+    					ScriptSystem& script_system = Project::GetScriptSystem();
+    					for (auto& [id, script] : script_system.GetScripts())
+    					{
+    						ImGui::PushID(&id);
+    						if (ImGui::Selectable(script->name.c_str(), false, 0))
+    						{
+    							script_component.script = script;
+    							ImGui::CloseCurrentPopup();
+    						}
+    						ImGui::PopID();
+    					}
+    					ImGui::EndPopup();
+    				}
+    			}
+
+    			ImGui::PopID();
+    		}
+
     		ImGui::Separator();
     		
     		// ADD COMPONENT
@@ -1075,6 +1144,20 @@ namespace Bonfire
     					ImGui::CloseCurrentPopup();
     				}
     			}
+
+    			if (ImGui::MenuItem("Script Component"))
+    			{
+    				if (!selected_entity->HasComponent<ScriptComponent>())
+    				{
+    					CreateScriptComponent();
+    					ImGui::CloseCurrentPopup();
+    				}
+				    else
+				    {
+					    Log::Warning("Entity already has script component");
+				    	ImGui::CloseCurrentPopup();
+				    }
+    			}
     			ImGui::EndPopup();
     		}
     	
@@ -1096,7 +1179,7 @@ namespace Bonfire
 		ParamDatabase& param_database = renderer.GetParamDatabase();
 		
 		ImGui::PushFont(editor_font);
-    	ImGui::Begin("Param Editor", nullptr);
+    	ImGui::Begin("Params", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::Spacing();
@@ -1350,6 +1433,7 @@ namespace Bonfire
 						ImGui::SetNextItemWidth(200.0f);
 						ImGui::InputText("##1400", &material_data->name);
 						ImGui::SameLine(); ImGui::Text(std::to_string(material_data->param_id).c_str());
+						ImGui::SliderFloat("Shininess", &material_data->shininess, 0.0f, 512.0f, "%.f");
 						ImGui::SliderFloat2("Tiling", (float*)&material_data->texture_tiling, 1.0f, 100.0f, "%.f");
 						ImGui::SliderFloat2("Offset", (float*)&material_data->texture_offset, 0.1f, 10.0f, "%.2f");
 
@@ -1872,6 +1956,36 @@ namespace Bonfire
 		
 		ImGui::CloseCurrentPopup();
 	}
+	void Editor::CreateScriptComponent()
+	{
+		Scene& scene = Project::GetRenderer().GetScene();
+		ScriptSystem& script_system = Project::GetScriptSystem();
+
+		uint32_t next_id = 100001;
+		if (!scene.GetScriptComponents().empty())
+		{
+			auto max_it = std::max_element(
+				scene.GetScriptComponents().begin(),
+				scene.GetScriptComponents().end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+			next_id = max_it->first + 1;
+		}
+
+		if (script_system.GetScripts().empty())
+		{
+			Log::Warning("No scripts found in Script Params");
+			return;
+		}
+
+		std::shared_ptr<LuaScript> script = script_system.GetScripts().begin()->second;
+		std::shared_ptr<ScriptComponent> script_component = std::make_shared<ScriptComponent>(next_id, true, script);
+		scene.GetScriptComponents().insert_or_assign(next_id, script_component);
+		selected_entity->AddComponent(ComponentType::SCRIPT, script_component);
+
+		ImGui::CloseCurrentPopup();
+	}
+
 
 	void Editor::CreateEntity(std::shared_ptr<Entity> parent)
 	{
@@ -2157,6 +2271,30 @@ namespace Bonfire
 				duplicated->RemoveComponent(ComponentType::AUDIO);
 				duplicated->AddComponent(ComponentType::AUDIO, new_component);
 			}
+
+			if (ent->HasComponent<ScriptComponent>())
+			{
+				ScriptComponent& original_component = ent->GetComponent<ScriptComponent>();
+				uint32_t next_comp_id = 100001;
+				if (!scene.GetScriptComponents().empty())
+				{
+					auto max_comp = std::max_element(
+						scene.GetScriptComponents().begin(),
+						scene.GetScriptComponents().end(),
+						[](const auto& a, const auto& b) { return a.first < b.first; }
+					);
+					next_comp_id = max_comp->first + 1;
+				}
+
+				std::shared_ptr<ScriptComponent> new_component = std::make_shared<ScriptComponent>(
+					next_comp_id,
+					original_component.enabled,
+					original_component.script
+				);
+				scene.GetScriptComponents().insert_or_assign(next_comp_id, new_component);
+				duplicated->RemoveComponent(ComponentType::SCRIPT);
+				duplicated->AddComponent(ComponentType::SCRIPT, new_component);
+			}
 			
 		    scene.GetEntities().insert_or_assign(next_entity_id, duplicated);
 
@@ -2255,6 +2393,11 @@ namespace Bonfire
 				}
 
 				scene.GetAudioComponents().erase(audio_component.id);
+			}
+			if (ent->HasComponent<ScriptComponent>())
+			{
+				auto& script_component = ent->GetComponent<ScriptComponent>();
+				scene.GetScriptComponents().erase(script_component.id);
 			}
 
 			if (selected_entity == ent)

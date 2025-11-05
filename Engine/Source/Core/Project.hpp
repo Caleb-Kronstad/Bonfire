@@ -11,6 +11,7 @@
 #include "Renderer/Renderer.hpp"
 #include "Physics/PhysicsSystem.hpp"
 #include "Audio/AudioSystem.hpp"
+#include "Scripting/ScriptSystem.hpp"
 
 namespace Bonfire
 {
@@ -30,6 +31,7 @@ namespace Bonfire
 		static Renderer& GetRenderer() { return *static_renderer; }
 		static PhysicsSystem& GetPhysicsSystem() { return *static_physics_system; }
 		static AudioSystem& GetAudioSystem() { return *static_audio_system; }
+		static ScriptSystem& GetScriptSystem() { return *static_script_system; }
 		const bool& GetProjectRunState() const { return project_running; }
 		const bool& GetEngineRunState() const { return editor_running; }
 		const std::string& GetProjectName() const { return project_name; }
@@ -97,5 +99,6 @@ namespace Bonfire
 		static Editor* static_editor;
 		static PhysicsSystem* static_physics_system;
 		static AudioSystem* static_audio_system;
+		static ScriptSystem* static_script_system;
 	};
 }

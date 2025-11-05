@@ -94,13 +94,11 @@ namespace Bonfire
             material_data.normal_id = value["normal-id"].get<uint32_t>();
             material_data.height_id = value["height-id"].get<uint32_t>();
             material_data.emission_id = value["emission-id"].get<uint32_t>();
-            material_data.shininess = value["shininess"].get<uint32_t>();
-            //std::vector<float> tiling_array = value["tiling"].get<std::vector<float>>();
-            //std::vector<float> offset_array = value["offset"].get<std::vector<float>>();
-            //material_data.tiling = glm::vec2(tiling_array[0], tiling_array[1]);
-            //material_data.offset = glm::vec2(offset_array[0], offset_array[1]);
-            material_data.tiling = glm::vec2(1.0f);
-            material_data.offset = glm::vec2(0.0f);
+            material_data.shininess = value["shininess"].get<float>();
+            std::vector<float> tiling_array = value["tiling"].get<std::vector<float>>();
+            std::vector<float> offset_array = value["offset"].get<std::vector<float>>();
+            material_data.tiling = glm::vec2(tiling_array[0], tiling_array[1]);
+            material_data.offset = glm::vec2(offset_array[0], offset_array[1]);
 
             material_params[id] = material_data;
         }
@@ -163,6 +161,33 @@ namespace Bonfire
             audio_params[id] = AudioParamData(name, path);
         }
 
+        // script params
+        std::ifstream script_file(script_path);
+        if (!script_file.is_open())
+        {
+            Log::Error("Failed to open script params file: " + script_path);
+            return false;
+        }
+
+        nlohmann::json script_json;
+        try
+        {
+            script_file >> script_json;
+        } catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to parse script params JSON: " + std::string(e.what()));
+            return false;
+        }
+
+        for (auto& [key, value] : script_json.items())
+        {
+            uint32_t id = std::stoul(key);
+
+            std::string name = value["name"].get<std::string>();
+            std::string path = value["path"].get<std::string>();
+            script_params[id] = ScriptParamData(name, path);
+        }
+
         // load other param types
 
         Log::Info("Successfully loaded params");
@@ -199,6 +224,7 @@ namespace Bonfire
             Log::Error("Failed to write model params JSON: " + std::string(e.what()));
             return false;
         }
+        model_file.close();
 
         // texture params
         nlohmann::json texture_json;
@@ -229,6 +255,7 @@ namespace Bonfire
             Log::Error("Failed to write texture params JSON: " + std::string(e.what()));
             return false;
         }
+        texture_file.close();
 
         // material params
         nlohmann::json material_json;
@@ -275,6 +302,7 @@ namespace Bonfire
             Log::Error("Failed to write material params JSON: " + std::string(e.what()));
             return false;
         }
+        material_file.close();
 
         // shader params
         nlohmann::json shader_json;
@@ -305,6 +333,7 @@ namespace Bonfire
             Log::Error("Failed to write shader params JSON: " + std::string(e.what()));
             return false;
         }
+        shader_file.close();
 
         // audio params
         nlohmann::json audio_json;
@@ -333,6 +362,36 @@ namespace Bonfire
             Log::Error("Failed to write audio params JSON: " + std::string(e.what()));
             return false;
         }
+        audio_file.close();
+
+        // script params
+        nlohmann::json script_json;
+
+        for (const auto& [ref, data] : script_params)
+        {
+            std::string key = std::to_string(ref);
+            script_json[key] = {
+                {"name", data.name},
+                {"path", data.path}
+            };
+        }
+
+        std::ofstream script_file(script_path);
+        if (!script_file.is_open())
+        {
+            Log::Error("Failed to open script params file for writing: " + script_path);
+            return false;
+        }
+        try
+        {
+            script_file << script_json.dump(4);
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            Log::Error("Failed to write script params JSON: " + std::string(e.what()));
+            return false;
+        }
+        script_file.close();
 
         // save other param types
 

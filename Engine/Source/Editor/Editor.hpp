@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "Command.hpp"
 #include "Core/Layer.hpp"
 #include "Core/Utility.hpp"
 
@@ -74,11 +75,22 @@ namespace Bonfire
         void CreatePhysicsComponent();
         void CreateAnimationComponent();
         void CreateAudioComponent();
+        void CreateScriptComponent();
+
+        void ExecuteCommand(std::unique_ptr<Command> command);
+        CommandHistory& GetCommandHistory() { return *command_history; }
 
     private:
 		std::string project_path;
         std::string config_path;
         std::string serialized_scene_data;
+
+        std::unique_ptr<CommandHistory> command_history;
+        uint8_t undo_redo_steps = 64;
+        bool is_modifying_transform = false;
+        glm::vec3 transform_start_position = glm::vec3(0.0f);
+        glm::vec3 transform_start_rotation = glm::vec3(0.0f);
+        glm::vec3 transform_start_scale = glm::vec3(1.0f);
 
         bool preview_animations = true;
         

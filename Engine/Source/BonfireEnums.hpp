@@ -18,7 +18,8 @@ namespace Bonfire
         LIGHT,
         PHYSICS,
         ANIMATION,
-        AUDIO
+        AUDIO,
+        SCRIPT
     };
 
     inline constexpr uint8_t TEXTURE_TYPE_COUNT = 5;
@@ -50,5 +51,13 @@ namespace Bonfire
         DEFAULT,
         WIREFRAME,
         POINT
+    };
+
+    enum class ScriptState : uint8_t
+    {
+        UNINITIALIZED,
+        LOADED,
+        STARTED,
+        FAILED
     };
 }

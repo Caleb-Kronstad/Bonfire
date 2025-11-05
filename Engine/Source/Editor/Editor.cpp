@@ -70,10 +70,11 @@ namespace Bonfire
     	move_icon->Load();
     	rotate_icon->Load();
     	resize_icon->Load();
-    	
+
     	selected_entity = nullptr;
 
     	LoadEditorConfig();
+		command_history = std::make_unique<CommandHistory>(undo_redo_steps); // we need to load editor config first to make sure we have the correct undo/redo steps value :)
     }
     void Editor::OnDetach()
     {
@@ -149,6 +150,15 @@ namespace Bonfire
 				{
 					engine_camera_can_move = true;
 					CTRL_DOWN = false;
+				}
+				if (key_input.GetKeyCode() == InputCode::Z && CTRL_DOWN)
+				{
+					if (command_history->CanUndo())
+						command_history->Undo();
+				}if (key_input.GetKeyCode() == InputCode::Y && CTRL_DOWN)
+				{
+					if (command_history->CanRedo())
+						command_history->Redo();
 				}
 				
 				break;
@@ -246,6 +256,11 @@ namespace Bonfire
 		}
     }
 
+	void Editor::ExecuteCommand(std::unique_ptr<Command> command)
+	{
+		command_history->ExecuteCommand(std::move(command));
+	}
+
 	bool Editor::LoadEditorConfig()
     {
     	Project& project = Project::GetInstance();
@@ -307,11 +322,12 @@ namespace Bonfire
     	if (!json.contains("editor-settings"))
     	{
     		drag_step = 1.0f;
+    		undo_redo_steps = 64;
     		Log::Warning("Editor config could not find editor settings -- Setting to default");
     	}
     	nlohmann::json editor_settings_json = json["editor-settings"];
-    	float drag = editor_settings_json["drag-step"].get<float>();
-    	drag_step = drag;
+    	drag_step = editor_settings_json["drag-step"].get<float>();
+    	undo_redo_steps = editor_settings_json["undo-redo-steps"].get<uint8_t>();
 
     	Log::Info("Editor config loaded successfully");
     	return true;
@@ -330,6 +346,7 @@ namespace Bonfire
     	camera_json["sensitivity"] = engine_camera_turn_sensitivity;
 
     	nlohmann::json settings_json;
+    	settings_json["undo-redo-steps"] = undo_redo_steps;
     	settings_json["drag-step"] = drag_step;
 
     	json["DATA-TYPE"]["type"] = "EDITOR CONFIG";

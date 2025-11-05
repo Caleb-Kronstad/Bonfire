@@ -8,9 +8,12 @@
 #include "Physics/PhysicsBody.hpp"
 #include "Animation/Animator.hpp"
 #include "Audio/Audio.hpp"
+#include "Scripting/LuaScript.hpp"
 
 namespace Bonfire
 {
+    class LuaScript;
+    
     struct Component
     {
         uint32_t id = 0;
@@ -85,6 +88,19 @@ namespace Bonfire
             this->id = id;
             this->enabled = enabled;
             this->audio = audio;
+        }
+    };
+
+    struct ScriptComponent : Component
+    {
+        std::shared_ptr<LuaScript> script;
+
+        ScriptComponent() {}
+        ScriptComponent(uint32_t id, bool enabled, std::shared_ptr<LuaScript> script)
+        {
+            this->id = id;
+            this->enabled = enabled;
+            this->script = script;
         }
     };
 }

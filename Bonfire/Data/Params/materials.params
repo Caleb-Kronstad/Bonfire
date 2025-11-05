@@ -1,24 +1,36 @@
 {
     "1000": {
-        "name": "Default",
         "diffuse-id": 1000,
-        "specular-id": 1001,
-        "normal-id": 1002,
-        "height-id": 1003,
         "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Default",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
         "shininess": 64.0,
-        "tiling": [ 1.0, 1.0 ],
-        "offset": [ 0.0, 0.0 ]
+        "specular-id": 1001,
+        "tiling": [
+            10.0,
+            10.0
+        ]
     },
     "1001": {
-        "name": "Default 2",
         "diffuse-id": 1000,
-        "specular-id": 1001,
-        "normal-id": 1002,
-        "height-id": 1003,
         "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Default 2",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
         "shininess": 64.0,
-        "tiling": [ 1.0, 1.0 ],
-        "offset": [ 0.0, 0.0 ]
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
     }
 }

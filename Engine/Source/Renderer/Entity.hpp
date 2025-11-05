@@ -22,6 +22,8 @@ namespace Bonfire {
     inline ComponentType GetComponentType<AnimationComponent>() { return ComponentType::ANIMATION; }
     template<>
     inline ComponentType GetComponentType<AudioComponent>() { return ComponentType::AUDIO; }
+    template<>
+    inline ComponentType GetComponentType<ScriptComponent>() { return ComponentType::SCRIPT; }
     
     class Entity
     {

@@ -28,13 +28,14 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<Shader>>& GetShaders() { return shaders; }
         std::unordered_map<uint32_t, std::shared_ptr<PointLight>>& GetPointLights() { return point_lights; }
         std::unordered_map<uint32_t, std::shared_ptr<SpotLight>>& GetSpotLights() { return spot_lights; }
-        std::unique_ptr<DirectionalLight>& GetDirectionalLight() { return directional_light; }
-        std::unique_ptr<ShadowMap>& GetShadowMap() { return shadow_map; }
         std::unordered_map<uint32_t, std::shared_ptr<ModelComponent>>& GetModelComponents() { return model_components; }
         std::unordered_map<uint32_t, std::shared_ptr<LightSourceComponent>>& GetLightSourceComponents() { return light_source_components; }
         std::unordered_map<uint32_t, std::shared_ptr<PhysicsComponent>>& GetPhysicsComponents() { return physics_components; }
         std::unordered_map<uint32_t, std::shared_ptr<AnimationComponent>>& GetAnimationComponents() { return animation_components; }
         std::unordered_map<uint32_t, std::shared_ptr<AudioComponent>>& GetAudioComponents() { return audio_components; }
+        std::unordered_map<uint32_t, std::shared_ptr<ScriptComponent>>& GetScriptComponents() { return script_components; }
+        std::unique_ptr<DirectionalLight>& GetDirectionalLight() { return directional_light; }
+        std::unique_ptr<ShadowMap>& GetShadowMap() { return shadow_map; }
         std::unique_ptr<Camera>& GetCurrentCamera() { return current_camera; }
         std::unique_ptr<Skybox>& GetSkybox() { return skybox; }
 
@@ -53,6 +54,7 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<PhysicsComponent>> physics_components;
         std::unordered_map<uint32_t, std::shared_ptr<AnimationComponent>> animation_components;
         std::unordered_map<uint32_t, std::shared_ptr<AudioComponent>> audio_components;
+        std::unordered_map<uint32_t, std::shared_ptr<ScriptComponent>> script_components;
         std::unique_ptr<DirectionalLight> directional_light;
         std::unique_ptr<Camera> current_camera;
         std::unique_ptr<Skybox> skybox;

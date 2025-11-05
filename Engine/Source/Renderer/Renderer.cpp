@@ -23,7 +23,9 @@ namespace Bonfire
 		
 		background_color = RgbaToGlmVec4(23, 23, 23);
 
-		param_database = std::make_unique<ParamDatabase>("Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params", "Data/Params/materials.params", "Data/Params/audios.params");
+		param_database = std::make_unique<ParamDatabase>(
+			"Data/Params/models.params", "Data/Params/textures.params", "Data/Params/shaders.params",
+			"Data/Params/materials.params", "Data/Params/audios.params", "Data/Params/scripts.params");
 		
 		std::stringstream path_stream;
 		path_stream << "Project Path: " << std::filesystem::current_path();
@@ -78,9 +80,16 @@ namespace Bonfire
 			}
 		}
 
-		Project::GetAudioSystem().UpdateListener(editor.GetEngineCamera().position, editor.GetEngineCamera().GetFrontVector(), editor.GetEngineCamera().GetUpVector());
-		//Project::GetAudioSystem().UpdateListener(scene->GetCurrentCamera()->position, scene->GetCurrentCamera()->GetFrontVector(), scene->GetCurrentCamera()->GetUpVector());
-
+		if (project.GetProjectRunState())
+		{
+			Project::GetAudioSystem().UpdateListener(scene->GetCurrentCamera()->position, scene->GetCurrentCamera()->GetFrontVector(), scene->GetCurrentCamera()->GetUpVector());
+			Project::GetScriptSystem().UpdateScripts(*scene, delta_time);
+		}
+		else
+		{
+			Project::GetAudioSystem().UpdateListener(editor.GetEngineCamera().position, editor.GetEngineCamera().GetFrontVector(), editor.GetEngineCamera().GetUpVector());
+		}
+		
 		if (editor.EditorViewportVisible())
 			RenderEditorViewport(delta_time);
 		if (editor.ProjectViewportVisible())
