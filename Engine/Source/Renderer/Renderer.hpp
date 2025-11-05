@@ -30,12 +30,16 @@ namespace Bonfire
 		bool Load();
 		bool Save();
 
+		bool AddScene(std::unique_ptr<Scene> scene);
+		bool RemoveScene(std::unique_ptr<Scene> scene);
+		void NextScene(unsigned int scene_index);
+
 		void RenderEditorViewport(const float& delta_time);
 		void RenderProjectViewport(const float& delta_time);
 		void DrawColliders(const glm::mat4& projection, const glm::mat4& view);
 		void DrawEntity(std::shared_ptr<Entity> entity, Camera& camera);
 
-		Scene& GetScene() const { return *scene; }
+		Scene& GetScene() const { return *scenes.at(current_scene_index); }
 		ParamDatabase& GetParamDatabase() const { return *param_database; }
 		glm::vec2& GetEditorViewportSize() { return editor_viewport_size; }
 		glm::vec2& GetProjectViewportSize() { return project_viewport_size; }
@@ -54,7 +58,8 @@ namespace Bonfire
 		float draw_colliders_line_width = 1.0f;
 		
 		// scene
-		std::unique_ptr<Scene> scene;
+		std::vector<std::unique_ptr<Scene>> scenes;
+		unsigned int current_scene_index = 0;
 		std::unique_ptr<ParamDatabase> param_database;
         std::unique_ptr<Framebuffer> editor_viewport_framebuffer;
 		std::unique_ptr<Framebuffer> project_viewport_framebuffer;

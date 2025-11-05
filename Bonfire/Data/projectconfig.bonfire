@@ -1,0 +1,12 @@
+{
+    "project-name": "Project Title",
+    "window-width": 1280,
+    "window-height": 720,
+    "fullscreen": false,
+    "enable-editor": true,
+    "initial-scene-path": "Data/Scenes/testscene.bonfire",
+    "project-manager-script": "Data/Resources/Scripts/ProjectManager.lua",
+    "vsync": true,
+    "antialiasing-level": 4,
+    "shadow-resolution": 2048
+}

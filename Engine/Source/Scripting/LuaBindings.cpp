@@ -118,6 +118,45 @@ namespace Bonfire
         lua_register(lua_state, "Vec3", lua_vec3_new);
     }
 
+    void LuaBindings::RegisterCameraBindings(lua_State* lua_state)
+    {
+        // add camera bindings    
+    }
+    
+    void LuaBindings::RegisterSceneBindings(lua_State* lua_state)
+    {
+        lua_register(lua_state, "LoadScene", [](lua_State* L) -> int {
+          const char* scene_path = luaL_checkstring(L, 1);
+          Project::GetRenderer().GetScene().LoadScene(Project::GetRenderer().GetParamDatabase());
+          return 0;
+        });
+
+        lua_register(lua_state, "NextScene", [](lua_State* L) -> int
+        {
+            unsigned int scene_index = luaL_checkinteger(L, 1);
+            Project::GetRenderer().NextScene(scene_index);
+            return 0;
+        });
+    }
+
+    void LuaBindings::RegisterProjectBindings(lua_State* lua_state)
+    {
+        lua_register(lua_state, "QuitProject", [](lua_State* L) -> int {
+            Project::GetInstance().SetProjectRunState(false);
+            return 0;
+        });
+
+        lua_register(lua_state, "GetProjectName", [](lua_State* L) -> int {
+            lua_pushstring(L, Project::GetInstance().GetProjectConfig().project_name.c_str());
+            return 1;
+        });
+
+        lua_register(lua_state, "GetDeltaTime", [](lua_State* L) -> int {
+            lua_pushnumber(L, Project::GetInstance().GetDeltaTime());
+            return 1;
+        });
+    }
+
     // ENTITY BINDINGS
     static int lua_entity_get_position(lua_State* lua_state)
     {

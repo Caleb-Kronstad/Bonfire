@@ -4,11 +4,11 @@
 
 using namespace Bonfire;
 
-class TestLayer : public Layer
+class MainLayer : public Layer
 {
 public:
-	TestLayer();
-	~TestLayer();
+	MainLayer();
+	~MainLayer();
 
 	void OnAttach() override;
 	void OnDetach() override;
@@ -17,9 +17,5 @@ public:
 	void OnInput(Input& input) override;
 
 private:
-	std::shared_ptr<Entity> player;
-	bool w_down = false, s_down = false, a_down = false, d_down = false;
-	bool space_down = false;
-	float max_jump_height = 25.0f;
 
 };

@@ -15,10 +15,24 @@
 
 namespace Bonfire
 {
+	struct ProjectConfig
+	{
+		std::string project_name = "Bonfire Engine";
+		int window_width = 1280;
+		int window_height = 720;
+		int shadow_resolution = 2048;
+		int antialiasing_level = 4;
+		bool fullscreen = true;
+		bool enable_editor = true;
+		std::string initial_scene_path = "";
+		std::string project_manager_script_path = "";
+		bool vsync = true;
+	};
+	
 	class Project
 	{
 	public:
-		Project(std::string projectName = "New Project");
+		Project(std::string project_name = "New Project");
 		virtual ~Project();
 
 		void Run();
@@ -34,9 +48,9 @@ namespace Bonfire
 		static ScriptSystem& GetScriptSystem() { return *static_script_system; }
 		const bool& GetProjectRunState() const { return project_running; }
 		const bool& GetEngineRunState() const { return editor_running; }
-		const std::string& GetProjectName() const { return project_name; }
+		const std::string& GetProjectName() const { return project_config.project_name; }
 		const float& GetDeltaTime() const { return delta_time; }
-		Window& GetWindow() { return window; }
+		Window& GetWindow() const { return *window; }
 
 		void SetProjectRunState(bool state) { project_running = state; }
 		void SetEngineRunState(bool state) { editor_running = state; }
@@ -74,24 +88,25 @@ namespace Bonfire
 				static_project_instance->framebuffersizecallback(window, width, height);
 		}
 
+		const ProjectConfig& GetProjectConfig() const { return project_config; }
+
 	private:
 		void InitializeOpenGL();
 		void TickDeltaTime();
+
+		bool LoadProjectConfig(const std::string& config_path);
 
 	private:
 		float delta_time = 0.0f;
 		float last_frame_time = 0.0f;
 
 	private:
-		Window window;
+		ProjectConfig project_config;
+		std::unique_ptr<Window> window;
 		
-		unsigned int anti_aliasing_level = 4;
 		bool running = true;
 		bool editor_running = true;
 		bool project_running = false;
-
-		std::string project_name;
-		
 		std::vector<std::shared_ptr<Layer>> layers;
 
 		static Project* static_project_instance;

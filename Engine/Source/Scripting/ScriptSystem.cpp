@@ -31,6 +31,40 @@ namespace Bonfire
         
     }
 
+    void ScriptSystem::ExecuteGlobalScript(const std::string& script_path)
+    {
+        std::ifstream file(script_path);
+        if (!file.is_open())
+        {
+            Log::Error("[ScriptSystem] Failed to load global script: " + script_path);
+            return;
+        }
+
+        std::string script_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        file.close();
+
+        if (luaL_dostring(lua_state, script_content.c_str()) != LUA_OK)
+        {
+            Log::Error("[ScriptSystem] Error in global script: " + std::string(lua_tostring(lua_state, -1)));
+            lua_pop(lua_state, 1);
+            return;
+        }
+
+        lua_getglobal(lua_state, "OnProjectStart");
+        if (lua_isfunction(lua_state, -1))
+        {
+            if (lua_pcall(lua_state, 0, 0, 0) != LUA_OK)
+            {
+                Log::Error("[ScriptSystem] Error calling OnProjectStart: " + std::string(lua_tostring(lua_state, -1)));
+                lua_pop(lua_state, 1);
+            }
+        }
+        else
+        {
+            lua_pop(lua_state, 1);
+        }
+    }
+
     void ScriptSystem::InitializeLua()
     {
         lua_state = luaL_newstate();
@@ -61,6 +95,9 @@ namespace Bonfire
         LuaBindings::RegisterEntityBindings(lua_state);
         LuaBindings::RegisterVec3Bindings(lua_state);
         LuaBindings::RegisterInputBindings(lua_state);
+        LuaBindings::RegisterSceneBindings(lua_state);
+        LuaBindings::RegisterProjectBindings(lua_state);
+        //LuaBindings::RegisterCameraBindings(lua_state);
     }
 
     bool ScriptSystem::LoadScript(uint32_t id, const std::string& name, const std::string& path)

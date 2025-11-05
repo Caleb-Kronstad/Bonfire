@@ -33,17 +33,6 @@ namespace Bonfire
 
 		editor_viewport_framebuffer = std::make_unique<Framebuffer>(editor_viewport_size.x, editor_viewport_size.y);
 		project_viewport_framebuffer = std::make_unique<Framebuffer>(project_viewport_size.x, project_viewport_size.y);
-		
-		// SCENE AND EDITOR LOADING
-		scene = std::make_unique<Scene>("Data/Scenes/testscene.bonfire");
-		Load();
-
-		// what is this even for?
-		for (auto& [shader_id, shader] : scene->GetShaders())
-		{
-			shader->Use();
-			shader->SetVec4("color", glm::vec4(0.3f, 0.8f, 0.7f, 1.0f));
-		}
 	}
 	void Renderer::OnDetach()
 	{
@@ -59,7 +48,7 @@ namespace Bonfire
 
 		if (project.GetProjectRunState() || editor.PreviewAnimations())
 		{
-			for (auto& [entity_id, entity] : scene->GetEntities())
+			for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 			{
 				if (entity->HasComponent<AnimationComponent>())
 				{
@@ -82,8 +71,8 @@ namespace Bonfire
 
 		if (project.GetProjectRunState())
 		{
-			Project::GetAudioSystem().UpdateListener(scene->GetCurrentCamera()->position, scene->GetCurrentCamera()->GetFrontVector(), scene->GetCurrentCamera()->GetUpVector());
-			Project::GetScriptSystem().UpdateScripts(*scene, delta_time);
+			Project::GetAudioSystem().UpdateListener(scenes.at(current_scene_index)->GetCurrentCamera()->position, scenes.at(current_scene_index)->GetCurrentCamera()->GetFrontVector(), scenes.at(current_scene_index)->GetCurrentCamera()->GetUpVector());
+			Project::GetScriptSystem().UpdateScripts(*scenes.at(current_scene_index), delta_time);
 		}
 		else
 		{
@@ -134,51 +123,51 @@ namespace Bonfire
 		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
 		view = editor.GetEngineCamera().GetViewMatrix();
 		
-		if (scene->GetDirectionalLight() != nullptr && scene->GetDirectionalLight()->enabled)
+		if (scenes.at(current_scene_index)->GetDirectionalLight() != nullptr && scenes.at(current_scene_index)->GetDirectionalLight()->enabled)
 		{
-			scene->GetShadowMap()->LoadDirectional(scene->GetDirectionalLight()->direction);
-			scene->GetShadowMap()->SetDirectional();
+			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction);
+			scenes.at(current_scene_index)->GetShadowMap()->SetDirectional();
 
-			for (auto& [shadow_entity_id, shadow_entity] : scene->GetEntities())
+			for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
 			{
 				if (shadow_entity->HasComponent<ModelComponent>())
 				{
 					ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 					if (model_component.model->casts_shadow)
 					{
-						shadow_entity->Draw(scene->GetShadowMap()->shadow_map_shader, *scene);
+						shadow_entity->Draw(scenes.at(current_scene_index)->GetShadowMap()->shadow_map_shader, *scenes.at(current_scene_index));
 					}
 				}
 			}
 
-			scene->GetShadowMap()->Reset(false);
+			scenes.at(current_scene_index)->GetShadowMap()->Reset(false);
 			glViewport(0, 0, editor_viewport_size.x, editor_viewport_size.y);
 		}
 		
 		bool shadow_rendered = false;
-		for (auto& [entity_id, entity] : scene->GetEntities())
+		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 		{
 			if (!shadow_rendered && entity->HasComponent<LightSourceComponent>())
 			{
 				LightSourceComponent& light_source_component = entity->GetComponent<LightSourceComponent>();
 				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
 				{
-					scene->GetShadowMap()->Load(point_light->position);
-					scene->GetShadowMap()->Set(point_light->position);
+					scenes.at(current_scene_index)->GetShadowMap()->Load(point_light->position);
+					scenes.at(current_scene_index)->GetShadowMap()->Set(point_light->position);
 
-					for (auto& [shadow_entity_id, shadow_entity] : scene->GetEntities())
+					for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
 					{
 						if (shadow_entity->HasComponent<ModelComponent>())
 						{
 							ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 							if (model_component.model->casts_shadow)
 							{
-								shadow_entity->Draw(scene->GetShadowMap()->point_shadow_map_shader, *scene);
+								shadow_entity->Draw(scenes.at(current_scene_index)->GetShadowMap()->point_shadow_map_shader, *scenes.at(current_scene_index));
 							}
 						}
 					}
 
-					scene->GetShadowMap()->Reset(true);
+					scenes.at(current_scene_index)->GetShadowMap()->Reset(true);
 					break;
 				}
 			}
@@ -193,11 +182,11 @@ namespace Bonfire
 		view = editor.GetEngineCamera().GetViewMatrix();
 
 		// MOVE BELOW ENTITY DRAW LOOP
-		scene->GetShadowMap()->updated_this_frame = false;
-		for (auto& [shader_id, shader] : scene->GetShaders())
+		scenes.at(current_scene_index)->GetShadowMap()->updated_this_frame = false;
+		for (auto& [shader_id, shader] : scenes.at(current_scene_index)->GetShaders())
 			shader->updated_this_frame = false;
 		
-		for (auto& [entity_id, entity] : scene->GetEntities())
+		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 		{
 			DrawEntity(entity, editor.GetEngineCamera());
 		}
@@ -206,7 +195,7 @@ namespace Bonfire
 
 		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
 		view = editor.GetEngineCamera().GetViewMatrix();
-		scene->GetSkybox()->Draw(view, projection);
+		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection);
 
 		editor_viewport_framebuffer->Unbind();
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
@@ -227,54 +216,54 @@ namespace Bonfire
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		projection = scene->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
-		view = scene->GetCurrentCamera()->GetViewMatrix();
+		projection = scenes.at(current_scene_index)->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
+		view = scenes.at(current_scene_index)->GetCurrentCamera()->GetViewMatrix();
 		
-		if (scene->GetDirectionalLight() != nullptr && scene->GetDirectionalLight()->enabled)
+		if (scenes.at(current_scene_index)->GetDirectionalLight() != nullptr && scenes.at(current_scene_index)->GetDirectionalLight()->enabled)
 		{
-			scene->GetShadowMap()->LoadDirectional(scene->GetDirectionalLight()->direction);
-			scene->GetShadowMap()->SetDirectional();
+			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction);
+			scenes.at(current_scene_index)->GetShadowMap()->SetDirectional();
 
-			for (auto& [shadow_entity_id, shadow_entity] : scene->GetEntities())
+			for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
 			{
 				if (shadow_entity->HasComponent<ModelComponent>())
 				{
 					ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 					if (model_component.model->casts_shadow)
 					{
-						shadow_entity->Draw(scene->GetShadowMap()->shadow_map_shader, *scene);
+						shadow_entity->Draw(scenes.at(current_scene_index)->GetShadowMap()->shadow_map_shader, *scenes.at(current_scene_index));
 					}
 				}
 			}
 
-			scene->GetShadowMap()->Reset(false);
+			scenes.at(current_scene_index)->GetShadowMap()->Reset(false);
 			glViewport(0, 0, project_viewport_size.x, project_viewport_size.y);
 		}
 		
 		bool shadow_rendered = false;
-		for (auto& [entity_id, entity] : scene->GetEntities())
+		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 		{
 			if (!shadow_rendered && entity->HasComponent<LightSourceComponent>())
 			{
 				LightSourceComponent& light_source_component = entity->GetComponent<LightSourceComponent>();
 				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
 				{
-					scene->GetShadowMap()->Load(point_light->position);
-					scene->GetShadowMap()->Set(point_light->position);
+					scenes.at(current_scene_index)->GetShadowMap()->Load(point_light->position);
+					scenes.at(current_scene_index)->GetShadowMap()->Set(point_light->position);
 
-					for (auto& [shadow_entity_id, shadow_entity] : scene->GetEntities())
+					for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
 					{
 						if (shadow_entity->HasComponent<ModelComponent>())
 						{
 							ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 							if (model_component.model->casts_shadow)
 							{
-								shadow_entity->Draw(scene->GetShadowMap()->point_shadow_map_shader, *scene);
+								shadow_entity->Draw(scenes.at(current_scene_index)->GetShadowMap()->point_shadow_map_shader, *scenes.at(current_scene_index));
 							}
 						}
 					}
 
-					scene->GetShadowMap()->Reset(true);
+					scenes.at(current_scene_index)->GetShadowMap()->Reset(true);
 					break;
 				}
 			}
@@ -285,21 +274,21 @@ namespace Bonfire
 		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		projection = scene->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
-		view = scene->GetCurrentCamera()->GetViewMatrix();
+		projection = scenes.at(current_scene_index)->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
+		view = scenes.at(current_scene_index)->GetCurrentCamera()->GetViewMatrix();
 
-		scene->GetShadowMap()->updated_this_frame = false;
-		for (auto& [shader_id, shader] : scene->GetShaders())
+		scenes.at(current_scene_index)->GetShadowMap()->updated_this_frame = false;
+		for (auto& [shader_id, shader] : scenes.at(current_scene_index)->GetShaders())
 			shader->updated_this_frame = false;
 		
-		for (auto& [entity_id, entity] : scene->GetEntities())
+		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 		{
-			DrawEntity(entity, *scene->GetCurrentCamera());
+			DrawEntity(entity, *scenes.at(current_scene_index)->GetCurrentCamera());
 		}
 
-		projection = scene->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
-		view = scene->GetCurrentCamera()->GetViewMatrix();
-		scene->GetSkybox()->Draw(view, projection);
+		projection = scenes.at(current_scene_index)->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
+		view = scenes.at(current_scene_index)->GetCurrentCamera()->GetViewMatrix();
+		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection);
 
 		project_viewport_framebuffer->Unbind();
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
@@ -321,10 +310,10 @@ namespace Bonfire
 						shader->SetMat4("projection", projection);
 						shader->SetMat4("view", view);
 						shader->SetVec3("view_pos", camera.position);
-						shader->SetFloat("far_plane", scene->GetShadowMap()->far_plane);
-						shader->SetMat4("light_space_matrix", scene->GetShadowMap()->light_space_matrix);
-						scene->UpdateLightSources(*shader);
-						scene->GetShadowMap()->Draw();
+						shader->SetFloat("far_plane", scenes.at(current_scene_index)->GetShadowMap()->far_plane);
+						shader->SetMat4("light_space_matrix", scenes.at(current_scene_index)->GetShadowMap()->light_space_matrix);
+						scenes.at(current_scene_index)->UpdateLightSources(*shader);
+						scenes.at(current_scene_index)->GetShadowMap()->Draw();
 
 						bool has_emission = false;
 						if (model_component.material && model_component.material->HasTexture(TextureType::EMISSION))
@@ -366,7 +355,7 @@ namespace Bonfire
 				}
 				
 				shader->SetBool("reverse_normals", false);
-				entity->Draw(model_component.shader, *scene);
+				entity->Draw(model_component.shader, *scenes.at(current_scene_index));
 			}
 	}
 
@@ -375,7 +364,7 @@ namespace Bonfire
 		if (!draw_colliders) return;
 
 		std::shared_ptr<Shader> debug_shader = nullptr;
-		for (auto& [id, shader] : scene->GetShaders())
+		for (auto& [id, shader] : scenes.at(current_scene_index)->GetShaders())
 		{
 			if (shader->name == "Debug")
 			{
@@ -402,7 +391,7 @@ namespace Bonfire
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
-		for (auto& [id, entity] : scene->GetEntities())
+		for (auto& [id, entity] : scenes.at(current_scene_index)->GetEntities())
 		{
 			if (!entity->HasComponent<PhysicsComponent>()) continue;
 
@@ -455,13 +444,37 @@ namespace Bonfire
 	bool Renderer::Load()
 	{
 		bool params_loaded = param_database->LoadParams();
-		bool scene_loaded = scene->LoadScene(*param_database);
+		bool scene_loaded = scenes.at(current_scene_index)->LoadScene(*param_database);
 		return scene_loaded || params_loaded;
 	}
 	bool Renderer::Save()
 	{
-		bool scene_saved = scene->SaveScene(*param_database);
-		bool params_saved = param_database->SaveParams(scene->GetMaterials());
+		bool scene_saved = scenes.at(current_scene_index)->SaveScene(*param_database);
+		bool params_saved = param_database->SaveParams(scenes.at(current_scene_index)->GetMaterials());
 		return scene_saved || params_saved;
+	}
+
+	bool Renderer::AddScene(std::unique_ptr<Scene> scene)
+	{
+		scenes.push_back(std::move(scene));
+		return true;
+	}
+	bool Renderer::RemoveScene(std::unique_ptr<Scene> scene)
+	{
+		auto it = std::find(scenes.begin(), scenes.end(), scene);
+		if (it == scenes.end()) return false;
+		scenes.erase(it);
+		return true;
+	}
+	void Renderer::NextScene(unsigned int scene_index)
+	{
+		if (scene_index < 0)
+			scene_index = 0;
+
+		if (scene_index >= scenes.size())
+			scene_index = scenes.size() - 1;
+
+		current_scene_index = scene_index;
+		scenes.at(current_scene_index)->LoadScene(*param_database);
 	}
 }

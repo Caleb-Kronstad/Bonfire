@@ -1,13 +1,13 @@
 #include "BonfireEngine.hpp"
 
-#include "TestLayer.hpp"
+#include "MainLayer.hpp"
 
 class BonfireProject : public Project
 {
 public:
-	BonfireProject()
+	BonfireProject() : Project("Bonfire")
 	{
-		PushLayer(std::make_shared<TestLayer>());
+		PushLayer(std::make_shared<MainLayer>());
 	}
 
 	~BonfireProject()

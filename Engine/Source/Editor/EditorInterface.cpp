@@ -20,7 +20,7 @@ namespace Bonfire
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
 		
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->WorkPos);
 		ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -31,19 +31,28 @@ namespace Bonfire
 		window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-		ImGui::Begin("DockSpace", nullptr, window_flags);
-		ImGui::PopStyleVar(2);
-
-		DrawMenuBar();
-		DrawEditorViewport();
-		DrawProjectViewport();
-		DrawToolbar();
-		DrawDebugInfo();
-		DrawConsole();
-		DrawProjectSettings();
-		DrawParamEditor();
-		DrawHierarchy();
-		DrawDetails();
+		if (project.GetEngineRunState())
+		{
+			window_flags |= ImGuiWindowFlags_MenuBar;
+			ImGui::Begin("DockSpace", nullptr, window_flags);
+			ImGui::PopStyleVar(2);
+	
+			DrawMenuBar();
+			DrawEditorViewport();
+			DrawProjectViewport(0);
+			DrawToolbar();
+			DrawDebugInfo();
+			DrawConsole();
+			DrawProjectSettings();
+			DrawParamEditor();
+			DrawHierarchy();
+			DrawDetails();
+		}
+		else
+		{
+			DrawProjectViewport(window_flags);
+			ImGui::PopStyleVar(2);
+		}
 	}
 
 	void Editor::OnInterfaceEndUpdate()
@@ -150,6 +159,13 @@ namespace Bonfire
 	            	SaveEditorConfig();
 		            renderer.Save();
 	            }
+	            
+	            ImGui::Separator();
+	            if (ImGui::MenuItem("Build"))
+	            {
+	            	BuildProject();
+	            }
+	            
 	            ImGui::Separator();
 	            if (ImGui::MenuItem("Exit", "Alt+F4")) { project.SetEngineRunState(false); }
 	            ImGui::EndMenu();
@@ -326,7 +342,7 @@ namespace Bonfire
     	ImGui::End();
     }
 
-	void Editor::DrawProjectViewport()
+	void Editor::DrawProjectViewport(ImGuiWindowFlags window_flags)
 	{
 		Project& project = Project::GetInstance();
 		Window& project_window = project.GetWindow();
@@ -334,8 +350,9 @@ namespace Bonfire
 		Scene& scene = renderer.GetScene();
 		
 		ImGui::PushFont(editor_font);
-		project_viewport_visible = ImGui::Begin("Project Name Here");
-		DrawActiveTitleLine(highlight_primary, background_tertiary);
+		project_viewport_visible = ImGui::Begin("Project Name Here", nullptr, window_flags);
+		if (project.GetEngineRunState())
+			DrawActiveTitleLine(highlight_primary, background_tertiary);
     	
 		project_viewport_focused = ImGui::IsWindowFocused();
 		project_viewport_hovered = ImGui::IsWindowHovered();
@@ -351,10 +368,6 @@ namespace Bonfire
 		}
 		
 		ImGui::Image((void*)(intptr_t)renderer.GetProjectViewportFramebuffer().GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
-		ImVec2 viewport_min = ImGui::GetItemRectMin();
-		ImVec2 viewport_max = ImGui::GetItemRectMax();
-		float viewport_width = viewport_max.x - viewport_min.x;
-		float viewport_height = viewport_max.y - viewport_min.y;
 
 		ImGui::PopFont();
 		ImGui::End();
@@ -2476,5 +2489,111 @@ namespace Bonfire
 			entity->rotation = glm::degrees(rotation);
 			entity->scale = scale;
 		}
+	}
+
+	void Editor::BuildProject()
+	{
+		Project& project = Project::GetInstance();
+		
+		try
+        {
+            std::string project_name = project.GetProjectConfig().project_name;
+            if (project_name.empty())
+            {
+                project_name = "Bonfire Project";
+            }
+
+			std::string project_name_no_spaces = project_name;
+			project_name_no_spaces.erase(std::remove_if(project_name_no_spaces.begin(), project_name_no_spaces.end(), isspace), project_name_no_spaces.end());
+  
+            std::filesystem::path exe_dir = std::filesystem::current_path();
+            std::filesystem::path builds_dir = exe_dir / "Builds";
+            std::filesystem::create_directories(builds_dir);
+            std::filesystem::path build_dir = builds_dir / project_name_no_spaces;
+  
+            if (std::filesystem::exists(build_dir))
+            {
+                std::filesystem::remove_all(build_dir);
+            }
+            std::filesystem::create_directories(build_dir);
+  
+            Log::Info("[EditorInterface] Building project to: " + build_dir.string());
+
+            std::filesystem::path exe_source = exe_dir / "Bonfire.exe";
+            std::filesystem::path exe_dest = build_dir / (project_name_no_spaces + ".exe");
+            if (std::filesystem::exists(exe_source))
+            {
+                std::filesystem::copy(exe_source, exe_dest, std::filesystem::copy_options::overwrite_existing);
+            }
+            else
+            {
+                Log::Error("[EditorInterface] Bonfire.exe not found");
+                return;
+            }
+  
+            std::filesystem::path data_source = exe_dir / "Data";
+            std::filesystem::path data_dest = build_dir / "Data";
+            if (std::filesystem::exists(data_source))
+            {
+                std::filesystem::copy(data_source, data_dest, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+            }
+            else
+            {
+                Log::Error("[EditorInterface] Data folder not found");
+                return;
+            }
+  
+            std::filesystem::path imgui_source = exe_dir / "imgui.ini";
+            std::filesystem::path imgui_dest = build_dir / "imgui.ini";
+            if (std::filesystem::exists(imgui_source))
+            {
+                std::filesystem::copy(imgui_source, imgui_dest, std::filesystem::copy_options::overwrite_existing);
+            }
+            else
+            {
+	            Log::Warning("[EditorInterface] imgui.ini not found");
+            }
+  
+            std::filesystem::path config_path = data_dest / "projectconfig.bonfire";
+            if (std::filesystem::exists(config_path))
+            {
+                std::ifstream config_file(config_path);
+                if (config_file.is_open())
+                {
+                    nlohmann::json config_json;
+                    config_file >> config_json;
+                    config_file.close();
+  
+                    config_json["enable-editor"] = false;
+
+                    std::ofstream config_out(config_path);
+                    if (config_out.is_open())
+                    {
+                        config_out << std::setw(4) << config_json << std::endl;
+                        config_out.close();
+                        Log::Info("[EditorInterface] Disabled editor in build config");
+                    }
+                    else
+                    {
+                        Log::Error("[EditorInterface] Failed to write projectconfig.bonfire");
+                    }
+                }
+                else
+                {
+                    Log::Error("[EditorInterface] Failed to read projectconfig.bonfire");
+                }
+            }
+            else
+            {
+                Log::Warning("[EditorInterface] projectconfig.bonfire not found in Data folder");
+            }
+
+            Log::Info("[EditorInterface] Build completed successfully");
+            Log::Info("[EditorInterface] Output: " + build_dir.string());
+        }
+        catch (const std::exception& e)
+        {
+            Log::Error("[EditorInterface] Build failed: " + std::string(e.what()));
+        }
 	}
 }

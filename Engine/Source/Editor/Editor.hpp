@@ -53,7 +53,7 @@ namespace Bonfire
 
         void DrawMenuBar();
         void DrawEditorViewport();
-        void DrawProjectViewport();
+        void DrawProjectViewport(ImGuiWindowFlags window_flags);
         void DrawDebugInfo();
         void DrawToolbar();
         void DrawProjectSettings();
@@ -76,6 +76,8 @@ namespace Bonfire
         void CreateAnimationComponent();
         void CreateAudioComponent();
         void CreateScriptComponent();
+
+        void BuildProject();
 
         void ExecuteCommand(std::unique_ptr<Command> command);
         CommandHistory& GetCommandHistory() { return *command_history; }

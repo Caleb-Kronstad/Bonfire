@@ -12,9 +12,8 @@ namespace Bonfire
 	AudioSystem* Project::static_audio_system = nullptr;
 	ScriptSystem* Project::static_script_system = nullptr;
 
-	Project::Project(std::string projectName)
+	Project::Project(std::string project_name)
 	{
-		project_name = "Bonfire: " +  projectName;
 		static_project_instance = this;
 		static_editor = new Editor("Data/Editor/editorconfig.bonfire");
 		static_renderer = new Renderer();
@@ -22,7 +21,7 @@ namespace Bonfire
 		static_audio_system = new AudioSystem();
 		static_script_system = new ScriptSystem();
 
-		window = Window(WindowProperties(1280, 720, 0, 0, project_name));
+		window = std::make_unique<Window>(WindowProperties(1280, 720, 0, 0, project_name));
 	}
 
 	Project::~Project()
@@ -51,29 +50,43 @@ namespace Bonfire
 	{
 		std::cout << "Current Project Path: " << std::filesystem::current_path() << "\n";
 
+		LoadProjectConfig("Data/projectconfig.bonfire");
+
+		window->window_props = WindowProperties(project_config.window_width, project_config.window_height, 0, 0, project_config.project_name);
+		window->SetVSync(project_config.vsync);
+
+		editor_running = project_config.enable_editor;
+
 		InitializeOpenGL();
 
-		glfwSetKeyCallback(window.GetNativeWindow(), KeyCallbackDispatch);
-		glfwSetMouseButtonCallback(window.GetNativeWindow(), MouseButtonCallbackDispatch);
-		glfwSetCursorPosCallback(window.GetNativeWindow(), MouseCallbackDispatch);
-		glfwSetScrollCallback(window.GetNativeWindow(), ScrollCallbackDispatch);
-		glfwSetFramebufferSizeCallback(window.GetNativeWindow(), FramebufferSizeCallbackDispatch);
+		glfwSetKeyCallback(window->GetNativeWindow(), KeyCallbackDispatch);
+		glfwSetMouseButtonCallback(window->GetNativeWindow(), MouseButtonCallbackDispatch);
+		glfwSetCursorPosCallback(window->GetNativeWindow(), MouseCallbackDispatch);
+		glfwSetScrollCallback(window->GetNativeWindow(), ScrollCallbackDispatch);
+		glfwSetFramebufferSizeCallback(window->GetNativeWindow(), FramebufferSizeCallbackDispatch);
 
 		static_audio_system->OnAttach();
 		static_physics_system->OnAttach();
+		
 		static_script_system->OnAttach();
+		if (project_config.project_manager_script_path != "")
+			static_script_system->ExecuteGlobalScript(project_config.project_manager_script_path);
+		
 		static_renderer->OnAttach();
+		std::unique_ptr<Scene> initial_scene = std::make_unique<Scene>(project_config.initial_scene_path);
+		static_renderer->AddScene(std::move(initial_scene));
+		static_renderer->Load();
+		
 		static_editor->OnAttach();
 		for (const auto& layer : layers)
 			layer->OnAttach();
-
+		
 		while (running)
 		{
 			TickDeltaTime();
 
 			// Update Project
-			if (editor_running)
-				static_editor->OnUpdate(delta_time);
+			static_editor->OnUpdate(delta_time);
 			if (project_running)
 			{
 				static_script_system->OnUpdate(delta_time);
@@ -88,20 +101,18 @@ namespace Bonfire
 			}
 
 			// Update Interface
-			if (editor_running)
-				static_editor->OnInterfaceUpdate();
+			static_editor->OnInterfaceUpdate();
 			if (project_running)
 			{
 				for (const auto& layer : layers)
 					layer->OnInterfaceUpdate();
 			}
-			if (editor_running)
-				static_editor->OnInterfaceEndUpdate();
+			static_editor->OnInterfaceEndUpdate();
 
-			glfwSwapBuffers(window.GetNativeWindow());
+			glfwSwapBuffers(window->GetNativeWindow());
 			glfwPollEvents();
 			
-			if (glfwWindowShouldClose(window.GetNativeWindow()))
+			if (glfwWindowShouldClose(window->GetNativeWindow()))
 				running = false;
 		}
 
@@ -112,7 +123,7 @@ namespace Bonfire
 		static_audio_system->OnDetach();
 		static_physics_system->OnDetach();
 		static_editor->OnDetach();
-		glfwDestroyWindow(window.GetNativeWindow());
+		glfwDestroyWindow(window->GetNativeWindow());
 		glfwTerminate();
 		delete static_script_system;
 		delete static_editor;
@@ -121,6 +132,42 @@ namespace Bonfire
 		delete static_renderer;
 		delete static_project_instance;
 	}
+
+	bool Project::LoadProjectConfig(const std::string& config_path)
+	{
+		std::ifstream file(config_path);
+		if (!file.is_open())
+		{
+			Log::Warning("[Project] No projectconfig.bonfire found, using defaults");
+			return false;
+		}
+
+		try
+		{
+			nlohmann::json json;
+			file >> json;
+
+			project_config.project_name = json["project-name"].get<std::string>();
+			project_config.window_width = json["window-width"].get<int>();
+			project_config.window_height = json["window-height"].get<int>();
+			project_config.fullscreen = json["fullscreen"].get<bool>();
+			project_config.enable_editor = json["enable-editor"].get<bool>();
+			project_config.initial_scene_path = json["initial-scene-path"].get<std::string>();
+			project_config.vsync = json["vsync"].get<bool>();
+			project_config.project_manager_script_path = json["project-manager-script"].get<std::string>();
+			project_config.antialiasing_level = json["antialiasing-level"].get<int>();
+			project_config.shadow_resolution = json["shadow-resolution"].get<int>();
+
+			Log::Info("[Project] Loaded project config: " + project_config.project_name);
+			return true;
+		}
+		catch (const std::exception& e)
+		{
+			Log::Error("[Project] Failed to parse projectconfig.bonfire " + std::string(e.what()));
+			return false;
+		}
+	}
+
 
 	void Project::keycallback(GLFWwindow* glfw_window, int keycode, int scancode, int action, int mods)
 	{
@@ -182,14 +229,14 @@ namespace Bonfire
 
 	void Project::framebuffersizecallback(GLFWwindow* glfw_window, int width, int height)
 	{
-		window.GetWidth() = width;
-		window.GetHeight() = height;
-		/*unsigned int viewportWidth = window.GetWidth() * viewportSizeAdjust;
-		unsigned int viewportHeight = window.GetHeight() * viewportSizeAdjust;
+		window->GetWidth() = width;
+		window->GetHeight() = height;
+		/*unsigned int viewportWidth = window->GetWidth() * viewportSizeAdjust;
+		unsigned int viewportHeight = window->GetHeight() * viewportSizeAdjust;
 		m_ViewportProps.Width = viewportWidth;
 		m_ViewportProps.Height = viewportHeight;
-		m_ViewportProps.xOffset = window.GetWidth() - viewportWidth;
-		m_ViewportProps.yOffset = window.GetHeight() - viewportHeight;
+		m_ViewportProps.xOffset = window->GetWidth() - viewportWidth;
+		m_ViewportProps.yOffset = window->GetHeight() - viewportHeight;
 		glViewport(m_ViewportProps.xOffset, m_ViewportProps.yOffset, m_ViewportProps.Width, m_ViewportProps.Height);*/
 
 		glViewport(0, 0, width, height); // for testing before adding in custom rendering window size
@@ -206,35 +253,45 @@ namespace Bonfire
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		if (anti_aliasing_level > 0)
-			glfwWindowHint(GLFW_SAMPLES, anti_aliasing_level);
+		if (project_config.antialiasing_level > 0)
+			glfwWindowHint(GLFW_SAMPLES, project_config.antialiasing_level);
 
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 		int user_monitor_width = mode->width;
 		int user_monitor_height = mode->height;
 
-		window.SetNativeWindow(glfwCreateWindow(window.GetWidth(), window.GetHeight(), project_name.c_str(), NULL, NULL));
+		if (project_config.fullscreen)
+			window->SetNativeWindow(glfwCreateWindow(window->GetWidth(), window->GetHeight(), project_config.project_name.c_str(), monitor, NULL));
+		else
+			window->SetNativeWindow(glfwCreateWindow(window->GetWidth(), window->GetHeight(), project_config.project_name.c_str(), NULL, NULL));
 
-		if (window.GetNativeWindow() == NULL)
+		if (window->GetNativeWindow() == NULL)
 		{
 			Log::Error("Error creating GLFW window");
 			return;
 		}
 
-		glfwMakeContextCurrent(window.GetNativeWindow());
+		glfwMakeContextCurrent(window->GetNativeWindow());
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 			Log::Error("Error Initializing GLAD");
 
-		if (anti_aliasing_level > 0)
+		if (project_config.antialiasing_level > 0)
 			glEnable(GL_MULTISAMPLE); // enable antialiasing
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		//glEnable(GL_STENCIL_TEST);
 
-		glfwMaximizeWindow(window.GetNativeWindow());
-		glViewport(window.GetXOffset(), window.GetYOffset(), user_monitor_width, user_monitor_height);
+		if (!project_config.fullscreen)
+		{
+			glfwMaximizeWindow(window->GetNativeWindow());
+			glViewport(window->GetXOffset(), window->GetYOffset(), user_monitor_width, user_monitor_height);
+		}
+		else
+		{
+			glViewport(window->GetXOffset(), window->GetYOffset(), window->GetWidth(), window->GetHeight());
+		}
 	}
 
 	void Project::TickDeltaTime()

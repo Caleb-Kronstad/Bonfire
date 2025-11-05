@@ -29,6 +29,8 @@ namespace Bonfire
         void UpdateScripts(Scene& scene, float delta_time);
         void DestroyScripts(Scene& scene);
 
+        void ExecuteGlobalScript(const std::string& script_path);
+
         lua_State* GetLuaState() { return lua_state; }
 
     private:

@@ -37,9 +37,11 @@ namespace Bonfire
 		void SetVSync(bool const enabled) { is_v_sync = enabled; }
 		bool IsVSync() const { return is_v_sync; }
 
+	public:
+		WindowProperties window_props;
+
 	private:
 		GLFWwindow* glfw_window = nullptr;
-		WindowProperties window_props;
 		bool is_v_sync = false;
 
 	};
