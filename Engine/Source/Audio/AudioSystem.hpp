@@ -15,10 +15,10 @@ namespace Bonfire
         void OnDetach() override;
         void OnUpdate(const float& delta_time) override;
 
-        void AddAudio(std::shared_ptr<Audio> audio);
+        bool AddAudio(std::shared_ptr<Audio> audio);
+        bool RemoveAudio(std::shared_ptr<Audio> audio);
         std::shared_ptr<Audio> GetAudio(uint32_t id);
-        void RemoveAudio(uint32_t id);
-        std::unordered_map<uint32_t, std::shared_ptr<Audio>>& GetAudios() { return audios; }
+        const std::unordered_map<uint32_t, std::shared_ptr<Audio>>& GetAudios() { return audios; }
 
         void UpdateListener(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& up);
         void SetMasterVolume(float volume);

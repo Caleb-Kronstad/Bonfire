@@ -25,12 +25,14 @@ namespace Bonfire
             if (entity->name == name)
                 return entity;
         }
+        Log::Error("Could not find entity by name: " + name);
         return nullptr;
     }
     std::shared_ptr<Entity> Scene::GetEntityById(uint32_t id)
     {
         if (entities.contains(id))
             return entities.at(id);
+        Log::Error("Could not find entity by id: " + std::to_string(id));
         return nullptr;
     }
     
@@ -163,7 +165,7 @@ namespace Bonfire
         }
         for (auto& [audio_id, audio_data] : param_database.audio_params)
         {
-            std::shared_ptr<Audio> audio = std::make_shared<Audio>(audio_id, audio_data.path);
+            std::shared_ptr<Audio> audio = std::make_shared<Audio>(audio_id, audio_data.name, audio_data.path);
             Project::GetAudioSystem().AddAudio(audio);
         }
         for (auto& [script_id, script_data] : param_database.script_params)
@@ -231,6 +233,9 @@ namespace Bonfire
     {
         nlohmann::json json;
         nlohmann::json entities_array = nlohmann::json::array();
+
+        nlohmann::json skybox_json;
+        skybox_json["path"] = skybox->GetPath();
 
         nlohmann::json directional_light_json;
         directional_light_json["id"] = directional_light->id;
@@ -416,6 +421,7 @@ namespace Bonfire
         }
 
         json["DATA-TYPE"]["type"] = "SCENE";
+        json["skybox"] = skybox_json;
         json["directional_light"] = directional_light_json;
         json["components"] = components_json;
         json["entities"] = entities_array;
@@ -459,6 +465,13 @@ namespace Bonfire
             return false;
         }
 
+        if (json.contains("skybox"))
+        {
+            const auto& skybox_json = json["skybox"];
+            std::string skybox_path = skybox_json["path"];
+            skybox = std::make_unique<Skybox>(skybox_path);
+        }
+
         if (json.contains("directional_light"))
         {
             const auto& dir_light_json = json["directional_light"];
@@ -491,10 +504,11 @@ namespace Bonfire
                     glm::vec3 position = glm::vec3(position_array[0], position_array[1], position_array[2]);
                     glm::vec3 up = glm::vec3(up_array[0], up_array[1], up_array[2]);
 
+                    bool is_first_camera = false;
                     if (GetCameras().begin()->second->id == 0)
                     {
                         GetCameras().erase(0);
-                        SetCurrentCamera(camera_id);
+                        is_first_camera = true;
                     }
 
                     std::shared_ptr<Camera> new_camera = std::make_shared<Camera>(camera_id, position, up, yaw, pitch, fov);
@@ -502,6 +516,9 @@ namespace Bonfire
                     
                     std::shared_ptr<CameraComponent> new_camera_component = std::make_shared<CameraComponent>(id, enabled, new_camera);
                     camera_components.insert_or_assign(id, new_camera_component);
+
+                    if (is_first_camera)
+                        SetCurrentCamera(camera_id);
                 }
             }
             
@@ -796,7 +813,6 @@ namespace Bonfire
             }
         }
 
-        skybox = std::make_unique<Skybox>("Data/Editor/Defaults/Textures/Skyboxes/S3");
         std::shared_ptr<Shader> shadow_map_shader;
         std::shared_ptr<Shader> point_shadow_map_shader;
         std::vector<std::shared_ptr<Shader>> shadow_activated_shaders;

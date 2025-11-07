@@ -46,17 +46,17 @@ namespace Bonfire
 		Window& project_window = project.GetWindow();
 		GLFWwindow* glfw_window = project_window.GetNativeWindow();
 
-		if (project.GetProjectRunState() || editor.PreviewAnimations())
+		if (project.GetProjectRunState())
 		{
 			for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 			{
-				if (entity->HasComponent<AnimationComponent>())
+				if (entity->HasComponent<AnimationComponent>() && editor.PreviewAnimations())
 				{
 					AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
 					if (animation_component.animator)
 						animation_component.animator->Update(delta_time);
 				}
-				if (entity->HasComponent<AudioComponent>())
+				if (entity->HasComponent<AudioComponent>() && editor.PreviewAudios())
 				{
 					AudioComponent& audio_component = entity->GetComponent<AudioComponent>();
 					if (audio_component.audio && audio_component.enabled)

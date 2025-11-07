@@ -6,8 +6,8 @@
 
 namespace Bonfire
 {
-    Audio::Audio(uint32_t id, const std::string& file_path)
-        : id(id), file_path(file_path)
+    Audio::Audio(uint32_t id, const std::string& name, const std::string& file_path)
+        : id(id), name(name), path(file_path)
     {
         engine = Project::GetAudioSystem().GetEngine();
         

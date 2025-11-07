@@ -1,8 +1,7 @@
 ﻿#include "bonfire_pch.hpp"
-
-#include "Commands.hpp"
 #include "Editor.hpp"
 
+#include "Commands.hpp"
 #include "Core/Utility.hpp"
 #include "Core/Project.hpp"
 
@@ -393,7 +392,30 @@ namespace Bonfire
     	ImGui::Text(frame_time.c_str());
     	ImGui::Text(frame_rate.c_str());
 
-		ImGui::Checkbox("Preview Animations", &preview_animations);
+		if (ImGui::Checkbox("Preview Animations", &preview_animations))
+		{
+			if (!preview_animations)
+			{
+				for (auto& [component_id, component] : scene.GetAnimationComponents())
+					component->animator->Stop();
+			}
+		}
+		if (ImGui::Checkbox("Preview Audios", &preview_audios))
+		{
+			if (!preview_audios)
+			{
+				for (auto& [component_id, component] : scene.GetAudioComponents())
+					component->audio->Stop();
+			}
+			else
+			{
+				for (auto& [component_id, component] : scene.GetAudioComponents())
+				{
+					if (component->audio->GetPlayOnAwake() && !component->audio->IsPlaying())
+						component->audio->Play();
+				}
+			}
+		}
 
 		ImGui::Checkbox("Draw Colliders", &renderer.GetDrawColliders());
 		ImGui::SliderFloat("Collider Line Width", &renderer.GetDrawCollidersLineWidth(), 0.1f, 10.0f, "%.1f");
@@ -456,6 +478,27 @@ namespace Bonfire
     		{
     			Log::Info("Stopping...");
     			project.SetProjectRunState(false);
+    			
+    			for (auto& [entity_id, entity] : scene.GetEntities())
+    			{
+    				if (entity->HasComponent<AnimationComponent>() && !preview_animations)
+    				{
+    					AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
+    					if (animation_component.animator)
+    						animation_component.animator->Stop();
+    				}
+    				if (entity->HasComponent<AudioComponent>() && !preview_audios)
+    				{
+    					AudioComponent& audio_component = entity->GetComponent<AudioComponent>();
+    					if (audio_component.audio && audio_component.enabled)
+    					{
+    						audio_component.audio->Set3DPosition(entity->position);
+    						if (audio_component.audio->GetPlayOnAwake() && !audio_component.audio->IsPlaying())
+    							audio_component.audio->Stop();
+    					}
+    				}
+    			}
+    			
     			Project::GetScriptSystem().DestroyScripts(scene);
     			for (std::shared_ptr<Layer> layer : project.GetLayers())
     				layer->OnDetach();
@@ -627,23 +670,6 @@ namespace Bonfire
 		ImGui::PopFont();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
-
-    	if (entity_to_create != nullptr)
-    	{
-    		CreateEntity(entity_to_create);
-    		entity_to_create = nullptr;
-    	}
-    	if (entity_to_delete != nullptr)
-    	{
-    		DeleteEntity(entity_to_delete);
-    		entity_to_delete = nullptr;
-    	}
-    	if (entity_to_reparent != nullptr)
-    	{
-    		ReparentEntity(entity_to_reparent, reparent_target);
-    		entity_to_reparent = nullptr;
-    		reparent_target = nullptr;
-    	}
     }
 
 	void Editor::DrawDetails()
@@ -687,435 +713,18 @@ namespace Bonfire
     			selected_entity->UpdateComponents();
     		ImGui::PopItemWidth();
 
-    		// CAMERA COMPONENT
-    		if (selected_entity->HasComponent<CameraComponent>())
-    		{
-    			CameraComponent& camera_component = selected_entity->GetComponent<CameraComponent>();
-
-    			ImGui::PushID(&camera_component);
-    			ImGui::Separator();
-
-    			ImGui::Checkbox("##Enabled", &camera_component.enabled);
-    			ImGui::SameLine();
-    			ImGui::Text("Camera Component");
-    			ImGui::SameLine();
-    			ImGui::Text(std::to_string(camera_component.id).c_str());
-    			ImGui::Spacing();
-
-    			ImGui::Text(std::to_string(camera_component.camera->id).c_str());
-    			ImGui::DragFloat3("Position", (float*)&camera_component.camera->position, drag_step, -1000.0f, 1000.0f, "%.3f");
-    			ImGui::SliderFloat("FOV", &camera_component.camera->fov, 1.0f, 120.0f, "%.f");
-    			ImGui::PopID();
-    		}
-
-    		// MODEL COMPONENT
-    		if (selected_entity->HasComponent<ModelComponent>())
-    		{
-    			ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
-    			
-    			ImGui::PushID(&model_component);
-    			ImGui::Separator();
-    			
-    			ImGui::Checkbox("##Enabled", &model_component.enabled);
-    			ImGui::SameLine();
-    			ImGui::Text("Model Component");
-    			ImGui::SameLine();
-    			ImGui::Text(std::to_string(model_component.id).c_str());
-    			ImGui::Spacing();
-
-    			ImGui::Checkbox("Casts Shadow", &model_component.model->casts_shadow);
-
-    			if (ImGui::Button(model_component.model->name.c_str(), ImVec2(100, 22)))
-    				ImGui::OpenPopup("ChangeModelModelComponent");
-    			ImGui::SameLine(); ImGui::Text("Model");
-    			if (ImGui::Button(model_component.shader->name.c_str(), ImVec2(100, 22)))
-    				ImGui::OpenPopup("ChangeShaderModelComponent");
-    			ImGui::SameLine(); ImGui::Text("Shader");
-    			if (ImGui::Button(model_component.material->name.c_str(), ImVec2(100, 22)))
-    				ImGui::OpenPopup("ChangeMaterialModelComponent");
-    			ImGui::SameLine(); ImGui::Text("Material");
-
-    			if (ImGui::BeginPopup("ChangeModelModelComponent"))
-    			{
-    				for (auto& [id, scene_item] : scene.GetModels())
-    				{
-    					ImGui::PushID(&id);
-    					if (ImGui::Selectable(scene_item->name.c_str(), false, 0))
-    					{
-    						model_component.model = scene_item;
-    						ImGui::CloseCurrentPopup();
-    					}
-    					ImGui::PopID();
-    				}
-    				ImGui::EndPopup();
-    			}
-    			if (ImGui::BeginPopup("ChangeShaderModelComponent"))
-    			{
-    				for (auto& [id, scene_item] : scene.GetShaders())
-    				{
-    					ImGui::PushID(&id);
-    					if (ImGui::Selectable(scene_item->name.c_str(), false, 0))
-    					{
-    						model_component.shader = scene_item;
-    						ImGui::CloseCurrentPopup();
-    					}
-    					ImGui::PopID();
-    				}
-    				ImGui::EndPopup();
-    			}
-    			if (ImGui::BeginPopup("ChangeMaterialModelComponent"))
-    			{
-    				for (auto& [id, scene_item] : scene.GetMaterials())
-    				{
-    					ImGui::PushID(&id);
-    					if (ImGui::Selectable(scene_item->name.c_str(), false, 0))
-    					{
-    						model_component.material = scene_item;
-    						ImGui::CloseCurrentPopup();
-    					}
-    					ImGui::PopID();
-    				}
-    				ImGui::EndPopup();
-    			}
-
-    			ImGui::PopID();
-    		}
-
-    		if (selected_entity->HasComponent<LightSourceComponent>())
-    		{
-    			LightSourceComponent& light_source_component = selected_entity->GetComponent<LightSourceComponent>();
-    			
-    			ImGui::PushID(&light_source_component);
-    			ImGui::Separator();
-
-    			ImGui::Separator();
-    			ImGui::Checkbox("##Enabled", &light_source_component.enabled);
-    			ImGui::SameLine();
-    			ImGui::Text("Light Source Component");
-    			ImGui::SameLine();
-    			ImGui::Text(std::to_string(light_source_component.id).c_str());
-    			ImGui::Spacing();
-    			
-    			if (ImGui::Button(light_source_component.light_source->name.c_str(), ImVec2(100, 22)))
-    				ImGui::OpenPopup("ChangeLightSourceComponentLightSource");
-    			ImGui::SameLine(); ImGui::Text("Light Source Type");
-
-    			if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
-    			{
-    				ImGui::Spacing();
-    				ImGui::Text("Point Light Properties");
-    				ImGui::PushItemWidth(200.0f);
-    				ImGui::SliderFloat("Intensity", &point_light->intensity, 0.0f, 10.0f, "%.1f");
-    				ImGui::SliderFloat3("Color", (float*)&point_light->color, 0.0f, 255.0f, "%1.f");
-    				ImGui::PopItemWidth();
-    			}
-    			else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
-    			{
-    				ImGui::Spacing();
-    				ImGui::Text("Spot Light Properties");
-    				ImGui::PushItemWidth(200.0f);
-    				ImGui::SliderFloat3("Color", (float*)&spot_light->color, 0.0f, 255.0f, "%1.f");
-    				ImGui::DragFloat3("Scale", (float*)&spot_light->scale, drag_step, 0.0f, 100.0f, "%.1f");
-    				ImGui::DragFloat3("Direction", (float*)&spot_light->direction, drag_step, -1.0f, 1.0f, "%.2f");
-    				ImGui::PopItemWidth();
-    			}
-
-    			if (ImGui::BeginPopup("ChangeLightSourceComponentLightSource"))
-    			{
-    				auto old_light = light_source_component.light_source;
-    				glm::vec3 preserved_color = glm::vec3(255.0f);
-    				glm::vec3 preserved_position = glm::vec3(0.0f);
-    				glm::vec3 preserved_scale = glm::vec3(1.0f);
-    				glm::vec3 preserved_direction = glm::vec3(0.0f);
-    				float preserved_intensity = 1.0f;
-
-    				if (auto point_light = std::dynamic_pointer_cast<PointLight>(old_light))
-    				{
-    					preserved_color = point_light->color;
-    					preserved_position = point_light->position;
-    					preserved_scale = point_light->scale;
-    					preserved_intensity = point_light->intensity;
-    				}
-    				else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(old_light))
-    				{
-    					preserved_color = spot_light->color;
-    					preserved_position = spot_light->position;
-    					preserved_scale = spot_light->scale;
-    					preserved_direction = spot_light->direction;
-    				}
-    				
-    				if (ImGui::MenuItem("Point Light"))
-    				{
-    					if (auto current_type = std::dynamic_pointer_cast<PointLight>(old_light))
-    						ImGui::CloseCurrentPopup();
-    					if (auto old_spot = std::dynamic_pointer_cast<SpotLight>(old_light))
-    						scene.GetSpotLights().erase(old_spot->id);
-
-    					std::shared_ptr<PointLight> new_light = std::make_shared<PointLight>();
-    					new_light->color = preserved_color;
-    					new_light->position = preserved_position;
-    					new_light->scale = preserved_scale;
-    					new_light->intensity = preserved_intensity;
-    					new_light->id = old_light->id;
-    					new_light->enabled = old_light->enabled;
-    					light_source_component.light_source = new_light;
-
-    					scene.GetPointLights().insert_or_assign(new_light->id, new_light);
-    					ImGui::CloseCurrentPopup();
-    				}
-    				if (ImGui::MenuItem("Spot Light"))
-    				{
-    					if (auto current_type = std::dynamic_pointer_cast<SpotLight>(old_light))
-    						ImGui::CloseCurrentPopup();
-    					if (auto old_point = std::dynamic_pointer_cast<PointLight>(old_light))
-    						scene.GetPointLights().erase(old_point->id);
-
-    					std::shared_ptr<SpotLight> new_light = std::make_shared<SpotLight>();
-    					new_light->color = preserved_color;
-    					new_light->position = preserved_position;
-    					new_light->scale = preserved_scale;
-    					new_light->direction = preserved_direction;
-    					new_light->id = old_light->id;
-    					new_light->enabled = old_light->enabled;
-    					light_source_component.light_source = new_light;
-
-    					scene.GetSpotLights().insert_or_assign(new_light->id, new_light);
-    					ImGui::CloseCurrentPopup();
-    				}
-    				ImGui::EndPopup();
-    			}
-    			
-    			ImGui::PopID();
-    		}
-    		
-    		// PHYSICS COMPONENT
-    		if (selected_entity->HasComponent<PhysicsComponent>())
-    		{
-    			PhysicsComponent& physics_component = selected_entity->GetComponent<PhysicsComponent>();
-
-    			ImGui::PushID(&physics_component);
-    			ImGui::Separator();
-				
-    			ImGui::Separator();
-    			ImGui::Checkbox("##Enabled", &physics_component.enabled);
-    			ImGui::SameLine();
-    			ImGui::Text("Physics Component");
-    			ImGui::SameLine();
-    			ImGui::Text(std::to_string(physics_component.id).c_str());
-    			ImGui::Spacing();
-				
-    			int selected_body_type = static_cast<int>(physics_component.physics_body->GetBodyType());
-    			int selected_shape_type = static_cast<int>(physics_component.physics_body->GetShapeData().type);
-    			PhysicsShapeData current_shape_data = physics_component.physics_body->GetShapeData();
-
-    			const char* body_type_names[] = { "STATIC", "DYNAMIC", "KINEMATIC" };
-    			const char* shape_type_names[] = { "BOX", "SPHERE", "CAPSULE" };
-
-    			bool body_type_changed = ImGui::Combo("Body Type", &selected_body_type, body_type_names,
-				IM_ARRAYSIZE(body_type_names));
-    			bool shape_type_changed = ImGui::Combo("Shape Type", &selected_shape_type, shape_type_names,
-				IM_ARRAYSIZE(shape_type_names));
-
-    			if (body_type_changed || shape_type_changed)
-    			{
-    				PhysicsBodyType new_body_type = static_cast<PhysicsBodyType>(selected_body_type);
-    				PhysicsShapeType new_shape_type = static_cast<PhysicsShapeType>(selected_shape_type);
-
-    				glm::vec3 position = physics_component.physics_body->GetPosition();
-    				glm::quat rotation = physics_component.physics_body->GetRotation();
-    				uint32_t id = physics_component.physics_body->id;
-    				bool enabled = physics_component.physics_body->enabled;
-    				std::string name = physics_component.physics_body->name;
-    				glm::vec3 dimensions = current_shape_data.dimensions;
-
-    				std::shared_ptr<PhysicsBody> new_physics_body;
-
-    				if (new_shape_type == PhysicsShapeType::BOX)
-    					new_physics_body = physics_system.CreateBoxBody(position, rotation, dimensions, new_body_type);
-    				else if (new_shape_type == PhysicsShapeType::SPHERE)
-    					new_physics_body = physics_system.CreateSphereBody(position, dimensions.x, new_body_type);
-    				else if (new_shape_type == PhysicsShapeType::CAPSULE)
-    					new_physics_body = physics_system.CreateCapsuleBody(position, rotation, dimensions.x, dimensions.y, new_body_type);
-
-    				new_physics_body->id = id;
-    				new_physics_body->enabled = enabled;
-    				new_physics_body->name = name;
-    				new_physics_body->SetEnabled(enabled);
-
-    				physics_component.physics_body = new_physics_body;
-    			}
-
-    			ImGui::DragFloat3("Collider Dimensions", (float*)&physics_component.physics_body->GetShapeData().dimensions, drag_step, 0.1f, 100.0f);
-				physics_component.physics_body->SetScale(physics_component.physics_body->GetShapeData().dimensions);
-
-    			ImGui::Spacing();
-
-    			ImGui::Text("Can Move");
-    			ImGui::Checkbox("x##p", &physics_component.can_move_axis[0]); ImGui::SameLine(); ImGui::Checkbox("y##p", &physics_component.can_move_axis[1]); ImGui::SameLine(); ImGui::Checkbox("z##p", &physics_component.can_move_axis[2]);
-    			ImGui::Text("Can Rotate");
-    			ImGui::Checkbox("x##r", &physics_component.can_rotate_axis[0]); ImGui::SameLine(); ImGui::Checkbox("y##r", &physics_component.can_rotate_axis[1]); ImGui::SameLine(); ImGui::Checkbox("z##r", &physics_component.can_rotate_axis[2]);
-    			ImGui::Spacing();
-
-    			selected_entity->ValidateDOFS();
-    			selected_entity->UpdateComponents();
-    			
-    			ImGui::PopID();
-    		}
-
-    		// ANIMATION COMPONENT
-    		if (selected_entity->HasComponent<AnimationComponent>())
-    		{
-				AnimationComponent& animation_component = selected_entity->GetComponent<AnimationComponent>();
-    			Animator& animator = *animation_component.animator;
-
-    			ImGui::PushID(&animation_component);
-    			ImGui::Separator();
-				
-    			ImGui::Separator();
-    			ImGui::Checkbox("##Enabled", &animation_component.enabled);
-    			ImGui::SameLine();
-    			ImGui::Text("Animation Component");
-    			ImGui::SameLine();
-    			ImGui::Text(std::to_string(animation_component.id).c_str());
-    			ImGui::Spacing();
-
-    			ImGui::Text("Current Animation: ", animator.GetCurrentAnimationName().c_str());
-
-    			std::string state_text = "STOPPED";
-    			if (animator.GetState() == AnimationState::PLAYING)
-    				state_text = "PLAYING";
-    			else if (animator.GetState() == AnimationState::PAUSED)
-    				state_text = "PAUSED";
-    			ImGui::SameLine();
-    			ImGui::Text("State: %s", state_text.c_str());
-    			
-    			ImGui::Checkbox("Loop", &animator.GetLoop());
-    			ImGui::PushItemWidth(100.0f);
-    			ImGui::SliderFloat("Speed", &animator.GetSpeed(), 0.0f, 10.0f);
-    			ImGui::PopItemWidth();
-    			ImGui::PushItemWidth(300.0f);
-    			float progress = animator.GetCurrentAnimation() && animator.GetCurrentAnimation()->GetDuration() > 0.0f ? animator.GetCurrentAnimationTime() / animator.GetCurrentAnimation()->GetDuration() : 0.0f;
-    			ImGui::ProgressBar(progress);
-    			ImGui::PopItemWidth();
-
-    			if (animator.GetState() == AnimationState::PLAYING)
-    			{
-    				if (ImGui::Button("Pause"))
-    					animator.Pause();
-    			}
-    			else
-    			{
-    				if (ImGui::Button("Play"))
-    				{
-    					if (animator.GetCurrentAnimationName().empty())
-    					{
-    						if (!animator.GetAnimations().empty())
-    						{
-    							const auto& first_animation_name = animator.GetAnimations().begin()->first;
-    							animator.Play(first_animation_name);
-    						}
-    					}
-    					else
-    						animator.Play(animator.GetCurrentAnimationName());
-    				}
-    			}
-    			ImGui::SameLine();
-    			if (ImGui::Button("Stop"))
-    				animator.Stop();
-
-    			ImGui::Spacing();
-
-    			ImGui::Text("Animations");
-    			ImGui::PushItemWidth(100.0f);
-    			for (auto& [animation_name, animation] : animator.GetAnimations())
-    			{
-    				if (ImGui::Button(animation_name.c_str()))
-    				{
-    					animator.Stop();
-    					animator.Play(animation_name);
-    				}
-    			}
-    			ImGui::PopItemWidth();
-    			
-    			ImGui::PopID();
-    		}
-
-    		if (selected_entity->HasComponent<AudioComponent>())
-    		{
-    			AudioComponent& audio_component = selected_entity->GetComponent<AudioComponent>();
-    			Audio& audio = *audio_component.audio;
-    			
-    			ImGui::PushID(&audio_component);
-    			ImGui::Separator();
-				
-    			ImGui::Separator();
-    			ImGui::Checkbox("##Enabled", &audio_component.enabled);
-    			ImGui::SameLine();
-    			ImGui::Text("Animation Component");
-    			ImGui::SameLine();
-    			ImGui::Text(std::to_string(audio_component.id).c_str());
-    			ImGui::Spacing();
-
-    			bool loop = audio.GetLoop();
-    			bool play_on_awake = audio.GetPlayOnAwake();
-    			float volume = audio.GetVolume();
-    			float pitch = audio.GetPitch();
-    			if (ImGui::Checkbox("Loop", &loop))
-    				audio.SetLoop(loop);
-    			if (ImGui::Checkbox("Play On Awake", &play_on_awake))
-    				audio.SetPlayOnAwake(play_on_awake);
-    			if (ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f))
-    				audio.SetVolume(volume);
-    			if (ImGui::SliderFloat("Pitch", &pitch, 0.0f, 1.0f))
-    				audio.SetPitch(pitch);
-    			ImGui::PopID();
-    		}
-
-    		if (selected_entity->HasComponent<ScriptComponent>())
-    		{
-    			ScriptComponent& script_component = selected_entity->GetComponent<ScriptComponent>();
-
-    			ImGui::PushID(&script_component);
-    			ImGui::Separator();
-
-    			ImGui::Checkbox("##Enabled", &script_component.enabled);
-    			ImGui::SameLine();
-    			ImGui::Text("Script Component");
-    			ImGui::SameLine();
-    			ImGui::Text(std::to_string(script_component.id).c_str());
-    			ImGui::Spacing();
-
-    			if (script_component.script)
-    			{
-    				if (ImGui::Button(script_component.script->name.c_str(), ImVec2(150, 22)))
-    					ImGui::OpenPopup("ChangeScriptScriptComponent");
-    				ImGui::SameLine();
-    				ImGui::Text("Script");
-
-    				if (ImGui::BeginPopup("ChangeScriptScriptComponent"))
-    				{
-    					ScriptSystem& script_system = Project::GetScriptSystem();
-    					for (auto& [id, script] : script_system.GetScripts())
-    					{
-    						ImGui::PushID(&id);
-    						if (ImGui::Selectable(script->name.c_str(), false, 0))
-    						{
-    							script_component.script = script;
-    							ImGui::CloseCurrentPopup();
-    						}
-    						ImGui::PopID();
-    					}
-    					ImGui::EndPopup();
-    				}
-    			}
-
-    			ImGui::PopID();
-    		}
+    		DisplayCameraComponent();
+    		DisplayModelComponent();
+    		DisplayPhysicsComponent();
+    		DisplayAnimationComponent();
+    		DisplayLightSourceComponent();
+    		DisplayAudioComponent();
+    		DisplayScriptComponent();
 
     		ImGui::Separator();
     		
     		// ADD COMPONENT
-    		ImGui::PushID("##NEWCOMPONENT");
+    		ImGui::PushID("##ADDCOMPONENT");
 		
     		if (ImGui::Button("Add Component"))
     			ImGui::OpenPopup("AddComponentPopup");
@@ -1126,7 +735,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<CameraComponent>())
     				{
-    					CreateCameraComponent();
+    					CreateCameraComponent(selected_entity);
     					ImGui::CloseCurrentPopup();
     				}
 				    else
@@ -1140,7 +749,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<ModelComponent>())
     				{
-    					CreateModelComponent();
+    					CreateModelComponent(selected_entity);
     					ImGui::CloseCurrentPopup();
     				}
     				else
@@ -1154,7 +763,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<LightSourceComponent>())
     				{
-    					CreateLightSourceComponent();
+    					CreateLightSourceComponent(selected_entity);
     					ImGui::CloseCurrentPopup();
     				}
     				else
@@ -1168,7 +777,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<PhysicsComponent>())
     				{
-    					CreatePhysicsComponent();
+    					CreatePhysicsComponent(selected_entity);
     					ImGui::CloseCurrentPopup();
     				}
     				else
@@ -1182,7 +791,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<AnimationComponent>())
     				{
-    					CreateAnimationComponent();
+    					CreateAnimationComponent(selected_entity);
     					ImGui::CloseCurrentPopup();
     				}
     			  	else
@@ -1196,7 +805,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<AudioComponent>())
     				{
-    					CreateAudioComponent();
+    					CreateAudioComponent(selected_entity);
     					ImGui::CloseCurrentPopup();
     				}
     				else
@@ -1210,7 +819,7 @@ namespace Bonfire
     			{
     				if (!selected_entity->HasComponent<ScriptComponent>())
     				{
-    					CreateScriptComponent();
+    					CreateScriptComponent(selected_entity);
     					ImGui::CloseCurrentPopup();
     				}
 				    else
@@ -1222,6 +831,126 @@ namespace Bonfire
     			ImGui::EndPopup();
     		}
     	
+    		ImGui::PopID();
+
+    		ImGui::Spacing();
+    		
+    		ImGui::PushID("##REMOVECOMPONENT");
+
+    		if (ImGui::Button("Remove Component"))
+    			ImGui::OpenPopup("RemoveComponentPopup");
+
+    		if (ImGui::BeginPopup("RemoveComponentPopup"))
+    		{
+    			selected_entity_to_remove_components = selected_entity;
+    			
+    			if (ImGui::MenuItem("Camera Component"))
+    			{
+    				if (selected_entity->HasComponent<CameraComponent>())
+    				{
+    					selected_entity_to_remove_components = selected_entity;
+    					component_to_remove = ComponentType::CAMERA;
+    					ImGui::CloseCurrentPopup();
+    				}
+				    else
+				    {
+					    Log::Warning("Entity does not have a camera component to remove");
+				    	ImGui::CloseCurrentPopup();
+				    }
+    			}
+    			
+    			if (ImGui::MenuItem("Model Component"))
+    			{
+    				if (selected_entity->HasComponent<ModelComponent>())
+    				{
+    					selected_entity_to_remove_components = selected_entity;
+    					component_to_remove = ComponentType::MODEL;
+    					ImGui::CloseCurrentPopup();
+    				}
+    				else
+    				{
+					    Log::Warning("Entity does not have a model component to remove");
+    					ImGui::CloseCurrentPopup();
+    				}
+    			}
+
+    			if (ImGui::MenuItem("Light Source Component"))
+    			{
+    				if (selected_entity->HasComponent<LightSourceComponent>())
+    				{
+    					selected_entity_to_remove_components = selected_entity;
+    					component_to_remove = ComponentType::LIGHT;
+    					ImGui::CloseCurrentPopup();
+    				}
+    				else
+    				{
+					    Log::Warning("Entity does not have a light source component to remove");
+    					ImGui::CloseCurrentPopup();
+    				}
+    			}
+    			
+    			if (ImGui::MenuItem("Physics Component"))
+    			{
+    				if (selected_entity->HasComponent<PhysicsComponent>())
+    				{
+    					selected_entity_to_remove_components = selected_entity;
+    					component_to_remove = ComponentType::PHYSICS;
+    					ImGui::CloseCurrentPopup();
+    				}
+    				else
+    				{
+					    Log::Warning("Entity does not have a physics component to remove");
+    					ImGui::CloseCurrentPopup();
+    				}
+    			}
+
+    			if (ImGui::MenuItem("Animation Component"))
+    			{
+    				if (selected_entity->HasComponent<AnimationComponent>())
+    				{
+    					selected_entity_to_remove_components = selected_entity;
+    					component_to_remove = ComponentType::ANIMATION;
+    					ImGui::CloseCurrentPopup();
+    				}
+    			  	else
+    			  	{
+					    Log::Warning("Entity does not have a animation component to remove");
+    			  		ImGui::CloseCurrentPopup();
+    			  	}
+    			}
+
+    			if (ImGui::MenuItem("Audio Component"))
+    			{
+    				if (selected_entity->HasComponent<AudioComponent>())
+    				{
+    					selected_entity_to_remove_components = selected_entity;
+    					component_to_remove = ComponentType::AUDIO;
+    					ImGui::CloseCurrentPopup();
+    				}
+    				else
+    				{
+					    Log::Warning("Entity does not have a audio component to remove");
+    					ImGui::CloseCurrentPopup();
+    				}
+    			}
+
+    			if (ImGui::MenuItem("Script Component"))
+    			{
+    				if (selected_entity->HasComponent<ScriptComponent>())
+    				{
+    					selected_entity_to_remove_components = selected_entity;
+    					component_to_remove = ComponentType::SCRIPT;
+    					ImGui::CloseCurrentPopup();
+    				}
+				    else
+				    {
+					    Log::Warning("Entity does not have a script component to remove");
+				    	ImGui::CloseCurrentPopup();
+				    }
+    			}
+    			ImGui::EndPopup();
+    		}
+
     		ImGui::PopID();
     	}
     	
@@ -1656,7 +1385,7 @@ namespace Bonfire
 	    				std::filesystem::path path_obj(relative_audio_path);
 	    				std::string audio_name = path_obj.stem().string();
 
-	    				std::shared_ptr<Audio> new_audio = std::make_shared<Audio>(next_id, relative_audio_path);
+	    				std::shared_ptr<Audio> new_audio = std::make_shared<Audio>(next_id, audio_name, relative_audio_path);
 	    				audio_system.AddAudio(new_audio);
 	    				param_database.audio_params.insert_or_assign(next_id, AudioParamData(audio_name, relative_audio_path));
 	    				Log::Info("Loaded audio " + audio_name);
@@ -1749,7 +1478,7 @@ namespace Bonfire
     		}
     		if (ImGui::MenuItem("Delete"))
     		{
-    			entity_to_delete = entity;
+    			entity_to_remove = entity;
     			ImGui::CloseCurrentPopup();
     		}
     		ImGui::EndPopup();	
@@ -1813,758 +1542,6 @@ namespace Bonfire
 			ImGui::ColorConvertFloat4ToU32(color)
 		);
     }
-
-	void Editor::CreateModelComponent()
-	{
-		Scene& scene = Project::GetRenderer().GetScene();
-		
-		uint32_t next_id = 100001;
-		if (!scene.GetModelComponents().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetModelComponents().begin(),
-				scene.GetModelComponents().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-				);
-			next_id = max_it->first + 1;
-		}
-
-		if (!scene.GetModels().empty())
-		{
-			std::shared_ptr<Model> default_model = scene.GetModels().begin()->second;
-			std::shared_ptr<Shader> default_shader = scene.GetShaders().begin()->second;
-			std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
-			std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(next_id, true, default_model, default_shader, default_material);
-
-			scene.GetModelComponents().insert_or_assign(next_id, new_component);
-			selected_entity->AddComponent(ComponentType::MODEL, new_component);
-		}
-		else
-			Log::Warning("No models available");
-	}
-	void Editor::CreateLightSourceComponent()
-	{
-		Scene& scene = Project::GetRenderer().GetScene();
-		
-		uint32_t next_id = 100001;
-		if (!scene.GetLightSourceComponents().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetLightSourceComponents().begin(),
-				scene.GetLightSourceComponents().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_id = max_it->first + 1;
-		}
-
-		uint32_t next_light_id = 1000;
-		if (!scene.GetPointLights().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetPointLights().begin(),
-				scene.GetPointLights().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_light_id = max_it->first + 1;
-		}
-    					
-		std::shared_ptr<PointLight> new_light = std::make_shared<PointLight>();
-		new_light->id = next_light_id;
-		new_light->position = selected_entity->position;
-		new_light->color = glm::vec3(255.0f, 255.0f, 255.0f);
-		new_light->scale = glm::vec3(1.0f);
-		new_light->intensity = 1.0f;
-		new_light->enabled = true;
-
-		std::shared_ptr<LightSourceComponent> new_component = std::make_shared<LightSourceComponent>(next_id, true, new_light);
-
-		scene.GetLightSourceComponents().insert_or_assign(next_id, new_component);
-		scene.GetPointLights().insert_or_assign(next_light_id, new_light);
-		selected_entity->AddComponent(ComponentType::LIGHT, new_component);
-	}
-	void Editor::CreatePhysicsComponent()
-	{
-		Scene& scene = Project::GetRenderer().GetScene();
-		PhysicsSystem& physics_system = Project::GetPhysicsSystem();
-		
-		uint32_t next_id = 100001;
-		if (!scene.GetPhysicsComponents().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetPhysicsComponents().begin(),
-				scene.GetPhysicsComponents().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_id = max_it->first + 1;
-		}
-    					
-		uint32_t next_po_id = 1000;
-		if (!scene.GetPhysicsComponents().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetPhysicsComponents().begin(),
-				scene.GetPhysicsComponents().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_po_id = max_it->first + 1;
-		}
-
-		std::string physics_name = "Physics Object";
-		PhysicsBodyType body_type = PhysicsBodyType::STATIC;
-		PhysicsShapeType shape_type = PhysicsShapeType::BOX;
-		glm::vec3 dimensions = glm::vec3(
-			(std::max)(selected_entity->scale.x, 0.1f),
-			(std::max)(selected_entity->scale.y, 0.1f),
-			(std::max)(selected_entity->scale.z, 0.1f)
-			);
-
-		std::shared_ptr<PhysicsBody> physics_body = physics_system.CreateBoxBody(selected_entity->position, glm::quat(glm::radians(selected_entity->rotation)), dimensions, body_type);
-		physics_body->id = next_po_id;
-		physics_body->enabled = true;
-		physics_body->SetEnabled(true);
-		physics_body->name = physics_name;
-		
-		std::array<bool, 3> default_can_move_axis = { true, true, true };
-		std::array<bool, 3> default_can_rotate_axis = { true, true, true };
-
-		std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body, default_can_move_axis, default_can_rotate_axis);
-		scene.GetPhysicsComponents().insert_or_assign(next_id, physics_component);
-		selected_entity->AddComponent(ComponentType::PHYSICS, physics_component);
-	}
-	void Editor::CreateAnimationComponent()
-	{
-		Scene& scene = Project::GetRenderer().GetScene();
-		
-		if (!selected_entity->HasComponent<ModelComponent>())
-    	{
-    		Log::Warning("Entity must have model to add animator");
-			ImGui::CloseCurrentPopup();
-			return;
-    	}
-		
-		ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
-		if (!model_component.model->IsAnimated())
-		{
-			Log::Warning("Model must be animated (skeletal) to add animator");
-			ImGui::CloseCurrentPopup();
-			return;
-		}
-		
-	    std::shared_ptr<SkeletalModel> skeletal_model = std::static_pointer_cast<SkeletalModel>(model_component.model);
-
-	    if (skeletal_model->GetAnimations().empty())
-	    {
-	    	Log::Warning("Skeletal model has no animations loaded");
-	    	ImGui::CloseCurrentPopup();
-	    }
-	    else
-	    {
-	    	uint32_t next_id = 100001;
-	    	if (!scene.GetAnimationComponents().empty())
-	    	{
-	    		auto max_it = std::max_element(
-					scene.GetAnimationComponents().begin(),
-					scene.GetAnimationComponents().end(),
-					[](const auto& a, const auto& b) { return a.first < b.first; }
-				);
-	    		next_id = max_it->first + 1;
-	    	}
-
-	    	std::shared_ptr<Animator> animator = std::make_shared<Animator>(skeletal_model->GetSkeleton());
-
-	    	for (const auto& animation : skeletal_model->GetAnimations())
-	    	{
-	    		animator->AddAnimation(animation);
-	    	}
-
-	    	std::shared_ptr<AnimationComponent> anim_comp = std::make_shared<AnimationComponent>(next_id, true, animator);
-
-	    	scene.GetAnimationComponents().insert_or_assign(next_id, anim_comp);
-	    	selected_entity->AddComponent(ComponentType::ANIMATION, anim_comp);
-
-	    	Log::Info("Added Animation Component with " + std::to_string(skeletal_model->GetAnimations().size()) + " animation(s)");
-
-	    	for (const auto& anim : skeletal_model->GetAnimations())
-	    	{
-	    		Log::Info("  - " + anim->GetName());
-	    	}
-
-	    	ImGui::CloseCurrentPopup();
-	    }
-	}
-	void Editor::CreateAudioComponent()
-	{
-		Scene& scene = Project::GetRenderer().GetScene();
-		AudioSystem& audio_system = Project::GetAudioSystem();
-		
-		uint32_t next_id = 100001;
-		if (!scene.GetAudioComponents().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetAudioComponents().begin(),
-				scene.GetAudioComponents().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_id = max_it->first + 1;
-		}
-
-		if (audio_system.GetAudios().empty())
-		{
-			Log::Warning("No audios found in Audio Params");
-			return;
-		}
-		std::shared_ptr<Audio> audio = audio_system.GetAudios().begin()->second;
-		std::shared_ptr<AudioComponent> audio_component = std::make_shared<AudioComponent>(next_id, true, audio);
-		scene.GetAudioComponents().insert_or_assign(next_id, audio_component);
-		selected_entity->AddComponent(ComponentType::AUDIO, audio_component);
-		
-		ImGui::CloseCurrentPopup();
-	}
-	void Editor::CreateScriptComponent()
-	{
-		Scene& scene = Project::GetRenderer().GetScene();
-		ScriptSystem& script_system = Project::GetScriptSystem();
-
-		uint32_t next_id = 100001;
-		if (!scene.GetScriptComponents().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetScriptComponents().begin(),
-				scene.GetScriptComponents().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_id = max_it->first + 1;
-		}
-
-		if (script_system.GetScripts().empty())
-		{
-			Log::Warning("No scripts found in Script Params");
-			return;
-		}
-
-		std::shared_ptr<LuaScript> script = script_system.GetScripts().begin()->second;
-		std::shared_ptr<ScriptComponent> script_component = std::make_shared<ScriptComponent>(next_id, true, script);
-		scene.GetScriptComponents().insert_or_assign(next_id, script_component);
-		selected_entity->AddComponent(ComponentType::SCRIPT, script_component);
-
-		ImGui::CloseCurrentPopup();
-	}
-	void Editor::CreateCameraComponent()
-	{
-		Scene& scene = Project::GetRenderer().GetScene();
-
-		uint32_t next_id = 100001;
-		if (!scene.GetCameraComponents().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetCameraComponents().begin(),
-				scene.GetCameraComponents().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_id = max_it->first + 1;
-		}
-
-		bool is_first_camera = false;
-		if (scene.GetCameras().begin()->second->id == 0)
-		{
-			scene.GetCameras().erase(0);
-			is_first_camera = true;
-		}
-		
-		uint32_t next_camera_id = 1000;
-		if (!scene.GetCameras().empty())
-		{
-			auto max_it = std::max_element(
-				scene.GetCameras().begin(),
-				scene.GetCameras().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_camera_id = max_it->first + 1;
-		}
-
-		std::shared_ptr<Camera> new_camera = std::make_shared<Camera>(next_camera_id, selected_entity->position);
-		scene.GetCameras().insert_or_assign(next_camera_id, new_camera);
-		std::shared_ptr<CameraComponent> new_camera_component = std::make_shared<CameraComponent>(next_id, true, new_camera);
-		scene.GetCameraComponents().insert_or_assign(next_id, new_camera_component);
-		selected_entity->AddComponent(ComponentType::CAMERA, new_camera_component);
-		if (is_first_camera)
-			scene.SetCurrentCamera(next_camera_id);
-	}
-
-
-	void Editor::CreateEntity(std::shared_ptr<Entity> parent)
-	{
-		Project& project = Project::GetInstance();
-		Window& project_window = project.GetWindow();
-		Renderer& renderer = project.GetRenderer();
-		Scene& scene = renderer.GetScene();
-		
-		uint32_t next_id = 1000001;
-		if (!scene.GetEntities().empty())
-		{
-			auto max_it = std::max_element(
-			  scene.GetEntities().begin(),
-			  scene.GetEntities().end(),
-			  [](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-			next_id = max_it->first + 1;
-		}
-		std::shared_ptr<Entity> new_entity = std::make_shared<Entity>(next_id);
-		if (parent != nullptr)
-		{
-			new_entity->parent = parent->id;
-			scene.GetEntities().at(parent->id)->AddChild(new_entity->id);
-		}
-		scene.GetEntities().insert_or_assign(next_id, new_entity);
-	}
-	void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
-	{
-		Project& project = Project::GetInstance();
-		Window& project_window = project.GetWindow();
-		Renderer& renderer = project.GetRenderer();
-		Scene& scene = renderer.GetScene();
-		
-	    std::function<uint32_t(std::shared_ptr<Entity>)> DuplicateRecursive;
-		DuplicateRecursive = [&](std::shared_ptr<Entity> ent) -> uint32_t
-		{
-			uint32_t next_entity_id = 1000001;
-			if (!scene.GetEntities().empty())
-			{
-				auto max_it = std::max_element(
-				  scene.GetEntities().begin(),
-				  scene.GetEntities().end(),
-				  [](const auto& a, const auto& b) { return a.first < b.first; }
-				);
-				next_entity_id = max_it->first + 1;
-			}
-
-			std::shared_ptr<Entity> duplicated = std::make_shared<Entity>(*ent);
-			duplicated->id = next_entity_id;
-			std::vector<uint32_t> original_children = duplicated->children;
-			duplicated->children.clear();
-
-			if (ent->HasComponent<ModelComponent>())
-			{
-				auto& original_component = ent->GetComponent<ModelComponent>();
-
-				uint32_t next_comp_id = 100001;
-				if (!scene.GetModelComponents().empty())
-				{
-				  auto max_comp = std::max_element(
-				      scene.GetModelComponents().begin(),
-				      scene.GetModelComponents().end(),
-				      [](const auto& a, const auto& b) { return a.first < b.first; }
-				  );
-				  next_comp_id = max_comp->first + 1;
-				}
-
-				std::shared_ptr<ModelComponent> new_component = std::make_shared<ModelComponent>(
-				  next_comp_id,
-				  original_component.enabled,
-				  original_component.model,
-				  original_component.shader,
-				  original_component.material
-				);
-
-				scene.GetModelComponents().insert_or_assign(next_comp_id, new_component);
-				duplicated->RemoveComponent(ComponentType::MODEL);
-				duplicated->AddComponent(ComponentType::MODEL, new_component);
-			}
-			if (ent->HasComponent<LightSourceComponent>())
-            {
-                auto& original_component = ent->GetComponent<LightSourceComponent>();
-
-                // Generate new component ID
-                uint32_t next_comp_id = 100001;
-                if (!scene.GetLightSourceComponents().empty())
-                {
-                        auto max_comp = std::max_element(
-                                scene.GetLightSourceComponents().begin(),
-                                scene.GetLightSourceComponents().end(),
-                                [](const auto& a, const auto& b) { return a.first < b.first; }
-                        );
-                        next_comp_id = max_comp->first + 1;
-                }
-
-                uint32_t next_light_id = 1000;
-
-                std::shared_ptr<LightSource> new_light_source;
-
-                if (auto point_light = std::dynamic_pointer_cast<PointLight>(original_component.light_source))
-                {
-                        if (!scene.GetPointLights().empty())
-                        {
-                                auto max_light = std::max_element(
-                                        scene.GetPointLights().begin(),
-                                        scene.GetPointLights().end(),
-                                        [](const auto& a, const auto& b) { return a.first < b.first; }
-                                );
-                                next_light_id = max_light->first + 1;
-                        }
-
-                        std::shared_ptr<PointLight> new_point_light = std::make_shared<PointLight>();
-                        new_point_light->id = next_light_id;
-                        new_point_light->enabled = point_light->enabled;
-                        new_point_light->position = point_light->position;
-                        new_point_light->color = point_light->color;
-                        new_point_light->scale = point_light->scale;
-
-                        new_light_source = new_point_light;
-                        scene.GetPointLights().insert_or_assign(next_light_id, new_point_light);
-                }
-                else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(original_component.light_source))
-                {
-                        if (!scene.GetSpotLights().empty())
-                        {
-                                auto max_light = std::max_element(
-                                        scene.GetSpotLights().begin(),
-                                        scene.GetSpotLights().end(),
-                                        [](const auto& a, const auto& b) { return a.first < b.first; }
-                                );
-                                next_light_id = max_light->first + 1;
-                        }
-
-                        std::shared_ptr<SpotLight> new_spot_light = std::make_shared<SpotLight>();
-                        new_spot_light->id = next_light_id;
-                        new_spot_light->enabled = spot_light->enabled;
-                        new_spot_light->position = spot_light->position;
-                        new_spot_light->color = spot_light->color;
-                        new_spot_light->scale = spot_light->scale;
-                        new_spot_light->direction = spot_light->direction;
-
-                        new_light_source = new_spot_light;
-                        scene.GetSpotLights().insert_or_assign(next_light_id, new_spot_light);
-                }
-
-                std::shared_ptr<LightSourceComponent> new_component = std::make_shared<LightSourceComponent>(
-                        next_comp_id,
-                        original_component.enabled,
-                        new_light_source
-                );
-
-                scene.GetLightSourceComponents().insert_or_assign(next_comp_id, new_component);
-                duplicated->RemoveComponent(ComponentType::LIGHT);
-                duplicated->AddComponent(ComponentType::LIGHT, new_component);
-            }
-			if (ent->HasComponent<PhysicsComponent>())
-		    {
-		        PhysicsSystem& physics_system = Project::GetPhysicsSystem();
-		        auto& original_component = ent->GetComponent<PhysicsComponent>();
-  
-		        uint32_t next_comp_id = 100001;
-		        if (!scene.GetPhysicsComponents().empty())
-		        {
-		            auto max_comp = std::max_element(
-		                scene.GetPhysicsComponents().begin(),
-		                scene.GetPhysicsComponents().end(),
-		                [](const auto& a, const auto& b) { return a.first < b.first; }
-		            );
-		            next_comp_id = max_comp->first + 1;
-		        }
-
-		        uint32_t next_physics_id = 1000;
-		        if (!scene.GetPhysicsComponents().empty())
-		        {
-		            uint32_t max_physics_id = 1000;
-		            for (const auto& [id, comp] : scene.GetPhysicsComponents())
-		            {
-		                if (comp->physics_body && comp->physics_body->id > max_physics_id)
-		                    max_physics_id = comp->physics_body->id;
-		            }
-		            next_physics_id = max_physics_id + 1;
-		        }
-
-		        PhysicsBodyType body_type = original_component.physics_body->GetBodyType();
-		        PhysicsShapeData shape_data = original_component.physics_body->GetShapeData();
-		        glm::vec3 position = original_component.physics_body->GetPosition();
-		        glm::quat rotation = original_component.physics_body->GetRotation();
-		        bool enabled = original_component.physics_body->enabled;
-		        std::string name = original_component.physics_body->name;
-
-		        std::shared_ptr<PhysicsBody> new_physics_body;
-
-		        if (shape_data.type == PhysicsShapeType::BOX)
-		            new_physics_body = physics_system.CreateBoxBody(position, rotation, shape_data.dimensions, body_type);
-		        else if (shape_data.type == PhysicsShapeType::SPHERE)
-		            new_physics_body = physics_system.CreateSphereBody(position, shape_data.dimensions.x, body_type);
-		        else if (shape_data.type == PhysicsShapeType::CAPSULE)
-		            new_physics_body = physics_system.CreateCapsuleBody(position, rotation, shape_data.dimensions.x, shape_data.dimensions.y, body_type);
-
-		        if (new_physics_body)
-		        {
-		            new_physics_body->id = next_physics_id;
-		            new_physics_body->enabled = enabled;
-		            new_physics_body->SetEnabled(enabled);
-		            new_physics_body->name = name;
-
-		            std::shared_ptr<PhysicsComponent> new_component = std::make_shared<PhysicsComponent>(
-		                next_comp_id,
-		                original_component.enabled,
-		                new_physics_body,
-		                original_component.can_move_axis,
-						original_component.can_rotate_axis
-		                );
-
-		        	new_physics_body->SetAllowedDOFS(
-		        		original_component.can_move_axis[0], original_component.can_move_axis[1], original_component.can_move_axis[2],
-		        		original_component.can_rotate_axis[0], original_component.can_rotate_axis[1], original_component.can_rotate_axis[2]);
-
-		            scene.GetPhysicsComponents().insert_or_assign(next_comp_id, new_component);
-		            duplicated->RemoveComponent(ComponentType::PHYSICS);
-		            duplicated->AddComponent(ComponentType::PHYSICS, new_component);
-		        }
-		    }
-			if (ent->HasComponent<AnimationComponent>())
-			{
-				AnimationComponent& original_component = ent->GetComponent<AnimationComponent>();
-
-				uint32_t next_comp_id = 100001;
-				if (!scene.GetAnimationComponents().empty())
-				{
-					auto max_comp = std::max_element(
-						scene.GetAnimationComponents().begin(),
-						scene.GetAnimationComponents().end(),
-						[](const auto& a, const auto& b) { return a.first < b.first; }
-						);
-					next_comp_id = max_comp->first + 1;
-				}
-
-				std::shared_ptr<Animator> new_animator = nullptr;
-				if (original_component.animator)
-					new_animator = std::make_shared<Animator>(*original_component.animator);
-				std::shared_ptr<AnimationComponent> new_component = std::make_shared<AnimationComponent>(next_comp_id, original_component.enabled, new_animator);
-
-				scene.GetAnimationComponents().insert_or_assign(next_comp_id, new_component);
-				duplicated->RemoveComponent(ComponentType::ANIMATION);
-				duplicated->AddComponent(ComponentType::ANIMATION, new_component);
-			}
-			if (ent->HasComponent<AudioComponent>())
-			{
-				AudioComponent& original_component = ent->GetComponent<AudioComponent>();
-				uint32_t next_comp_id = 100001;
-				if (!scene.GetAudioComponents().empty())
-				{
-					auto max_comp = std::max_element(
-						scene.GetAudioComponents().begin(),
-						scene.GetAudioComponents().end(),
-						[](const auto& a, const auto& b) { return a.first < b.first; }
-						);
-					next_comp_id = max_comp->first + 1;
-				}
-
-				std::shared_ptr<Audio> new_audio = nullptr;
-				if (original_component.audio)
-				{
-					AudioSystem& audio_system = Project::GetAudioSystem();
-					uint32_t next_audio_id = 100001;
-					if (!audio_system.GetAudios().empty())
-					{
-						auto max_comp = std::max_element(
-							audio_system.GetAudios().begin(),
-							audio_system.GetAudios().end(),
-							[](const auto& a, const auto& b) { return a.first < b.first; }
-							);
-						next_audio_id = max_comp->first + 1;
-					}
-					new_audio = std::make_shared<Audio>(*original_component.audio);
-					if (new_audio)
-					{
-						new_audio->SetVolume(original_component.audio->GetVolume());
-						new_audio->SetPitch(original_component.audio->GetPitch());
-						new_audio->SetLoop(original_component.audio->GetLoop());
-						new_audio->SetPlayOnAwake(original_component.audio->GetPlayOnAwake());
-						new_audio->id = next_audio_id;
-					}
-				}
-
-				std::shared_ptr<AudioComponent> new_component = std::make_shared<AudioComponent>(next_comp_id, original_component.enabled, new_audio);
-				scene.GetAudioComponents().insert_or_assign(next_comp_id, new_component);
-				duplicated->RemoveComponent(ComponentType::AUDIO);
-				duplicated->AddComponent(ComponentType::AUDIO, new_component);
-			}
-
-			if (ent->HasComponent<ScriptComponent>())
-			{
-				ScriptComponent& original_component = ent->GetComponent<ScriptComponent>();
-				uint32_t next_comp_id = 100001;
-				if (!scene.GetScriptComponents().empty())
-				{
-					auto max_comp = std::max_element(
-						scene.GetScriptComponents().begin(),
-						scene.GetScriptComponents().end(),
-						[](const auto& a, const auto& b) { return a.first < b.first; }
-					);
-					next_comp_id = max_comp->first + 1;
-				}
-
-				std::shared_ptr<ScriptComponent> new_component = std::make_shared<ScriptComponent>(
-					next_comp_id,
-					original_component.enabled,
-					original_component.script
-				);
-				scene.GetScriptComponents().insert_or_assign(next_comp_id, new_component);
-				duplicated->RemoveComponent(ComponentType::SCRIPT);
-				duplicated->AddComponent(ComponentType::SCRIPT, new_component);
-			}
-
-			if (ent->HasComponent<CameraComponent>())
-			{
-				CameraComponent& original_component = ent->GetComponent<CameraComponent>();
-				uint32_t next_comp_id = 100001;
-				if (!scene.GetCameraComponents().empty())
-				{
-					auto max_comp = std::max_element(
-						scene.GetCameraComponents().begin(),
-						scene.GetCameraComponents().end(),
-						[](const auto& a, const auto& b) { return a.first < b.first; }
-					);
-					next_comp_id = max_comp->first + 1;
-				}
-				uint32_t next_camera_id = 1000;
-				if (!scene.GetCameraComponents().empty())
-				{
-					auto max_comp = std::max_element(
-						scene.GetCameraComponents().begin(),
-						scene.GetCameraComponents().end(),
-						[](const auto& a, const auto& b) { return a.first < b.first; }
-					);
-					next_camera_id = max_comp->first + 1;
-				}
-				
-				std::shared_ptr<Camera> new_camera = std::make_shared<Camera>(next_camera_id, duplicated->position);
-				scene.GetCameras().insert_or_assign(next_camera_id, new_camera);
-				std::shared_ptr<CameraComponent> new_camera_component = std::make_shared<CameraComponent>(next_comp_id, true, new_camera);
-				scene.GetCameraComponents().insert_or_assign(next_comp_id, new_camera_component);
-				duplicated->RemoveComponent(ComponentType::CAMERA);
-				duplicated->AddComponent(ComponentType::CAMERA, new_camera_component);
-			}
-			
-		    scene.GetEntities().insert_or_assign(next_entity_id, duplicated);
-
-		    for (uint32_t child_id : original_children)
-		    {
-			    if (scene.GetEntities().contains(child_id))
-			    {
-				    uint32_t new_child_id = DuplicateRecursive(scene.GetEntities().at(child_id));
-				    duplicated->children.push_back(new_child_id);
-				    scene.GetEntities().at(new_child_id)->parent = next_entity_id;
-			    }
-		    }
-
-		    return next_entity_id;
-		};
-
-		uint32_t original_parent = entity->parent;
-		bool original_is_root = entity->IsRoot();
-		uint32_t new_root_id = DuplicateRecursive(entity);
-
-		scene.GetEntities().at(new_root_id)->parent = original_parent;
-
-		if (!original_is_root && scene.GetEntities().contains(original_parent))
-			scene.GetEntities().at(original_parent)->children.push_back(new_root_id);
-
-		selected_entity = scene.GetEntities().at(new_root_id);
-	}
-
-	void Editor::DeleteEntity(std::shared_ptr<Entity> entity)
-	{
-		Project& project = Project::GetInstance();
-		Window& project_window = project.GetWindow();
-		Renderer& renderer = project.GetRenderer();
-		Scene& scene = renderer.GetScene();
-		
-		std::function<void(std::shared_ptr<Entity>)> DeleteRecursive;
-		DeleteRecursive = [&](std::shared_ptr<Entity> ent)
-		{
-			std::vector<uint32_t> children_copy = ent->children;
-			for (uint32_t child_id : children_copy)
-			{
-				if (scene.GetEntities().contains(child_id))
-				{
-					DeleteRecursive(scene.GetEntities()[child_id]);
-				}
-			}
-
-			if (ent->HasComponent<ModelComponent>())
-			{
-				auto& model_component = ent->GetComponent<ModelComponent>();
-				scene.GetModelComponents().erase(model_component.id);
-			}
-			if (ent->HasComponent<LightSourceComponent>())
-			{
-				auto& light_source_component = ent->GetComponent<LightSourceComponent>();
-				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
-				{
-					scene.GetPointLights().erase(point_light->id);
-				}
-				if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
-				{
-					scene.GetSpotLights().erase(spot_light->id);
-				}
-				scene.GetLightSourceComponents().erase(light_source_component.id);
-			}
-			if (ent->HasComponent<PhysicsComponent>())
-			{
-				auto& physics_component = ent->GetComponent<PhysicsComponent>();
-				PhysicsSystem& physics_system = Project::GetPhysicsSystem();
-				JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
-    
-				if (physics_component.physics_body != nullptr)
-				{
-					JPH::BodyID body_id = physics_component.physics_body->GetBodyID();
-					if (body_interface.IsAdded(body_id))
-					{
-						body_interface.RemoveBody(body_id);
-						body_interface.DestroyBody(body_id);
-					}
-				}
-    
-				scene.GetPhysicsComponents().erase(physics_component.id);
-			}
-			if (ent->HasComponent<AnimationComponent>())
-			{
-				auto& animation_component = ent->GetComponent<AnimationComponent>();
-				scene.GetAnimationComponents().erase(animation_component.id);
-			}
-			if (ent->HasComponent<AudioComponent>())
-			{
-				auto& audio_component = ent->GetComponent<AudioComponent>();
-				AudioSystem& audio_system = Project::GetAudioSystem();
-				if (audio_system.GetAudios().contains(audio_component.audio->id))
-				{
-					audio_system.RemoveAudio(audio_component.audio->id);
-				}
-
-				scene.GetAudioComponents().erase(audio_component.id);
-			}
-			if (ent->HasComponent<ScriptComponent>())
-			{
-				auto& script_component = ent->GetComponent<ScriptComponent>();
-				scene.GetScriptComponents().erase(script_component.id);
-			}
-			if (ent->HasComponent<CameraComponent>())
-			{
-				auto& camera_component = ent->GetComponent<CameraComponent>();
-				scene.GetCameras().erase(camera_component.camera->id);
-				scene.GetCameraComponents().erase(camera_component.id);
-			}
-
-			if (selected_entity == ent)
-				selected_entity = nullptr;
-
-			scene.GetEntities().erase(ent->id);
-		};
-
-		if (!entity->IsRoot() && scene.GetEntities().contains(entity->parent))
-		{
-			scene.GetEntities()[entity->parent]->RemoveChild(entity->id);
-		}
-
-		DeleteRecursive(entity);
-
-		if (selected_entity == nullptr && !scene.GetEntities().empty())
-			selected_entity = scene.GetEntities().begin()->second;
-	}
 	
 	bool Editor::IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent)
 	{

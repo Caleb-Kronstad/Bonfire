@@ -315,7 +315,7 @@ namespace Bonfire
   
         if (vertices_with_more_than_4 > 0)
         {
-            Log::Warning("Mesh has " + std::to_string(vertices_with_more_than_4) + " vertices with >4 bone influences (max: " + std::to_string(max_influences) + "). Keeping top 4 weights per vertex.");
+            //Log::Warning("Mesh has " + std::to_string(vertices_with_more_than_4) + " vertices with >4 bone influences (max: " + std::to_string(max_influences) + "). Keeping top 4 weights per vertex.");
         }
   
         for (auto& vertex : vertices)

@@ -41,15 +41,30 @@ namespace Bonfire
         
     }
 
-    void AudioSystem::AddAudio(std::shared_ptr<Audio> audio)
+    bool AudioSystem::AddAudio(std::shared_ptr<Audio> audio)
     {
         if (!initialized)
         {
             Log::Error("Audio system not initialized, cannot add audio");
-            return;
+            return false;
         }
-
+        if (audios.contains(audio->id))
+        {
+            Log::Error("Audio with id " + std::to_string(audio->id) + " already exists");
+            return false;
+        }
         audios.insert_or_assign(audio->id, audio);
+        return true;
+    }
+    bool AudioSystem::RemoveAudio(std::shared_ptr<Audio> audio)
+    {
+        if (audios.contains(audio->id))
+        {
+            audios.erase(audio->id);
+            return true;
+        }
+        Log::Warning("Audio with name " + audio->name + " , id: " + std::to_string(audio->id) + " does not exist");
+        return false;
     }
     std::shared_ptr<Audio> AudioSystem::GetAudio(uint32_t id)
     {
@@ -58,14 +73,6 @@ namespace Bonfire
 
         Log::Warning("Audio with id " + std::to_string(id) + " does not exist");
         return nullptr;
-    }
-
-    void AudioSystem::RemoveAudio(uint32_t id)
-    {
-        if (audios.contains(id))
-            audios.erase(id);
-        else
-            Log::Warning("Audio with id " + std::to_string(id) + " does not exist");
     }
 
     void AudioSystem::UpdateListener(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& up)

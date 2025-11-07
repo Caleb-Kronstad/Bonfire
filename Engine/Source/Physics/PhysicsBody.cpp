@@ -32,15 +32,19 @@ namespace Bonfire
         {
             JPH::Body& body = lock.GetBody();
 
-            JPH::EAllowedDOFs allowed_dofs = JPH::EAllowedDOFs::All;
-            if (translation_x && translation_y && translation_z && rotation_x && rotation_y && rotation_z)
-                allowed_dofs = JPH::EAllowedDOFs::All;
-            else if (translation_x && translation_y && translation_z && !rotation_x && !rotation_y && !rotation_z)
-                allowed_dofs = JPH::EAllowedDOFs::TranslationX | JPH::EAllowedDOFs::TranslationY | JPH::EAllowedDOFs::TranslationZ;
-            else if (translation_x && translation_y && translation_z && !rotation_x && rotation_y && !rotation_z)
-                allowed_dofs = JPH::EAllowedDOFs::Plane2D;
+            // Build allowed DOFs by OR-ing individual flags
+            JPH::EAllowedDOFs allowed_dofs = (JPH::EAllowedDOFs)0;
 
+            if (translation_x) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::TranslationX;
+            if (translation_y) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::TranslationY;
+            if (translation_z) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::TranslationZ;
+            if (rotation_x) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::RotationX;
+            if (rotation_y) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::RotationY;
+            if (rotation_z) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::RotationZ;
+\
+            float current_mass = 1.0f / body.GetMotionProperties()->GetInverseMass();
             JPH::MassProperties mass_properties = body.GetShape()->GetMassProperties();
+            mass_properties.ScaleToMass(current_mass);
             body.GetMotionProperties()->SetMassProperties(allowed_dofs, mass_properties);
         }
     }

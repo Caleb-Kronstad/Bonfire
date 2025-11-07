@@ -114,6 +114,8 @@ namespace Bonfire
     		if (glfwGetKey(glfw_window, InputCode::D) == GLFW_PRESS)
     			engine_camera->position += engine_camera->GetRightVector() * velocity;
     	}
+
+    	RemoveItems();
     }
 
     void Editor::OnInput(Input& input)

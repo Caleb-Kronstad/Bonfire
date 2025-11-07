@@ -15,7 +15,7 @@ namespace Bonfire
 	Project::Project(std::string project_name)
 	{
 		static_project_instance = this;
-		static_editor = new Editor("Data/Editor/editorconfig.bonfire");
+		static_editor = new Editor("Data/editorconfig.bonfire");
 		static_renderer = new Renderer();
 		static_physics_system = new PhysicsSystem();
 		static_audio_system = new AudioSystem();

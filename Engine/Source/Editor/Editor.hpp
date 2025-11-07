@@ -42,6 +42,7 @@ namespace Bonfire
         Camera& GetEngineCamera() { return *engine_camera; }
 
         bool PreviewAnimations() const { return preview_animations; }
+        bool PreviewAudios() const { return preview_audios; }
         bool EditorViewportVisible() const { return editor_viewport_visible; }
         bool ProjectViewportVisible() const { return project_viewport_visible; }
 
@@ -50,6 +51,45 @@ namespace Bonfire
 
     private:
         void SetInterfaceStyle();
+
+        void CreateEntity(std::shared_ptr<Entity> parent = nullptr);
+        void CreateModelComponent(std::shared_ptr<Entity> entity);
+        void CreateLightSourceComponent(std::shared_ptr<Entity> entity);
+        void CreatePhysicsComponent(std::shared_ptr<Entity> entity);
+        void CreateAnimationComponent(std::shared_ptr<Entity> entity);
+        void CreateAudioComponent(std::shared_ptr<Entity> entity);
+        void CreateScriptComponent(std::shared_ptr<Entity> entity);
+        void CreateCameraComponent(std::shared_ptr<Entity> entity);
+
+        void RemoveItems();
+        void RemoveEntity(std::shared_ptr<Entity> entity);
+        void RemoveModelComponent(std::shared_ptr<Entity> entity);
+        void RemoveLightSourceComponent(std::shared_ptr<Entity> entity);
+        void RemovePhysicsComponent(std::shared_ptr<Entity> entity);
+        void RemoveAnimationComponent(std::shared_ptr<Entity> entity);
+        void RemoveAudioComponent(std::shared_ptr<Entity> entity);
+        void RemoveScriptComponent(std::shared_ptr<Entity> entity);
+        void RemoveCameraComponent(std::shared_ptr<Entity> entity);
+
+        void DuplicateEntity(std::shared_ptr<Entity> entity);
+        void DuplicateModelComponent(std::shared_ptr<Entity> entity);
+        void DuplicateLightSourceComponent(std::shared_ptr<Entity> entity);
+        void DuplicatePhysicsComponent(std::shared_ptr<Entity> entity);
+        void DuplicateAnimationComponent(std::shared_ptr<Entity> entity);
+        void DuplicateAudioComponent(std::shared_ptr<Entity> entity);
+        void DuplicateScriptComponent(std::shared_ptr<Entity> entity);
+        void DuplicateCameraComponent(std::shared_ptr<Entity> entity);
+
+        void DisplayModelComponent();
+        void DisplayLightSourceComponent();
+        void DisplayPhysicsComponent();
+        void DisplayAnimationComponent();
+        void DisplayAudioComponent();
+        void DisplayCameraComponent();
+        void DisplayScriptComponent();
+        
+        bool IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent);
+        void ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent);
 
         void DrawMenuBar();
         void DrawEditorViewport();
@@ -64,19 +104,6 @@ namespace Bonfire
 
         void DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness = 3.0f);
         void DrawEntityTree(std::shared_ptr<Entity> entity);
-        void CreateEntity(std::shared_ptr<Entity> parent = nullptr);
-        void DuplicateEntity(std::shared_ptr<Entity> entity);
-        void DeleteEntity(std::shared_ptr<Entity> entity);
-        bool IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent);
-        void ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent);
-
-        void CreateModelComponent();
-        void CreateLightSourceComponent();
-        void CreatePhysicsComponent();
-        void CreateAnimationComponent();
-        void CreateAudioComponent();
-        void CreateScriptComponent();
-        void CreateCameraComponent();
 
         void BuildProject();
 
@@ -96,12 +123,16 @@ namespace Bonfire
         glm::vec3 transform_start_scale = glm::vec3(1.0f);
 
         bool preview_animations = true;
+        bool preview_audios = true;
         
-        std::shared_ptr<Entity> selected_entity;
-        std::shared_ptr<Entity> entity_to_create;
-        std::shared_ptr<Entity> entity_to_delete;
-        std::shared_ptr<Entity> entity_to_reparent;
-        std::shared_ptr<Entity> reparent_target;
+        std::shared_ptr<Entity> selected_entity = nullptr;
+        std::shared_ptr<Entity> selected_entity_to_remove_components = nullptr;
+        std::shared_ptr<Entity> entity_to_create = nullptr;
+        std::shared_ptr<Entity> entity_to_remove = nullptr;
+        std::shared_ptr<Entity> entity_to_reparent = nullptr;
+        std::shared_ptr<Entity> reparent_target = nullptr;
+        
+        ComponentType component_to_remove = ComponentType::UNKNOWN;
 
         std::unique_ptr<Camera> engine_camera;
         float engine_camera_speed = 5.0f;

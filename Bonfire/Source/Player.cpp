@@ -1,15 +1,15 @@
-#include "MainLayer.hpp"
+#include "Player.hpp"
 
-MainLayer::MainLayer() : Layer("New Layer")
+Player::Player() : Layer("New Layer")
 {
 
 }
-MainLayer::~MainLayer()
+Player::~Player()
 {
 
 }
 
-void MainLayer::OnAttach()
+void Player::OnAttach()
 {
 	Project& project = Project::GetInstance();
 	Renderer& renderer = Project::GetRenderer();
@@ -19,16 +19,17 @@ void MainLayer::OnAttach()
 	Scene& scene = renderer.GetScene();
 
 	player = scene.GetEntityByName("Player");
-	if (!player)
-		Log::Error("Failed to find player entity");
+	global_audio = scene.GetEntityByName("Global Audio")->GetComponent<AudioComponent>().audio;
+	global_audio->SetSpatialization(false);
+	global_audio->Play();
 }
 
-void MainLayer::OnDetach()
+void Player::OnDetach()
 {
-
+	global_audio->Stop();
 }
 
-void MainLayer::OnUpdate(const float& delta_time)
+void Player::OnUpdate(const float& delta_time)
 {
 	Project& project = Project::GetInstance();
 	Window& window = project.GetWindow();
@@ -44,6 +45,16 @@ void MainLayer::OnUpdate(const float& delta_time)
 
 	glm::quat rotation = glm::quat(glm::vec3(0.0f, glm::radians(camera->yaw), 0.0f));
 	body->SetRotation(rotation);
+	glm::vec3 current_velocity = body->GetLinearVelocity();
+
+	bool is_grounded = current_velocity.y <= 0.1f && current_velocity.y >= -0.1f;
+
+	if (glfwGetKey(glfw_window, InputCode::Space) == GLFW_PRESS && is_grounded)
+	{
+		float jump_velocity = 6.0f;
+		body->SetLinearVelocity(glm::vec3(current_velocity.x, jump_velocity, current_velocity.x));
+	}
+	current_velocity = body->GetLinearVelocity();
 
 	glm::vec3 forward = camera->GetFrontVector();
 	forward.y = 0.0f;
@@ -53,23 +64,21 @@ void MainLayer::OnUpdate(const float& delta_time)
 	glm::vec3 right = camera->GetRightVector();
 	right = glm::normalize(right);
 
-	glm::vec3 move_dir(0.0f);
+	glm::vec3 move_direction(0.0f);
 
 	if (glfwGetKey(glfw_window, InputCode::W) == GLFW_PRESS)
-		move_dir += forward;
+		move_direction += forward;
 	if (glfwGetKey(glfw_window, InputCode::S) == GLFW_PRESS)
-		move_dir -= forward;
+		move_direction -= forward;
 	if (glfwGetKey(glfw_window, InputCode::A) == GLFW_PRESS)
-		move_dir -= right;
+		move_direction -= right;
 	if (glfwGetKey(glfw_window, InputCode::D) == GLFW_PRESS)
-		move_dir += right;
+		move_direction += right;
 
-	glm::vec3 current_velocity = body->GetLinearVelocity();
-	if (glm::length(move_dir) > 0.0f)
+	if (glm::length(move_direction) > 0.0f)
 	{
-		move_dir = glm::normalize(move_dir);
-		float movement_speed = 5.0f;
-		glm::vec3 velocity = move_dir * movement_speed;
+		move_direction = glm::normalize(move_direction);
+		glm::vec3 velocity = move_direction * move_speed;
 		velocity.y = current_velocity.y;
 		body->SetLinearVelocity(velocity);
 	}
@@ -77,14 +86,14 @@ void MainLayer::OnUpdate(const float& delta_time)
 	{
 		body->SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
 	}
-
+	
 	camera->position = body->GetPosition();
 }
-void MainLayer::OnInterfaceUpdate()
+void Player::OnInterfaceUpdate()
 {
 	
 }
-void MainLayer::OnInput(Input& input)
+void Player::OnInput(Input& input)
 {
 	Project& project = Project::GetInstance();
 	Window& window = project.GetWindow();

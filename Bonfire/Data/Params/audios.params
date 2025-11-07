@@ -1,6 +1,10 @@
 {
     "1000": {
-        "name": "Messmer",
-        "path": "Data/Resources/Audio/messmer.mp3"
+        "name": "Calcified Village",
+        "path": "Data/Resources/Audio/CalcifiedVillage.mp3"
+    },
+    "1001": {
+        "name": "Final Boss",
+        "path": "Data/Resources/Audio/FinalBoss.mp3"
     }
 }

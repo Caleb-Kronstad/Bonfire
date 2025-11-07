@@ -4,11 +4,11 @@
 
 using namespace Bonfire;
 
-class MainLayer : public Layer
+class Player : public Layer
 {
 public:
-	MainLayer();
-	~MainLayer();
+	Player();
+	~Player();
 
 	void OnAttach() override;
 	void OnDetach() override;
@@ -18,4 +18,6 @@ public:
 
 private:
 	std::shared_ptr<Entity> player;
+	std::shared_ptr<Audio> global_audio;
+	float move_speed = 5.0f;
 };

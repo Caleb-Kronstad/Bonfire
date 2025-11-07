@@ -45,8 +45,8 @@ project "Bonfire"
     objdir ("%{wks.location}/../Build/Binaries-Intermediate/" .. OutputDir .. "/%{prj.name}")
     
     postbuildcommands {
-        "{COPY} %{wks.location}/../Bonfire/Data %{cfg.buildtarget.directory}/Data",
-        "{COPY} %{wks.location}/../Bonfire/imgui.ini %{cfg.buildtarget.directory}/",
+        --"{COPY} %{wks.location}/../Bonfire/Data %{cfg.buildtarget.directory}/Data",
+        --"{COPY} %{wks.location}/../Bonfire/imgui.ini %{cfg.buildtarget.directory}/",
     }
 
     filter "system:windows"

@@ -7,7 +7,7 @@ namespace Bonfire
     class Audio
     {
     public:
-        Audio(uint32_t id, const std::string& file_path);
+        Audio(uint32_t id, const std::string& name, const std::string& file_path);
         ~Audio();
 
         void Play();
@@ -20,6 +20,8 @@ namespace Bonfire
         float GetPitch() const;
         void SetLoop(bool loop);
         bool GetLoop() const;
+        bool GetPlayOnAwake() const { return play_on_awake; }
+        void SetPlayOnAwake(bool play_awake) { play_on_awake = play_awake; }
 
         void Set3DPosition(glm::vec3 position);
         void Set3DMinDistance(float distance);
@@ -30,16 +32,14 @@ namespace Bonfire
         bool IsPaused() const;
         bool IsEnded() const;
 
-        std::string GetFilePath() const { return file_path; }
-
-        bool GetPlayOnAwake() const { return play_on_awake; }
-        void SetPlayOnAwake(bool play_awake) { play_on_awake = play_awake; }
+        std::string GetFilePath() const { return path; }
 
     public:
         uint32_t id;
+        std::string name;
+        std::string path;
         
     private:
-        std::string file_path;
         bool initialized = false;
         ma_sound sound;
         ma_engine* engine;
