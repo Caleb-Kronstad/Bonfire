@@ -2,6 +2,8 @@
 #include "PhysicsSystem.hpp"
 
 #include "Core/Project.hpp"
+#include "Jolt/Physics/Collision/Shape/MeshShape.h"
+#include "Jolt/Physics/Collision/Shape/ScaledShape.h"
 
 namespace Bonfire
 {
@@ -326,4 +328,111 @@ namespace Bonfire
 
         return std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
     }
+
+    std::shared_ptr<PhysicsBody> PhysicsSystem::CreateMeshBody(
+        const glm::vec3& position,
+        const glm::quat& rotation,
+        std::shared_ptr<Model> model,
+        uint32_t model_id,
+        PhysicsBodyType body_type,
+        float mass,
+        float friction,
+        float restitution)
+    {
+        if (!model)
+        {
+            Log::Error("Cannot create mesh collider: no model provided");
+            return nullptr;
+        }
+
+        if (body_type != PhysicsBodyType::STATIC)
+        {
+            Log::Error("Mesh colliders must be static");
+            return nullptr;
+        }
+
+        JPH::VertexList vertices;
+        JPH::IndexedTriangleList triangles;
+
+        uint32_t vertex_offset = 0;
+        uint32_t total_triangle_count = 0;
+
+        for (const Mesh& mesh : model->meshes)
+        {
+            for (const Vertex& vertex : mesh.vertices)
+                vertices.push_back(JPH::Float3(vertex.position.x, vertex.position.y, vertex.position.z));
+
+            for (size_t i = 0; i < mesh.indices.size(); i += 3)
+            {
+                if (i + 2 < mesh.indices.size())
+                {
+                    uint32_t idx0 = mesh.indices[i] + vertex_offset;
+                    uint32_t idx1 = mesh.indices[i+1] + vertex_offset;
+                    uint32_t idx2 = mesh.indices[i+2] + vertex_offset;
+
+                    triangles.push_back(JPH::IndexedTriangle(idx0, idx1, idx2, 0));
+                    total_triangle_count++;
+                }
+            }
+
+            vertex_offset += static_cast<uint32_t>(mesh.vertices.size());
+        }
+
+        if (total_triangle_count > 1000)
+            Log::Warning("Mesh collider has " + std::to_string(total_triangle_count) + " triangles - Consider using a simplified collision mesh for better performance");
+
+        JPH::MeshShapeSettings mesh_settings(vertices, triangles);
+        JPH::ShapeSettings::ShapeResult mesh_result = mesh_settings.Create();
+        if (mesh_result.HasError())
+        {
+            Log::Error("Failed to create mesh shape: " + std::string(mesh_result.GetError().c_str()));
+            return nullptr;
+        }
+
+        JPH::ScaledShapeSettings scaled_settings(mesh_result.Get(), JPH::Vec3(1.0f, 1.0f, 1.0f));
+        JPH::ShapeSettings::ShapeResult shape_result = scaled_settings.Create();
+        if (shape_result.HasError())
+        {
+            Log::Error("Failed to create scaled mesh shape: " + std::string(shape_result.GetError().c_str()));
+            return nullptr;
+        }
+
+        JPH::ShapeRefC shape = shape_result.Get();
+        JPH::EMotionType motion_type = JPH::EMotionType::Static;
+        JPH::ObjectLayer object_layer = Layers::NON_MOVING;
+
+        JPH::BodyCreationSettings body_settings(
+            shape,
+            JPH::Vec3(position.x, position.y, position.z),
+            JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w),
+            motion_type,
+            object_layer
+        );
+
+        body_settings.mFriction = friction;
+        body_settings.mRestitution = restitution;
+
+        JPH::Body* body = jolt_physics_system->GetBodyInterface().CreateBody(body_settings);
+        if (!body)
+        {
+            Log::Error("Failed to create physics body for mesh collider");
+            return nullptr;
+        }
+
+        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::Activate);
+
+        PhysicsShapeData shape_data;
+        shape_data.type = PhysicsShapeType::MESH;
+        shape_data.dimensions = glm::vec3(
+            static_cast<float>(vertices.size()),  
+            static_cast<float>(total_triangle_count),  
+            static_cast<float>(model_id)
+        );
+
+        std::shared_ptr<PhysicsBody> physics_body = std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
+        physics_body->mesh_id = model_id;
+
+        return physics_body;
+    }
+
 }

@@ -2,6 +2,8 @@
 #include "PhysicsBody.hpp"
 
 #include "Core/Project.hpp"
+#include "Jolt/Physics/Collision/Shape/MeshShape.h"
+#include "Jolt/Physics/Collision/Shape/ScaledShape.h"
 
 namespace Bonfire
 {
@@ -63,7 +65,7 @@ namespace Bonfire
         body_interface.SetRotation(body_id, JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w), JPH::EActivation::DontActivate);
     }
 
-    void PhysicsBody::SetScale(const glm::vec3& scale)
+    void PhysicsBody::SetScale(const glm::vec3& scale, std::shared_ptr<Model> model)
     {
         auto& physics_system = Project::GetPhysicsSystem();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
@@ -102,6 +104,56 @@ namespace Bonfire
                 float scaled_half_height = shape_data.dimensions.y * scale.y;
                 JPH::CapsuleShapeSettings shape_settings(scaled_half_height, scaled_radius);
                 new_shape = shape_settings.Create().Get();
+                break;
+            }
+        case PhysicsShapeType::MESH:
+            {
+                if (model == nullptr)
+                {
+                    Log::Warning("Cannot scale mesh collider: source model not available");
+                    break;
+                }
+                
+                JPH::VertexList vertices;
+                JPH::IndexedTriangleList triangles;
+                uint32_t vertex_offset = 0;
+                for (const Mesh& mesh : model->meshes)
+                {
+                    for (const Vertex& v : mesh.vertices)
+                    {
+                        vertices.push_back(JPH::Float3(
+                            v.position.x * scale.x,
+                            v.position.y * scale.y,
+                            v.position.z * scale.z
+                        ));
+                    }
+
+                    for (size_t i = 0; i < mesh.indices.size(); i += 3)
+                    {
+                        if (i + 2 < mesh.indices.size())
+                        {
+                            uint32_t idx0 = mesh.indices[i] + vertex_offset;
+                            uint32_t idx1 = mesh.indices[i + 1] + vertex_offset;
+                            uint32_t idx2 = mesh.indices[i + 2] + vertex_offset;
+
+                            triangles.push_back(JPH::IndexedTriangle(idx0, idx1, idx2, 0));
+                        }
+                    }
+
+                    vertex_offset += static_cast<uint32_t>(mesh.vertices.size());
+                }
+
+                JPH::MeshShapeSettings shape_settings(vertices, triangles);
+                JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
+
+                if (!shape_result.HasError())
+                {
+                    new_shape = shape_result.Get();
+                    shape_data.dimensions = scale;
+                }
+                else
+                    Log::Error("Failed to scale mesh collider: " + std::string(shape_result.GetError().c_str()));
+
                 break;
             }
         }

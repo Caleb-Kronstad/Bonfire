@@ -572,6 +572,22 @@ namespace Bonfire
     	ImGui::SliderFloat3("Direction", (float*)&scene.GetDirectionalLight()->direction, -360.0f, 360.0f, "%1.f");
     	ImGui::SliderFloat3("Color", (float*)&scene.GetDirectionalLight()->color, 0.0f, 255.0f, "%1.f");
     	ImGui::PopItemWidth();
+
+		ImGui::Separator();
+		auto& fog = scene.GetFog();
+		ImGui::Text("Fog"); ImGui::SameLine(); ImGui::Checkbox("##FogEnabled", &fog->enabled);
+		if (fog->enabled)
+		{
+			ImGui::ColorEdit3("Color", (float*)&fog->color);
+			ImGui::SliderFloat("Density", &fog->density, 0.001f, 1.0f, "%.3f");
+			ImGui::SliderFloat("Start", &fog->start, 0.0f, 500.0f, "%.f");
+			ImGui::SliderFloat("End", &fog->end, 0.0f, 500.0f, "%.f");
+
+			const char* fog_types[] = { "Linear", "Exponential", "Exponential Squared" };
+			int current_fog_type = static_cast<int>(fog->type);
+			if (ImGui::Combo("Type", &current_fog_type, fog_types, 3))
+				fog->type = static_cast<FogType>(current_fog_type);
+		}
 		
     	ImGui::PopFont();
     	ImGui::Unindent(8.0f);

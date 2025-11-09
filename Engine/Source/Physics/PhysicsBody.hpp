@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Renderer/Model.hpp"
 
 namespace Bonfire
 {
@@ -16,7 +17,7 @@ namespace Bonfire
 
         void SetPosition(const glm::vec3& position);
         void SetRotation(const glm::quat& rotation);
-        void SetScale(const glm::vec3& scale);
+        void SetScale(const glm::vec3& scale, std::shared_ptr<Model> model = nullptr);
         void SetLinearVelocity(const glm::vec3& velocity);
         void SetAngularVelocity(const glm::vec3& angular_velocity);
         void SetAllowedDOFS(bool translation_x, bool translation_y, bool translation_z, bool rotation_x, bool rotation_y, bool rotation_z);
@@ -45,6 +46,7 @@ namespace Bonfire
 
     public:
         uint32_t id = 0;
+        uint32_t mesh_id = 0;
         bool enabled = true;
         std::string name = "Physics Object";
 

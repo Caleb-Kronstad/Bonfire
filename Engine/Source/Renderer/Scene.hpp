@@ -4,6 +4,7 @@
 #include "Skybox.hpp"
 #include "Camera.hpp"
 #include "ShadowMap.hpp"
+#include "Fog.hpp"
 
 namespace Bonfire
 {
@@ -41,6 +42,7 @@ namespace Bonfire
         std::shared_ptr<Camera>& GetCurrentCamera() { return cameras.at(current_camera_id); }
         std::unordered_map<uint32_t, std::shared_ptr<Camera>>& GetCameras() { return cameras; }
         std::unique_ptr<Skybox>& GetSkybox() { return skybox; }
+        std::unique_ptr<Fog>& GetFog() { return fog; }
 
         std::shared_ptr<Entity> GetEntityByName(const std::string& name);
         std::shared_ptr<Entity> GetEntityById(uint32_t id);
@@ -67,5 +69,6 @@ namespace Bonfire
         uint32_t current_camera_id = 0;
         std::unique_ptr<Skybox> skybox;
         std::unique_ptr<ShadowMap> shadow_map;
+        std::unique_ptr<Fog> fog;
     };
 }

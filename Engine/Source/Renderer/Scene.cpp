@@ -102,6 +102,7 @@ namespace Bonfire
         script_components.clear();
         camera_components.clear();
         directional_light = nullptr;
+        fog = nullptr;
         skybox = nullptr;
         shadow_map = nullptr;
         current_camera_id = 0;
@@ -193,6 +194,7 @@ namespace Bonfire
         camera_components.insert_or_assign(1000, default_camera_component);
         
         directional_light = std::make_unique<DirectionalLight>();
+        fog = std::make_unique<Fog>();
 
         if (!DeserializeFromString(json_string, param_database))
         {
@@ -236,6 +238,14 @@ namespace Bonfire
 
         nlohmann::json skybox_json;
         skybox_json["path"] = skybox->GetPath();
+
+        nlohmann::json fog_json;
+        fog_json["enabled"] = fog->enabled;
+        fog_json["color"] = { fog->color.x, fog->color.y, fog->color.z };
+        fog_json["density"] = fog->density;
+        fog_json["start"] = fog->start;
+        fog_json["end"] = fog->end;
+        fog_json["type"] = static_cast<int>(fog->type);
 
         nlohmann::json directional_light_json;
         directional_light_json["id"] = directional_light->id;
@@ -422,6 +432,7 @@ namespace Bonfire
 
         json["DATA-TYPE"]["type"] = "SCENE";
         json["skybox"] = skybox_json;
+        json["fog"] = fog_json;
         json["directional_light"] = directional_light_json;
         json["components"] = components_json;
         json["entities"] = entities_array;
@@ -470,6 +481,18 @@ namespace Bonfire
             const auto& skybox_json = json["skybox"];
             std::string skybox_path = skybox_json["path"];
             skybox = std::make_unique<Skybox>(skybox_path);
+        }
+
+        if (json.contains("fog"))
+        {
+            const auto& fog_json = json["fog"];
+            fog->enabled = fog_json["enabled"].get<bool>();
+            auto color_array = fog_json["color"].get<std::vector<float>>();
+            fog->color = glm::vec3(color_array[0], color_array[1], color_array[2]);
+            fog->density = fog_json["density"].get<float>();
+            fog->start = fog_json["start"].get<float>();
+            fog->end = fog_json["end"].get<float>();
+            fog->type = static_cast<FogType>(fog_json["type"].get<int>());
         }
 
         if (json.contains("directional_light"))
@@ -628,6 +651,26 @@ namespace Bonfire
                         physics_body = physics_system.CreateSphereBody(glm::vec3(0.0f), dimensions.x, body_type);
                     else if (shape_type == PhysicsShapeType::CAPSULE)
                         physics_body = physics_system.CreateCapsuleBody(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), dimensions.x, dimensions.y, body_type);
+                    else if (shape_type == PhysicsShapeType::MESH)
+                    {
+                        uint32_t model_id = static_cast<uint32_t>(dimensions.z);
+
+                        if (models.contains(model_id))
+                        {
+                            physics_body = physics_system.CreateMeshBody(
+                                glm::vec3(0.0f),
+                                glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+                                models.at(model_id),
+                                model_id,
+                                body_type
+                            );
+                        }
+                        else
+                        {
+                            Log::Error("Cannot create mesh collider: model ID " + std::to_string(model_id) + " not found");
+                            continue;
+                        }
+                    }
 
                     if (physics_body)
                     {

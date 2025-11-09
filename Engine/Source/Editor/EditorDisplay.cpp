@@ -219,7 +219,7 @@ namespace Bonfire
     		PhysicsShapeData current_shape_data = physics_component.physics_body->GetShapeData();
 
     		const char* body_type_names[] = { "STATIC", "DYNAMIC", "KINEMATIC" };
-    		const char* shape_type_names[] = { "BOX", "SPHERE", "CAPSULE" };
+    		const char* shape_type_names[] = { "BOX", "SPHERE", "CAPSULE", "MESH" };
 
     		bool body_type_changed = ImGui::Combo("Body Type", &selected_body_type, body_type_names,
 			IM_ARRAYSIZE(body_type_names));
@@ -246,6 +246,33 @@ namespace Bonfire
     				new_physics_body = physics_system.CreateSphereBody(position, dimensions.x, new_body_type);
     			else if (new_shape_type == PhysicsShapeType::CAPSULE)
     				new_physics_body = physics_system.CreateCapsuleBody(position, rotation, dimensions.x, dimensions.y, new_body_type);
+    			else if (new_shape_type == PhysicsShapeType::MESH)
+    			{
+    				if (selected_entity->HasComponent<ModelComponent>())
+    				{
+    					ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+    					if (model_component.model)
+    					{
+    						new_physics_body = physics_system.CreateMeshBody(
+								position,
+								rotation,
+								model_component.model,
+								model_component.model->param_id,
+								PhysicsBodyType::STATIC
+							);
+    					}
+    					else
+    					{
+    						Log::Error("Cannot create mesh collider: entity has no model");
+    						selected_shape_type = static_cast<int>(current_shape_data.type);
+    					}
+    				}
+    				else
+    				{
+    					Log::Error("Cannot create mesh collider: entity must have a ModelComponent");
+    					selected_shape_type = static_cast<int>(current_shape_data.type);
+    				}
+    			}
 
     			new_physics_body->id = id;
     			new_physics_body->enabled = enabled;
@@ -255,8 +282,58 @@ namespace Bonfire
     			physics_component.physics_body = new_physics_body;
     		}
 
-    		ImGui::DragFloat3("Collider Dimensions", (float*)&physics_component.physics_body->GetShapeData().dimensions, drag_step, 0.1f, 100.0f);
-			physics_component.physics_body->SetScale(physics_component.physics_body->GetShapeData().dimensions);
+    		PhysicsShapeData shape_data = physics_component.physics_body->GetShapeData();
+
+		    if (shape_data.type == PhysicsShapeType::MESH)
+		    {
+		    	ImGui::Separator();
+		    	ImGui::Text("Vertices: ", static_cast<int>(shape_data.dimensions.x));
+		    	ImGui::Text("Triangles: ", static_cast<int>(shape_data.dimensions.y));
+		    	ImGui::Text("Model ID: ", static_cast<int>(shape_data.dimensions.z));
+
+		    	if (ImGui::Button("Apply Mesh Size"))
+		    	{
+		    		if (selected_entity->HasComponent<ModelComponent>())
+		    			physics_component.physics_body->SetScale(selected_entity->scale, selected_entity->GetComponent<ModelComponent>().model);
+		    	}
+
+		    	ImGui::Spacing();
+		    	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Note: Mesh colliders must be STATIC");
+		    }
+		    else
+		    {
+		        glm::vec3 dimensions = shape_data.dimensions;
+  
+		        if (shape_data.type == PhysicsShapeType::BOX)
+		        {
+		            if (ImGui::DragFloat3("Half Extents", (float*)&dimensions, drag_step, 0.1f, 100.0f))
+		            {
+		                physics_component.physics_body->GetShapeData().dimensions = dimensions;
+		                physics_component.physics_body->SetScale(dimensions);
+		            }
+		        }
+		        else if (shape_data.type == PhysicsShapeType::SPHERE)
+		        {
+		            if (ImGui::DragFloat("Radius", &dimensions.x, drag_step, 0.1f, 100.0f))
+		            {
+		                physics_component.physics_body->GetShapeData().dimensions = dimensions;
+		                physics_component.physics_body->SetScale(dimensions);
+		            }
+		        }
+		        else if (shape_data.type == PhysicsShapeType::CAPSULE)
+		        {
+		            if (ImGui::DragFloat("Radius", &dimensions.x, drag_step, 0.1f, 100.0f))
+		            {
+		                physics_component.physics_body->GetShapeData().dimensions = dimensions;
+		                physics_component.physics_body->SetScale(dimensions);
+		            }
+		            if (ImGui::DragFloat("Half Height", &dimensions.y, drag_step, 0.1f, 100.0f))
+		            {
+		                physics_component.physics_body->GetShapeData().dimensions = dimensions;
+		                physics_component.physics_body->SetScale(dimensions);
+		            }
+		        }	
+		    }
 
     		ImGui::Spacing();
 

@@ -179,6 +179,23 @@ namespace Bonfire
 		            new_physics_body = physics_system.CreateSphereBody(position, shape_data.dimensions.x, body_type);
 		        else if (shape_data.type == PhysicsShapeType::CAPSULE)
 		            new_physics_body = physics_system.CreateCapsuleBody(position, rotation, shape_data.dimensions.x, shape_data.dimensions.y, body_type);
+		        else if (shape_data.type == PhysicsShapeType::MESH)
+		        {
+		        	uint32_t model_id = original_component.physics_body->mesh_id;
+
+		        	if (entity->HasComponent<ModelComponent>())
+		        	{
+		        		ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+
+		        		new_physics_body = physics_system.CreateMeshBody(
+							entity->position,
+							glm::quat(glm::radians(entity->rotation)),
+							model_component.model,
+							model_id,
+							original_component.physics_body->GetBodyType()
+						);
+		        	}
+		        }
 
 		        if (new_physics_body)
 		        {

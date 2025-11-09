@@ -4,13 +4,6 @@
 
 namespace Bonfire
 {
-    enum class AnimationState : std::uint8_t
-    {
-        STOPPED,
-        PLAYING,
-        PAUSED
-    };
-    
     enum class ComponentType : std::uint8_t
     {
         UNKNOWN,
@@ -32,6 +25,20 @@ namespace Bonfire
         HEIGHT,
         EMISSION,
     };
+    
+    enum class AnimationState : std::uint8_t
+    {
+        STOPPED,
+        PLAYING,
+        PAUSED
+    };
+
+    enum class FogType : std::uint8_t
+    {
+        LINEAR = 0,
+        EXPONTENTIAL = 1,
+        EXPONENTIAL_SQUARED = 2
+    };
 
     enum class PhysicsBodyType : std::uint8_t
     {
@@ -44,7 +51,8 @@ namespace Bonfire
     {
         BOX,
         SPHERE,
-        CAPSULE
+        CAPSULE,
+        MESH
     };
 
     enum class DebugType : std::uint8_t

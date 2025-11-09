@@ -317,10 +317,7 @@ namespace Bonfire
 						scenes.at(current_scene_index)->UpdateLightSources(*shader);
 						scenes.at(current_scene_index)->GetShadowMap()->Draw();
 
-						bool has_emission = false;
-						if (model_component.material && model_component.material->HasTexture(TextureType::EMISSION))
-							has_emission = true;
-						shader->SetBool("is_emissive", has_emission);
+						scenes.at(current_scene_index)->GetFog()->ApplyToShader(*shader);
 
 						shader->updated_this_frame = true;
 					}
@@ -354,6 +351,11 @@ namespace Bonfire
 					}
 					else
 						shader->SetBool("is_animated", false);
+
+					bool has_emission = false;
+					if (model_component.material && model_component.material->HasTexture(TextureType::EMISSION))
+						has_emission = true;
+					shader->SetBool("is_emissive", has_emission);
 				}
 				
 				shader->SetBool("reverse_normals", false);
@@ -425,6 +427,10 @@ namespace Bonfire
 				break;
 			case PhysicsShapeType::CAPSULE:
 				vertices = Debug::GetCapsuleVertices(shape_data.dimensions.x, shape_data.dimensions.y);
+				break;
+			case PhysicsShapeType::MESH:
+				if (entity->HasComponent<ModelComponent>())
+					vertices = Debug::GetMeshVertices(entity->GetComponent<ModelComponent>().model);
 				break;
 			}
 

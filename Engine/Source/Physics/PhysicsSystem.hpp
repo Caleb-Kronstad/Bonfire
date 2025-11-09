@@ -2,6 +2,7 @@
 
 #include "Core/Layer.hpp"
 #include "PhysicsBody.hpp"
+#include "Renderer/Model.hpp"
 
 namespace Bonfire
 {
@@ -123,6 +124,17 @@ namespace Bonfire
             float friction = 0.5f,
             float restitution = 0.0f
         );
+
+        std::shared_ptr<PhysicsBody> CreateMeshBody(
+            const glm::vec3& position,
+            const glm::quat& rotation,
+            std::shared_ptr<Model> model,
+            uint32_t model_id,
+            PhysicsBodyType body_type = PhysicsBodyType::STATIC,
+            float mass = 1.0f,
+            float friction = 0.5f,
+            float restitution = 0.0f
+            );
 
         void DestroyBody(std::shared_ptr<PhysicsBody> physics_object);
         void SetGravity(const glm::vec3& gravity);

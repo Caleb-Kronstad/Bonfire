@@ -68,6 +68,13 @@ uniform int num_spot_lights;
 
 uniform bool is_emissive;
 
+uniform bool fog_enabled;
+uniform vec3 fog_color;
+uniform float fog_density;
+uniform float fog_start;
+uniform float fog_end;
+uniform int fog_type;
+
 uniform DirectionalLight directional_light;
 uniform PointLight point_lights[MAX_POINT_LIGHTS];
 uniform SpotLight spot_lights[MAX_SPOT_LIGHTS];
@@ -77,6 +84,7 @@ vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 frag_pos, vec3 view
 vec3 CalculateSpotLight(SpotLight light, vec3 normal, vec3 frag_pos, vec3 view_dir);
 float ShadowCalculation(vec4 frag_pos_light_space, vec3 normal, vec3 light_direction);
 float PointShadowCalculation(vec3 frag_pos, vec3 light_pos);
+float CalculateFogFactor(float distance);
 
 float gamma = 1.0;
 vec3 sample_offset_directions[20] = vec3[]
@@ -110,9 +118,31 @@ void main()
         result += emission;
     }
     vec4 frag_color = vec4(result, 1.0);
+    
+    if (fog_enabled)
+    {
+        float distance = length(view_pos - FragIn.FragPos);
+        float fog_factor = CalculateFogFactor(distance);
+        frag_color.rgb = mix(fog_color, frag_color.rgb, fog_factor);
+    }
+    
     FragColor = frag_color;
-
     FragColor.rgb = pow(frag_color.rgb, vec3(1.0/gamma));
+}
+
+float CalculateFogFactor(float distance)
+{ 
+    if (fog_type == 1) // exponential fog
+    {
+        return clamp(exp(-fog_density * distance), 0.0, 1.0);
+    }
+    else if (fog_type == 2) // exponential squared fog
+    {
+        float exponent = fog_density * distance;
+        return clamp(exp(-exponent * exponent), 0.0, 1.0);
+    }
+    // Linear fog
+    return clamp((fog_end - distance) / (fog_end - fog_start), 0.0, 1.0);
 }
 
 float ShadowCalculation(vec4 frag_pos_light_space, vec3 normal, vec3 light_direction)
