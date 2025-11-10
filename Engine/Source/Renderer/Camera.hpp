@@ -9,7 +9,7 @@ namespace Bonfire
         Camera(uint32_t id = 0, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f, float fov = 60.0f);
 
         glm::mat4 GetViewMatrix() const { return glm::lookAt(position, position + front, up); }
-        glm::mat4 GetProjectionMatrix(const float& width, const float& height) const { return glm::perspective(glm::radians(fov), width / height, 0.1f, 250.0f); }
+        glm::mat4 GetProjectionMatrix(const float& width, const float& height) const { return glm::perspective(glm::radians(fov), width / height, 0.1f, view_distance); }
 
         void LookAt(const glm::vec3& target);
         void UpdateCameraVectors();
@@ -32,6 +32,8 @@ namespace Bonfire
         float yaw;
         float pitch;
         float fov;
+        
+        float view_distance = 1000.0f;
         
     private:
         bool is_orthographic = false;

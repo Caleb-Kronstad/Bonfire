@@ -196,7 +196,7 @@ namespace Bonfire
 
 		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
 		view = editor.GetEngineCamera().GetViewMatrix();
-		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection);
+		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection, *scenes.at(current_scene_index)->GetFog());
 
 		editor_viewport_framebuffer->Unbind();
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
@@ -290,7 +290,7 @@ namespace Bonfire
 
 		projection = scenes.at(current_scene_index)->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
 		view = scenes.at(current_scene_index)->GetCurrentCamera()->GetViewMatrix();
-		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection);
+		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection, *scenes.at(current_scene_index)->GetFog());
 
 		project_viewport_framebuffer->Unbind();
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
@@ -429,8 +429,8 @@ namespace Bonfire
 				vertices = Debug::GetCapsuleVertices(shape_data.dimensions.x, shape_data.dimensions.y);
 				break;
 			case PhysicsShapeType::MESH:
-				if (entity->HasComponent<ModelComponent>())
-					vertices = Debug::GetMeshVertices(entity->GetComponent<ModelComponent>().model);
+				if (entity->HasComponent<ModelComponent>() && draw_mesh_colliders && entity->name != "Ground")
+					vertices = Debug::GetMeshVertices(entity->GetComponent<ModelComponent>().model, entity->scale);
 				break;
 			}
 

@@ -19,6 +19,8 @@ void Player::OnAttach()
 	Scene& scene = renderer.GetScene();
 
 	player = scene.GetEntityByName("Player");
+	arm = scene.GetEntityByName("PlayerArm");
+	sword = scene.GetEntityByName("Greatsword");
 	global_audio = scene.GetEntityByName("Global Audio")->GetComponent<AudioComponent>().audio;
 	global_audio->SetSpatialization(false);
 	global_audio->Play();
@@ -46,15 +48,6 @@ void Player::OnUpdate(const float& delta_time)
 	glm::quat rotation = glm::quat(glm::vec3(0.0f, glm::radians(camera->yaw), 0.0f));
 	body->SetRotation(rotation);
 	glm::vec3 current_velocity = body->GetLinearVelocity();
-
-	bool is_grounded = current_velocity.y <= 0.1f && current_velocity.y >= -0.1f;
-
-	if (glfwGetKey(glfw_window, InputCode::Space) == GLFW_PRESS && is_grounded)
-	{
-		float jump_velocity = 6.0f;
-		body->SetLinearVelocity(glm::vec3(current_velocity.x, jump_velocity, current_velocity.x));
-	}
-	current_velocity = body->GetLinearVelocity();
 
 	glm::vec3 forward = camera->GetFrontVector();
 	forward.y = 0.0f;
@@ -86,8 +79,19 @@ void Player::OnUpdate(const float& delta_time)
 	{
 		body->SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
 	}
+
+	glm::vec3 arm_relative_offset = camera->GetRightVector() * arm_offset.x + glm::vec3(0.0f, arm_offset.y, 0.0f) + camera->GetFrontVector() * arm_offset.z;
+	arm->position = camera->position + arm_relative_offset;
+	arm->rotation = glm::vec3(0.0f, -camera->yaw + 180.0f, 0.0f);
 	
-	camera->position = body->GetPosition();
+	glm::quat arm_rotation_quat = glm::quat(glm::vec3(0.0f, glm::radians(arm->rotation.y), 0.0f));
+	glm::vec3 rotated_sword_offset = arm_rotation_quat * sword_offset;
+	sword->position = arm->position + rotated_sword_offset;
+	sword->rotation = arm->rotation + glm::vec3(270.0f, 270.0f, 0.0f);
+	
+	player->rotation = glm::vec3(0.0f, glm::radians(camera->yaw), 0.0f);
+	
+	camera->position = body->GetPosition() + camera_offset;
 }
 void Player::OnInterfaceUpdate()
 {

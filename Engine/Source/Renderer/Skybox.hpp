@@ -2,6 +2,7 @@
 
 #include "bonfire_pch.hpp"
 #include "Shader.hpp"
+#include "Fog.hpp"
 
 namespace Bonfire
 {
@@ -64,7 +65,7 @@ namespace Bonfire
         ~Skybox();
 
         void Load(std::shared_ptr<Shader> skybox_shader, bool is_png = false);
-        void Draw(const glm::mat4& camera_view_matrix, const glm::mat4& camera_projection_matrix);
+        void Draw(const glm::mat4& camera_view_matrix, const glm::mat4& camera_projection_matrix, Fog& fog);
         const std::string& GetPath() { return faces_path; }
 
     private:

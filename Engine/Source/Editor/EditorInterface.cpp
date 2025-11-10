@@ -418,6 +418,7 @@ namespace Bonfire
 		}
 
 		ImGui::Checkbox("Draw Colliders", &renderer.GetDrawColliders());
+		ImGui::Checkbox("Draw Mesh Colliders", &renderer.GetDrawMeshColliders()); ImGui::SameLine(); ImGui::TextColored(ImColor(1.0, 1.0, 0.0, 1), "May have performance impact");
 		ImGui::SliderFloat("Collider Line Width", &renderer.GetDrawCollidersLineWidth(), 0.1f, 10.0f, "%.1f");
 
     	const char* debug_type_names[] = { "DEFAULT", "WIREFRAME", "POINT" };
@@ -552,6 +553,7 @@ namespace Bonfire
     	ImGui::Begin("Project Settings", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
+    	ImGui::PushTextWrapPos(0.0f);
     	ImGui::Spacing(); 
 
 		ImGui::PushItemWidth(100.0f);
@@ -590,6 +592,7 @@ namespace Bonfire
 		}
 		
     	ImGui::PopFont();
+		ImGui::PopTextWrapPos();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }
@@ -699,6 +702,7 @@ namespace Bonfire
     	ImGui::Begin("Details", nullptr);
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
+    	ImGui::PushTextWrapPos(0.0f);
     	ImGui::Spacing();
 		
     	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
@@ -966,11 +970,24 @@ namespace Bonfire
     			}
     			ImGui::EndPopup();
     		}
+		
+    		ImGui::Separator();
+    		if (selected_entity->parent)
+    			ImGui::Text(("Parent: " + scene.GetEntities().at(selected_entity->parent)->name).c_str());
+    		if (selected_entity->children.size() > 0)
+    		{
+    			ImGui::Text("Children:");
+    			ImGui::Indent(8.0f);
+    			for (uint32_t child_id : selected_entity->children)
+    				ImGui::Text(scene.GetEntities().at(child_id)->name.c_str());
+    			ImGui::Unindent(8.0f);
+    		}
 
     		ImGui::PopID();
     	}
     	
     	ImGui::PopFont();
+		ImGui::PopTextWrapPos();
     	ImGui::Unindent(8.0f);
     	ImGui::End();
     }

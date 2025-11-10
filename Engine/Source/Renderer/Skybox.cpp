@@ -29,20 +29,21 @@ namespace Bonfire
         skybox_texture = Bind(is_png);
     }
 
-    void Skybox::Draw(const glm::mat4& camera_view_matrix, const glm::mat4& camera_projection_matrix)
+    void Skybox::Draw(const glm::mat4& camera_view_matrix, const glm::mat4& camera_projection_matrix, Fog& fog)
     {
         glDepthFunc(GL_LEQUAL);
 
         skybox_shader->Use();
         skybox_shader->SetMat4("view", glm::mat4(glm::mat3(camera_view_matrix)));
         skybox_shader->SetMat4("projection", camera_projection_matrix);
+
+        fog.ApplyToShader(*skybox_shader);
         
         glBindVertexArray(vertex_array);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
-        
         glDepthFunc(GL_LESS);
     }
 

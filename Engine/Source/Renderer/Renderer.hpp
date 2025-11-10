@@ -47,6 +47,7 @@ namespace Bonfire
 		Framebuffer& GetProjectViewportFramebuffer() const { return *project_viewport_framebuffer; }
 		DebugType& GetDebugType() { return debug_type; }
 		bool& GetDrawColliders() { return draw_colliders; }
+		bool& GetDrawMeshColliders() { return draw_mesh_colliders; }
 		float& GetDrawCollidersLineWidth() { return draw_colliders_line_width; }
 
 	private:
@@ -55,7 +56,9 @@ namespace Bonfire
         glm::vec4 background_color;
         DebugType debug_type = DebugType::DEFAULT;
 		bool draw_colliders = false;
+		bool draw_mesh_colliders = false;
 		float draw_colliders_line_width = 1.0f;
+		
 		
 		// scene
 		std::vector<std::unique_ptr<Scene>> scenes;

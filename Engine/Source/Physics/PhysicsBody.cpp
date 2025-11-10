@@ -66,100 +66,121 @@ namespace Bonfire
     }
 
     void PhysicsBody::SetScale(const glm::vec3& scale, std::shared_ptr<Model> model)
-    {
-        auto& physics_system = Project::GetPhysicsSystem();
-        JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
+  {
+      PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+      JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
+      JPH::Ref<JPH::Shape> new_shape = nullptr;
 
-        JPH::Ref<JPH::Shape> new_shape;
+      switch (shape_data.type)
+      {
+          case PhysicsShapeType::BOX:
+          {
+              glm::vec3 scaled_half_extents = shape_data.dimensions * scale;
+              JPH::Ref<JPH::BoxShape> box_shape = new JPH::BoxShape(
+                  JPH::Vec3(scaled_half_extents.x, scaled_half_extents.y, scaled_half_extents.z)
+              );
+              new_shape = box_shape;
+              break;
+          }
+          case PhysicsShapeType::SPHERE:
+          {
+              float max_scale = (glm::max)((glm::max)(scale.x, scale.y), scale.z);
+              float scaled_radius = shape_data.dimensions.x * max_scale;
+              JPH::Ref<JPH::SphereShape> sphere_shape = new JPH::SphereShape(scaled_radius);
+              new_shape = sphere_shape;
+              break;
+          }
+          case PhysicsShapeType::CAPSULE:
+          {
+              float scaled_radius = shape_data.dimensions.x * (glm::max)(scale.x, scale.z);
+              float scaled_half_height = shape_data.dimensions.y * scale.y;
+              JPH::Ref<JPH::CapsuleShape> capsule_shape = new JPH::CapsuleShape(scaled_half_height, scaled_radius);
+              new_shape = capsule_shape;
+              break;
+          }
+          case PhysicsShapeType::MESH:
+          {
+              if (model == nullptr)
+              {
+                  Log::Warning("Cannot scale mesh collider: source model not available");
+                  return;
+              }
 
-        switch (shape_data.type)
-        {
-        case PhysicsShapeType::BOX:
-            {
-                glm::vec3 scaled_half_extents = scale;
-                shape_data.dimensions = scaled_half_extents;
-    
-                if (scaled_half_extents.x <= 0 || scaled_half_extents.y <= 0 || scaled_half_extents.z <= 0)
-                {
-                    Log::Error("Box dimensions must be positive");
-                    return;
-                }
-    
-                JPH::BoxShapeSettings shape_settings(JPH::Vec3(scaled_half_extents.x, scaled_half_extents.y, scaled_half_extents.z), 0.01f);
-                auto shape_result = shape_settings.Create();
-    
-                new_shape = shape_result.Get();
-                break;
-            }
-        case PhysicsShapeType::SPHERE:
-            {
-                float scaled_radius = shape_data.dimensions.x * (glm::max)((glm::max)(scale.x, scale.y), scale.z);
-                JPH::SphereShapeSettings shape_settings(scaled_radius);
-                new_shape = shape_settings.Create().Get();
-                break;
-            }
-        case PhysicsShapeType::CAPSULE:
-            {
-                float scaled_radius = shape_data.dimensions.x * (glm::max)(scale.x, scale.z);
-                float scaled_half_height = shape_data.dimensions.y * scale.y;
-                JPH::CapsuleShapeSettings shape_settings(scaled_half_height, scaled_radius);
-                new_shape = shape_settings.Create().Get();
-                break;
-            }
-        case PhysicsShapeType::MESH:
-            {
-                if (model == nullptr)
-                {
-                    Log::Warning("Cannot scale mesh collider: source model not available");
-                    break;
-                }
-                
-                JPH::VertexList vertices;
-                JPH::IndexedTriangleList triangles;
-                uint32_t vertex_offset = 0;
-                for (const Mesh& mesh : model->meshes)
-                {
-                    for (const Vertex& v : mesh.vertices)
-                    {
-                        vertices.push_back(JPH::Float3(
-                            v.position.x * scale.x,
-                            v.position.y * scale.y,
-                            v.position.z * scale.z
-                        ));
-                    }
+              const std::vector<Mesh>& meshes = model->meshes;
+              if (meshes.empty())
+              {
+                  Log::Error("Cannot scale mesh collider: model has no meshes");
+                  return;
+              }
 
-                    for (size_t i = 0; i < mesh.indices.size(); i += 3)
-                    {
-                        if (i + 2 < mesh.indices.size())
-                        {
-                            uint32_t idx0 = mesh.indices[i] + vertex_offset;
-                            uint32_t idx1 = mesh.indices[i + 1] + vertex_offset;
-                            uint32_t idx2 = mesh.indices[i + 2] + vertex_offset;
+              JPH::VertexList vertices;
+              JPH::IndexedTriangleList triangles;
 
-                            triangles.push_back(JPH::IndexedTriangle(idx0, idx1, idx2, 0));
-                        }
-                    }
+              uint32_t vertex_offset = 0;
+              uint32_t total_triangle_count = 0;
 
-                    vertex_offset += static_cast<uint32_t>(mesh.vertices.size());
-                }
+              for (const auto& mesh : meshes)
+              {
+                  for (const Vertex& vertex : mesh.vertices)
+                  {
+                      glm::vec3 scaled_position = vertex.position * scale;
+                      vertices.push_back(JPH::Float3(scaled_position.x, scaled_position.y, scaled_position.z));
+                  }
 
-                JPH::MeshShapeSettings shape_settings(vertices, triangles);
-                JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
+                  for (size_t i = 0; i < mesh.indices.size(); i += 3)
+                  {
+                      if (i + 2 < mesh.indices.size())
+                      {
+                          uint32_t idx0 = mesh.indices[i] + vertex_offset;
+                          uint32_t idx1 = mesh.indices[i + 1] + vertex_offset;
+                          uint32_t idx2 = mesh.indices[i + 2] + vertex_offset;
 
-                if (!shape_result.HasError())
-                {
-                    new_shape = shape_result.Get();
-                    shape_data.dimensions = scale;
-                }
-                else
-                    Log::Error("Failed to scale mesh collider: " + std::string(shape_result.GetError().c_str()));
+                          triangles.push_back(JPH::IndexedTriangle(idx0, idx1, idx2, 0));
+                          total_triangle_count++;
+                      }
+                  }
 
-                break;
-            }
-        }
+                  vertex_offset += static_cast<uint32_t>(mesh.vertices.size());
+              }
 
-        body_interface.SetShape(body_id, new_shape.GetPtr(), true, JPH::EActivation::DontActivate);
-    }
+              if (vertices.empty() || triangles.empty())
+              {
+                  Log::Error("Cannot scale mesh collider: no valid geometry");
+                  return;
+              }
+
+              JPH::MeshShapeSettings mesh_settings(vertices, triangles);
+              JPH::Shape::ShapeResult result = mesh_settings.Create();
+
+              if (result.IsValid())
+              {
+                  Log::Info("VALID RESULT");
+                  new_shape = result.Get();
+
+                  shape_data.dimensions = glm::vec3(
+                      static_cast<float>(vertices.size()),
+                      static_cast<float>(total_triangle_count),
+                      static_cast<float>(model->param_id)
+                  );
+              }
+              else
+              {
+                  Log::Error("Failed to create scaled mesh shape: " + result.GetError());
+                  return;
+              }
+              break;
+          }
+      }
+
+      if (new_shape != nullptr)
+      {
+          body_interface.SetShape(body_id, new_shape.GetPtr(), true, JPH::EActivation::Activate);
+      }
+      else
+      {
+          Log::Error("Failed to scale physics body: new shape is null");
+      }
+  }
 
     glm::vec3 PhysicsBody::GetPosition() const
     {

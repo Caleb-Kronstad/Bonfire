@@ -293,8 +293,19 @@ namespace Bonfire
 
 		    	if (ImGui::Button("Apply Mesh Size"))
 		    	{
+		    		glm::mat4 world_transform = selected_entity->GetWorldTransformMatrix(Project::GetRenderer().GetScene().GetEntities());
+		    		glm::vec3 world_position, world_rotation, world_scale;
+		    		DecomposeTransform(world_transform, world_position, world_rotation, world_scale);
+
+		    		std::shared_ptr<Model> model = nullptr;
 		    		if (selected_entity->HasComponent<ModelComponent>())
-		    			physics_component.physics_body->SetScale(selected_entity->scale, selected_entity->GetComponent<ModelComponent>().model);
+		    		{
+		    			ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
+		    			model = model_component.model;
+		    		}
+
+		    		Log::Warning("x" + std::to_string(world_scale.x) + " y " + std::to_string(world_scale.y) + " z" + std::to_string(world_scale.z));
+		    		physics_component.physics_body->SetScale(world_scale, model);
 		    	}
 
 		    	ImGui::Spacing();
