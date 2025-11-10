@@ -91,7 +91,7 @@ namespace Bonfire
 
 	void ShadowMap::LoadDirectional(glm::vec3& light_dir)
 	{
-		float near_plane = 1.0f, far_plane = 100.0f;
+		float near_plane = 1.0f, far_plane = 500.0f;
 		glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 		glm::vec3 light_pos = -light_dir * 10.0f;
 		glm::mat4 light_view = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));

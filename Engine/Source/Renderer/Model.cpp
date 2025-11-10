@@ -31,7 +31,12 @@ namespace Bonfire
     void Model::Load()
     {
         Assimp::Importer import;
-        const aiScene * scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
+        const aiScene * scene = import.ReadFile(path,
+            aiProcess_Triangulate |
+            aiProcess_FlipUVs |
+            aiProcess_GenSmoothNormals |
+            aiProcess_CalcTangentSpace |
+            aiProcess_FixInfacingNormals);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {

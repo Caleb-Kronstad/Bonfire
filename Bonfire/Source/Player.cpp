@@ -18,9 +18,13 @@ void Player::OnAttach()
 	ScriptSystem& script_system = Project::GetScriptSystem();
 	Scene& scene = renderer.GetScene();
 
+	player_stats = PlayerStats();
+	weapon_stats = WeaponStats("Greatsword", glm::vec3(-1.0f, 0.1f, 0.0f), 5, 1, 10);
+
 	player = scene.GetEntityByName("Player");
 	arm = scene.GetEntityByName("PlayerArm");
-	sword = scene.GetEntityByName("Greatsword");
+	weapon = scene.GetEntityByName(weapon_stats.name);
+	
 	global_audio = scene.GetEntityByName("Global Audio")->GetComponent<AudioComponent>().audio;
 	global_audio->SetSpatialization(false);
 	global_audio->Play();
@@ -71,7 +75,7 @@ void Player::OnUpdate(const float& delta_time)
 	if (glm::length(move_direction) > 0.0f)
 	{
 		move_direction = glm::normalize(move_direction);
-		glm::vec3 velocity = move_direction * move_speed;
+		glm::vec3 velocity = move_direction * player_stats.move_speed;
 		velocity.y = current_velocity.y;
 		body->SetLinearVelocity(velocity);
 	}
@@ -81,15 +85,41 @@ void Player::OnUpdate(const float& delta_time)
 	}
 
 	glm::vec3 arm_relative_offset = camera->GetRightVector() * arm_offset.x + glm::vec3(0.0f, arm_offset.y, 0.0f) + camera->GetFrontVector() * arm_offset.z;
-	arm->position = camera->position + arm_relative_offset;
-	arm->rotation = glm::vec3(0.0f, -camera->yaw + 180.0f, 0.0f);
-	
-	glm::quat arm_rotation_quat = glm::quat(glm::vec3(0.0f, glm::radians(arm->rotation.y), 0.0f));
-	glm::vec3 rotated_sword_offset = arm_rotation_quat * sword_offset;
-	sword->position = arm->position + rotated_sword_offset;
-	sword->rotation = arm->rotation + glm::vec3(270.0f, 270.0f, 0.0f);
-	
-	player->rotation = glm::vec3(0.0f, glm::radians(camera->yaw), 0.0f);
+    arm->position = camera->position + arm_relative_offset;
+
+    float attack_angle = 0.0f;
+    if (is_attacking)
+    {
+            attack_timer += delta_time;
+            float progress = attack_timer / attack_duration;
+
+            if (progress >= 1.0f)
+            {
+                    is_attacking = false;
+                    attack_timer = 0.0f;
+                    attack_angle = 0.0f;
+            }
+            else
+            {
+                    float t = progress * progress * (3.0f - 2.0f * progress);
+                    attack_angle = glm::mix(-90.0f, 90.0f, t);
+            }
+    }
+
+    glm::quat camera_rotation = glm::quat(glm::vec3(0.0f, glm::radians(-camera->yaw + 180.0f), 0.0f));
+    glm::quat attack_rotation = glm::quat(glm::vec3(0.0f, 0.0f, glm::radians(attack_angle)));
+    glm::quat final_arm_rotation = camera_rotation * attack_rotation;
+
+    arm->rotation = glm::degrees(glm::eulerAngles(final_arm_rotation));
+
+    glm::vec3 rotated_weapon_offset = final_arm_rotation * weapon_stats.offset;
+    weapon->position = arm->position + rotated_weapon_offset;
+
+	glm::quat weapon_local_rotation = glm::quat(glm::radians(glm::vec3(270.0f, 270.0f, 0.0f)));
+	glm::quat final_weapon_rotation = final_arm_rotation * weapon_local_rotation;
+    weapon->rotation = glm::degrees(glm::eulerAngles(final_weapon_rotation));
+
+    player->rotation = glm::vec3(0.0f, glm::radians(camera->yaw), 0.0f);
 	
 	camera->position = body->GetPosition() + camera_offset;
 }
@@ -105,6 +135,16 @@ void Player::OnInput(Input& input)
 	
 	if (!player || !player->HasComponent<CameraComponent>())
 		return;
+
+	if (input.GetInputType() == InputType::MouseButtonPressed)
+	{
+		const auto mouse_button_input = dynamic_cast<MouseButtonPressedInput&>(input);
+		if (mouse_button_input.GetMouseButton() == InputCode::ButtonLeft && !is_attacking)
+		{
+			is_attacking = true;
+			attack_timer = 0.0f;
+		}
+	}
 
 	if (input.GetInputType() == InputType::KeyPressed)
 	{

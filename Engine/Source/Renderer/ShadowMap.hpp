@@ -19,7 +19,7 @@ namespace Bonfire
 
     public:
         bool updated_this_frame = false;
-        const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+        unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
         unsigned int frame_buffer = 0, shadow_cubemap = 0, map_texture = 0;
         unsigned int directional_frame_buffer = 0;
         unsigned int directional_shadow_map = 0;

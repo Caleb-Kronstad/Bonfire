@@ -4,11 +4,35 @@
 
 using namespace Bonfire;
 
+struct WeaponStats
+{
+	std::string name;
+	uint16_t damage;
+	uint16_t speed;
+	uint16_t range;
+	glm::vec3 offset;
+
+	WeaponStats(std::string name = "Weapon", glm::vec3 offset = glm::vec3(0.0f), uint16_t damage = 1, uint16_t speed = 1, uint16_t range = 1)
+		: name(name), offset(offset), damage(damage), speed(speed), range(range) {}
+};
+
+struct PlayerStats
+{
+	std::string name;
+	uint16_t max_health;
+	uint16_t current_health;
+	float move_speed;
+	uint8_t petrification_stacks;
+
+	PlayerStats(std::string name = "Name", uint16_t max_health = 10, float move_speed = 5.0f, uint8_t petrification_stacks = 0)
+		: name(name), max_health(max_health),  move_speed(move_speed), petrification_stacks(petrification_stacks){}
+};
+
 class Player : public Layer
 {
 public:
 	Player();
-	~Player();
+	~Player() override;
 
 	void OnAttach() override;
 	void OnDetach() override;
@@ -17,14 +41,21 @@ public:
 	void OnInput(Input& input) override;
 
 private:
+	PlayerStats player_stats;
+	WeaponStats weapon_stats;
+	
 	std::shared_ptr<Entity> player;
 	std::shared_ptr<Entity> arm;
-	std::shared_ptr<Entity> sword;
+	std::shared_ptr<Entity> weapon;
+	
 	std::shared_ptr<Audio> global_audio;
 
 	glm::vec3 camera_offset = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 arm_offset = glm::vec3(1.5f, -1.0f, 1.0f);
-	glm::vec3 sword_offset = glm::vec3(-1.0f, 0.1f, 0.0f);
-	
-	float move_speed = 5.0f;
+	glm::vec3 arm_offset = glm::vec3(1.2f, -1.5f, 1.0f);
+
+	bool is_attacking = false;
+	float attack_timer = 0.0f;
+	float attack_duration = 1.0f;
+	glm::vec3 attack_rotation_start = glm::vec3(0.0f, 0.0f, -90.0f);
+	glm::vec3 attack_rotation_end = glm::vec3(0.0f, 0.0f, 90.0f);
 };

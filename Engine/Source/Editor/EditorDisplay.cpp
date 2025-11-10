@@ -304,7 +304,6 @@ namespace Bonfire
 		    			model = model_component.model;
 		    		}
 
-		    		Log::Warning("x" + std::to_string(world_scale.x) + " y " + std::to_string(world_scale.y) + " z" + std::to_string(world_scale.z));
 		    		physics_component.physics_body->SetScale(world_scale, model);
 		    	}
 
@@ -317,11 +316,13 @@ namespace Bonfire
   
 		        if (shape_data.type == PhysicsShapeType::BOX)
 		        {
-		            if (ImGui::DragFloat3("Half Extents", (float*)&dimensions, drag_step, 0.1f, 100.0f))
+		            /*if (ImGui::DragFloat3("Half Extents", (float*)&dimensions, drag_step, 0.1f, 100.0f))
 		            {
-		                physics_component.physics_body->GetShapeData().dimensions = dimensions;
-		                physics_component.physics_body->SetScale(dimensions);
-		            }
+		                physics_component.physics_body->GetShapeData().dimensions = selected_entity->scale;
+		                physics_component.physics_body->SetScale(selected_entity->scale);
+		            }*/
+		        	physics_component.physics_body->GetShapeData().dimensions = selected_entity->scale;
+		        	physics_component.physics_body->SetScale(selected_entity->scale);
 		        }
 		        else if (shape_data.type == PhysicsShapeType::SPHERE)
 		        {

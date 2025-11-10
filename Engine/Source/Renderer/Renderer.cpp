@@ -429,7 +429,7 @@ namespace Bonfire
 				vertices = Debug::GetCapsuleVertices(shape_data.dimensions.x, shape_data.dimensions.y);
 				break;
 			case PhysicsShapeType::MESH:
-				if (entity->HasComponent<ModelComponent>() && draw_mesh_colliders && entity->name != "Ground")
+				if (draw_mesh_colliders && entity->HasComponent<ModelComponent>())
 					vertices = Debug::GetMeshVertices(entity->GetComponent<ModelComponent>().model, entity->scale);
 				break;
 			}

@@ -44,6 +44,7 @@ namespace Bonfire
             shader.SetVec3("directional_light.ambient", directional_light->color / 255.0f * 0.2f);
             shader.SetVec3("directional_light.diffuse", directional_light->color / 255.0f);
             shader.SetVec3("directional_light.specular", directional_light->color / 255.0f * 0.2f);
+            shader.SetBool("directional_shadows_enabled", false);
         }
 
         int i = 0;

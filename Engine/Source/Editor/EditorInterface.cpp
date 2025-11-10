@@ -504,6 +504,20 @@ namespace Bonfire
     			for (std::shared_ptr<Layer> layer : project.GetLayers())
     				layer->OnDetach();
     			scene.DeserializeFromString(serialized_scene_data, param_database);
+
+				for (auto& [entity_id, entity] : scene.GetEntities())
+				{
+					if (entity->HasComponent<ModelComponent>() && entity->HasComponent<PhysicsComponent>())
+					{
+						ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+						PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
+						if (physics_component.physics_body->GetShapeData().type == PhysicsShapeType::MESH)
+						{
+							physics_component.physics_body->SetScale(entity->scale, model_component.model);
+						}
+					}
+				}
+    			
     			selected_entity = nullptr;
     			ImGui::SetWindowFocus("Viewport");
     		}
@@ -1256,7 +1270,7 @@ namespace Bonfire
 						ImGui::SetNextItemWidth(200.0f);
 						ImGui::InputText("##1400", &material_data->name);
 						ImGui::SameLine(); ImGui::Text(std::to_string(material_data->param_id).c_str());
-						ImGui::SliderFloat("Shininess", &material_data->shininess, 0.0f, 512.0f, "%.f");
+						ImGui::SliderFloat("Shininess", &material_data->shininess, 1.0f, 512.0f, "%.f");
 						ImGui::SliderFloat2("Tiling", (float*)&material_data->texture_tiling, 1.0f, 100.0f, "%.f");
 						ImGui::SliderFloat2("Offset", (float*)&material_data->texture_offset, 0.1f, 10.0f, "%.2f");
 

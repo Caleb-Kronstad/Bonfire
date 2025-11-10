@@ -142,9 +142,17 @@ namespace Bonfire
 		physics_body->enabled = true;
 		physics_body->SetEnabled(true);
 		physics_body->name = physics_name;
+		physics_body->SetPosition(entity->position);
+		physics_body->SetRotation(glm::quat(glm::radians(entity->rotation)));
+		physics_body->SetScale(entity->scale);
 		
 		std::array<bool, 3> default_can_move_axis = { true, true, true };
 		std::array<bool, 3> default_can_rotate_axis = { true, true, true };
+		
+		physics_body->SetAllowedDOFS(
+			default_can_move_axis[0], default_can_move_axis[1], default_can_move_axis[2],
+			default_can_rotate_axis[0], default_can_rotate_axis[1], default_can_rotate_axis[2]
+		);
 
 		std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body, default_can_move_axis, default_can_rotate_axis);
 		scene.GetPhysicsComponents().insert_or_assign(next_id, physics_component);

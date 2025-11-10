@@ -75,6 +75,19 @@ namespace Bonfire
 
     	LoadEditorConfig();
 		command_history = std::make_unique<CommandHistory>(undo_redo_steps); // we need to load editor config first to make sure we have the correct undo/redo steps value :)
+    	
+    	for (auto& [entity_id, entity] : scene.GetEntities())
+    	{
+    		if (entity->HasComponent<ModelComponent>() && entity->HasComponent<PhysicsComponent>())
+    		{
+    			ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+    			PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
+    			if (physics_component.physics_body->GetShapeData().type == PhysicsShapeType::MESH)
+    			{
+    				physics_component.physics_body->SetScale(entity->scale, model_component.model);
+    			}
+    		}
+    	}
 
     	if (project.GetProjectRunState())
     	{
@@ -86,6 +99,7 @@ namespace Bonfire
     		Project::GetScriptSystem().StartScripts(scene);
     		ImGui::SetWindowFocus("Project Name Here");
     	}
+    	
     }
     void Editor::OnDetach()
     {
@@ -102,7 +116,7 @@ namespace Bonfire
     	Scene& scene = renderer.GetScene();
     	GLFWwindow* glfw_window = project_window.GetNativeWindow();
     	
-    	if (editor_viewport_focused && engine_camera_can_move)
+    	if (editor_viewport_focused && engine_camera_can_move && !project_viewport_focused)
     	{
     		float velocity = engine_camera_speed * delta_time;
     		if (glfwGetKey(glfw_window, InputCode::W) == GLFW_PRESS)
