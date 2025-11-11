@@ -586,7 +586,9 @@ namespace Bonfire
     	ImGui::PushItemWidth(300.0f);
     	ImGui::Text("Directional Light");
     	ImGui::SliderFloat3("Direction", (float*)&scene.GetDirectionalLight()->direction, -360.0f, 360.0f, "%1.f");
-    	ImGui::SliderFloat3("Color", (float*)&scene.GetDirectionalLight()->color, 0.0f, 255.0f, "%1.f");
+		glm::vec3 color = glm::vec3(scene.GetDirectionalLight()->color.r / 255.0f, scene.GetDirectionalLight()->color.g / 255.0f, scene.GetDirectionalLight()->color.b / 255.0f);
+    	ImGui::ColorEdit3("Color##DL", (float*)&color);
+		scene.GetDirectionalLight()->color = color * 255.0f;
     	ImGui::PopItemWidth();
 
 		ImGui::Separator();
@@ -594,7 +596,7 @@ namespace Bonfire
 		ImGui::Text("Fog"); ImGui::SameLine(); ImGui::Checkbox("##FogEnabled", &fog->enabled);
 		if (fog->enabled)
 		{
-			ImGui::ColorEdit3("Color", (float*)&fog->color);
+			ImGui::ColorEdit3("Color##F", (float*)&fog->color);
 			ImGui::SliderFloat("Density", &fog->density, 0.001f, 1.0f, "%.3f");
 			ImGui::SliderFloat("Start", &fog->start, 0.0f, 500.0f, "%.f");
 			ImGui::SliderFloat("End", &fog->end, 0.0f, 500.0f, "%.f");

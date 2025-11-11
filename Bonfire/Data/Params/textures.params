@@ -28,5 +28,53 @@
         "name": "Default Emission",
         "path": "Data/Editor/Defaults/Textures/default-emission.png",
         "type": 4
+    },
+    "1005": {
+        "flip": false,
+        "name": "Ground",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/Ground.png",
+        "type": 0
+    },
+    "1006": {
+        "flip": false,
+        "name": "TownHall",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/TownHall.png",
+        "type": 0
+    },
+    "1007": {
+        "flip": false,
+        "name": "Arm",
+        "path": "Data/Resources/Textures/Player/Arm.png",
+        "type": 0
+    },
+    "1008": {
+        "flip": false,
+        "name": "Greatsword",
+        "path": "Data/Resources/Textures/Weapons/Greatsword.png",
+        "type": 0
+    },
+    "1009": {
+        "flip": false,
+        "name": "PetrifiedTree",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/PetrifiedTree.png",
+        "type": 0
+    },
+    "1010": {
+        "flip": false,
+        "name": "Hut",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/Hut.png",
+        "type": 0
+    },
+    "1011": {
+        "flip": false,
+        "name": "Lantern",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/Lantern.png",
+        "type": 0
+    },
+    "1012": {
+        "flip": false,
+        "name": "Well",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/Well.png",
+        "type": 0
     }
 }

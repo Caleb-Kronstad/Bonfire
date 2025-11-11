@@ -49,6 +49,7 @@ namespace Bonfire
 		bool& GetDrawColliders() { return draw_colliders; }
 		bool& GetDrawMeshColliders() { return draw_mesh_colliders; }
 		float& GetDrawCollidersLineWidth() { return draw_colliders_line_width; }
+		std::shared_ptr<Shader>& GetInstancedShader() { return instanced_shader; }
 
 	private:
 		glm::mat4 projection = glm::mat4(0.0f);
@@ -59,7 +60,6 @@ namespace Bonfire
 		bool draw_mesh_colliders = false;
 		float draw_colliders_line_width = 1.0f;
 		
-		
 		// scene
 		std::vector<std::unique_ptr<Scene>> scenes;
 		unsigned int current_scene_index = 0;
@@ -68,5 +68,10 @@ namespace Bonfire
 		std::unique_ptr<Framebuffer> project_viewport_framebuffer;
         glm::vec2 editor_viewport_size = { 1280, 720 };
 		glm::vec2 project_viewport_size = { 1280, 720 };
+
+		std::shared_ptr<Shader> instanced_shader;
+		std::map<std::shared_ptr<Model>, std::vector<glm::mat4>> batches;
+		std::map<std::shared_ptr<Model>, GLuint> instance_buffers;
+		std::map<std::shared_ptr<Model>, std::shared_ptr<Material>> batch_materials;
 	};
 }

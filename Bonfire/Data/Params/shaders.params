@@ -34,5 +34,11 @@
         "geom-path": "None",
         "name": "Skybox",
         "vert-path": "Data/Editor/Defaults/Shaders/skybox.vert"
+    },
+    "1006": {
+        "frag-path": "Data/Editor/Defaults/Shaders/litinstanced.frag",
+        "geom-path": "None",
+        "name": "Lit Instanced",
+        "vert-path": "Data/Editor/Defaults/Shaders/litinstanced.vert"
     }
 }

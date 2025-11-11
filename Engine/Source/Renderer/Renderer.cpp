@@ -36,6 +36,9 @@ namespace Bonfire
 	}
 	void Renderer::OnDetach()
 	{
+		for (auto& [model, buffer] : instance_buffers)
+			glDeleteBuffers(1, &buffer);
+		instance_buffers.clear();
 	}
 
 	void Renderer::OnUpdate(const float& delta_time)
@@ -112,7 +115,7 @@ namespace Bonfire
 			}
 		}
 
-		// --- TESTING - IMPROVE IMPLEMENTATION AT LATER TIME ---
+		// --- TESTING - IMPROVE IMPLEMENTATION AT LATER TIME --- i dont remember why this was for testing but everything breaks if i remove it 
 		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)
 			return;
 		// ---
@@ -181,7 +184,6 @@ namespace Bonfire
 		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
 		view = editor.GetEngineCamera().GetViewMatrix();
 
-		// MOVE BELOW ENTITY DRAW LOOP
 		scenes.at(current_scene_index)->GetShadowMap()->updated_this_frame = false;
 		for (auto& [shader_id, shader] : scenes.at(current_scene_index)->GetShaders())
 			shader->updated_this_frame = false;

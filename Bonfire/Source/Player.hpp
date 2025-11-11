@@ -7,25 +7,24 @@ using namespace Bonfire;
 struct WeaponStats
 {
 	std::string name;
-	uint16_t damage;
-	uint16_t speed;
-	uint16_t range;
+	float damage;
+	float speed;
+	float range;
 	glm::vec3 offset;
 
-	WeaponStats(std::string name = "Weapon", glm::vec3 offset = glm::vec3(0.0f), uint16_t damage = 1, uint16_t speed = 1, uint16_t range = 1)
+	WeaponStats(std::string name = "Weapon", glm::vec3 offset = glm::vec3(0.0f), float damage = 1, float speed = 1, float range = 1)
 		: name(name), offset(offset), damage(damage), speed(speed), range(range) {}
 };
 
 struct PlayerStats
 {
 	std::string name;
-	uint16_t max_health;
-	uint16_t current_health;
+	float max_health;
 	float move_speed;
 	uint8_t petrification_stacks;
 
-	PlayerStats(std::string name = "Name", uint16_t max_health = 10, float move_speed = 5.0f, uint8_t petrification_stacks = 0)
-		: name(name), max_health(max_health),  move_speed(move_speed), petrification_stacks(petrification_stacks){}
+	PlayerStats(std::string name = "Name", float max_health = 10, float move_speed = 5.0f, uint8_t petrification_stacks = 0)
+		: name(name), max_health(max_health),  move_speed(move_speed), petrification_stacks(petrification_stacks) { }
 };
 
 class Player : public Layer
@@ -41,6 +40,9 @@ public:
 	void OnInput(Input& input) override;
 
 private:
+	glm::vec3 CalculateCameraBob(const float& delta_time, bool is_moving);
+
+private:
 	PlayerStats player_stats;
 	WeaponStats weapon_stats;
 	
@@ -52,10 +54,20 @@ private:
 
 	glm::vec3 camera_offset = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::vec3 arm_offset = glm::vec3(1.2f, -1.5f, 1.0f);
+	
+	float current_health;
 
 	bool is_attacking = false;
 	float attack_timer = 0.0f;
 	float attack_duration = 1.0f;
 	glm::vec3 attack_rotation_start = glm::vec3(0.0f, 0.0f, -90.0f);
 	glm::vec3 attack_rotation_end = glm::vec3(0.0f, 0.0f, 90.0f);
+
+	float bob_timer = 0.0f;
+	float bob_frequency = 10.0f;
+	float bob_vertical_amplitude = 0.1f;
+	float bob_horizontal_amplitude = 0.0f;
+	bool has_smooth_transition = true;
+	float bob_transition_speed = 5.0f;
+	float current_bob_intensity = 0.0f;
 };

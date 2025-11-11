@@ -112,7 +112,9 @@ namespace Bonfire
     			ImGui::Text("Point Light Properties");
     			ImGui::PushItemWidth(200.0f);
     			ImGui::SliderFloat("Intensity", &point_light->intensity, 0.0f, 10.0f, "%.1f");
-    			ImGui::SliderFloat3("Color", (float*)&point_light->color, 0.0f, 255.0f, "%1.f");
+    			glm::vec3 color = glm::vec3(point_light->color.r / 255.0f, point_light->color.g / 255.0f, point_light->color.b / 255.0f);
+    			ImGui::ColorEdit3("Color", (float*)&color);
+    			point_light->color = color * 255.0f;
     			ImGui::PopItemWidth();
     		}
     		else if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light_source_component.light_source))
@@ -120,7 +122,9 @@ namespace Bonfire
     			ImGui::Spacing();
     			ImGui::Text("Spot Light Properties");
     			ImGui::PushItemWidth(200.0f);
-    			ImGui::SliderFloat3("Color", (float*)&spot_light->color, 0.0f, 255.0f, "%1.f");
+				glm::vec3 color = glm::vec3(spot_light->color.r / 255.0f, spot_light->color.g / 255.0f, spot_light->color.b / 255.0f);
+    			ImGui::ColorEdit3("Color", (float*)&color);
+    			spot_light->color = color * 255.0f;
     			ImGui::DragFloat3("Scale", (float*)&spot_light->scale, drag_step, 0.0f, 100.0f, "%.1f");
     			ImGui::DragFloat3("Direction", (float*)&spot_light->direction, drag_step, -1.0f, 1.0f, "%.2f");
     			ImGui::PopItemWidth();

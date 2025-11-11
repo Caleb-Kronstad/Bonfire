@@ -32,5 +32,141 @@
             1.0,
             1.0
         ]
+    },
+    "1002": {
+        "diffuse-id": 1005,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "MAT_CV_Ground",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 5.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1003": {
+        "diffuse-id": 1006,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "MAT_CV_TownHall",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 11.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1004": {
+        "diffuse-id": 1007,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Player Arm",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 2.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1005": {
+        "diffuse-id": 1008,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Greatsword",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 255.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1006": {
+        "diffuse-id": 1009,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Petrified Tree",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 1.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1007": {
+        "diffuse-id": 1010,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Hut",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 1.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1008": {
+        "diffuse-id": 1011,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Lantern",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 64.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1009": {
+        "diffuse-id": 1012,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Well",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 65.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
     }
 }

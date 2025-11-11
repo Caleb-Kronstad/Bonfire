@@ -19,6 +19,7 @@ void Player::OnAttach()
 	Scene& scene = renderer.GetScene();
 
 	player_stats = PlayerStats();
+	current_health = player_stats.max_health;
 	weapon_stats = WeaponStats("Greatsword", glm::vec3(-1.0f, 0.1f, 0.0f), 5, 1, 10);
 
 	player = scene.GetEntityByName("Player");
@@ -106,22 +107,24 @@ void Player::OnUpdate(const float& delta_time)
             }
     }
 
+	// update arm and weapon rotation
     glm::quat camera_rotation = glm::quat(glm::vec3(0.0f, glm::radians(-camera->yaw + 180.0f), 0.0f));
     glm::quat attack_rotation = glm::quat(glm::vec3(0.0f, 0.0f, glm::radians(attack_angle)));
     glm::quat final_arm_rotation = camera_rotation * attack_rotation;
-
     arm->rotation = glm::degrees(glm::eulerAngles(final_arm_rotation));
-
     glm::vec3 rotated_weapon_offset = final_arm_rotation * weapon_stats.offset;
     weapon->position = arm->position + rotated_weapon_offset;
-
 	glm::quat weapon_local_rotation = glm::quat(glm::radians(glm::vec3(270.0f, 270.0f, 0.0f)));
 	glm::quat final_weapon_rotation = final_arm_rotation * weapon_local_rotation;
     weapon->rotation = glm::degrees(glm::eulerAngles(final_weapon_rotation));
 
+	// update player entity rotation
     player->rotation = glm::vec3(0.0f, glm::radians(camera->yaw), 0.0f);
-	
-	camera->position = body->GetPosition() + camera_offset;
+
+	// update camera position
+	bool is_moving = glm::length(move_direction) > 0.0f;
+	glm::vec3 bob_offset = CalculateCameraBob(delta_time, is_moving);
+	camera->position = body->GetPosition() + camera_offset + bob_offset;
 }
 void Player::OnInterfaceUpdate()
 {
@@ -192,4 +195,27 @@ void Player::OnInput(Input& input)
 
 		camera->UpdateCameraVectors();
 	}
+}
+
+glm::vec3 Player::CalculateCameraBob(const float& delta_time, bool is_moving)
+{
+	if (has_smooth_transition)
+	{
+		float target_intensity = is_moving ? 1.0f : 0.0f;
+		current_bob_intensity = glm::mix(current_bob_intensity, target_intensity, bob_transition_speed * delta_time);
+	}
+	else
+	{
+		current_bob_intensity = is_moving ? 1.0f : 0.0f;
+	}
+
+	if (current_bob_intensity > 0.01f)
+	{
+		bob_timer += delta_time * bob_frequency;
+	}
+
+	float vertical_bob = glm::sin(bob_timer) * bob_vertical_amplitude;
+	float horizontal_bob = glm::cos(bob_timer * 0.5f) * bob_horizontal_amplitude;
+
+	return glm::vec3(horizontal_bob, vertical_bob, 0.0f) * current_bob_intensity;
 }

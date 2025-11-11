@@ -22,6 +22,7 @@ namespace Bonfire
         Mesh& operator=(Mesh&& other) noexcept;
         Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices);
         ~Mesh();
+        
         void Draw(Shader& shader, std::shared_ptr<Material> material);
 
     private:

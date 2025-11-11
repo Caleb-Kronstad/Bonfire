@@ -143,6 +143,7 @@ namespace Bonfire
         JPH::BodyInterface& GetBodyInterface() { return jolt_physics_system->GetBodyInterface(); }
         const JPH::BodyInterface& GetBodyInterface() const { return jolt_physics_system->GetBodyInterface(); }
         const JPH::BodyLockInterface& GetBodyLockInterface() const { return jolt_physics_system->GetBodyLockInterface(); }
+        const JPH::NarrowPhaseQuery& GetNarrowPhaseQuery() const { return jolt_physics_system->GetNarrowPhaseQuery(); }
 
     private:
         std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;
