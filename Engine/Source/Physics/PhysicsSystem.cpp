@@ -435,4 +435,87 @@ namespace Bonfire
         return physics_body;
     }
 
+    void PhysicsSystem::RegisterBodyEntity(JPH::BodyID body_id, std::shared_ptr<Entity> entity)
+    {
+        body_to_entity_map.insert_or_assign(body_id, entity);
+    }
+    void PhysicsSystem::UnregisterBodyEntity(JPH::BodyID body_id)
+    {
+        body_to_entity_map.erase(body_id);
+    }
+    std::shared_ptr<Entity> PhysicsSystem::GetEntityFromBodyId(JPH::BodyID body_id)
+    {
+        auto it = body_to_entity_map.find(body_id);
+        if (it != body_to_entity_map.end())
+        {
+            return it->second;
+        }
+        return nullptr;
+    }
+
+
+    // COLLISION HANDLING
+
+    static uint64_t MakeCollisionPairKey(JPH::BodyID body1, JPH::BodyID body2)
+    {
+        uint32_t id1 = body1.GetIndexAndSequenceNumber();
+        uint32_t id2 = body2.GetIndexAndSequenceNumber();
+        if (id1 > id2) std::swap(id1, id2);
+        return (static_cast<uint64_t>(id1) << 32) | id2;
+    }
+
+    void PhysicsSystem::OnCollisionEnter(JPH::BodyID body1, JPH::BodyID body2)
+    {
+        uint64_t pair_key = MakeCollisionPairKey(body1, body2);
+        active_collision_pairs.insert(pair_key);
+    }
+
+    void PhysicsSystem::OnCollisionConstant(JPH::BodyID body1, JPH::BodyID body2)
+    {
+        
+    }
+
+    void PhysicsSystem::OnCollisionExit(JPH::BodyID body1, JPH::BodyID body2)
+    {
+        uint64_t pair_key = MakeCollisionPairKey(body1, body2);
+        active_collision_pairs.erase(pair_key);
+    }
+
+    bool PhysicsSystem::AreBodiesColliding(JPH::BodyID body1, JPH::BodyID body2)
+    {
+        uint64_t pair_key = MakeCollisionPairKey(body1, body2);
+        return active_collision_pairs.contains(pair_key);
+    }
+
+    void ContactListener::OnContactAdded(
+           const JPH::Body &inBody1,
+           const JPH::Body &inBody2,
+           const JPH::ContactManifold &inManifold,
+           JPH::ContactSettings &ioSettings)
+    {
+        JPH::BodyID body1_id = inBody1.GetID();
+        JPH::BodyID body2_id = inBody2.GetID();
+        Project::GetPhysicsSystem().OnCollisionEnter(body1_id, body2_id);
+    }
+
+    void ContactListener::OnContactPersisted(
+        const JPH::Body& inBody1,
+        const JPH::Body& inBody2,
+        const JPH::ContactManifold& inManifold,
+        JPH::ContactSettings& ioSettings)
+    {
+        JPH::BodyID body1_id = inBody1.GetID();
+        JPH::BodyID body2_id = inBody2.GetID();
+        Project::GetPhysicsSystem().OnCollisionConstant(body1_id, body2_id);
+    }
+
+    void ContactListener::OnContactRemoved(
+        const JPH::SubShapeIDPair& inSubShapePair)
+    {
+        JPH::BodyID body1_id = inSubShapePair.GetBody1ID();
+        JPH::BodyID body2_id = inSubShapePair.GetBody2ID();
+        Project::GetPhysicsSystem().OnCollisionExit(body1_id, body2_id);
+    }
+
+
 }

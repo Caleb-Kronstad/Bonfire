@@ -29,6 +29,12 @@ void Player::OnAttach()
 	global_audio = scene.GetEntityByName("Global Audio")->GetComponent<AudioComponent>().audio;
 	global_audio->SetSpatialization(false);
 	global_audio->Play();
+
+	if (player->HasComponent<PhysicsComponent>())
+	{
+		PhysicsComponent& physics_component = player->GetComponent<PhysicsComponent>();
+		physics_system.RegisterBodyEntity(physics_component.physics_body->GetBodyID(), player);
+	}
 }
 
 void Player::OnDetach()
@@ -45,8 +51,8 @@ void Player::OnUpdate(const float& delta_time)
 	if (!player || !player->HasComponent<CameraComponent>() || !player->HasComponent<PhysicsComponent>())
 		return;
 
-	auto& camera_comp = player->GetComponent<CameraComponent>();
-	auto& physics_comp = player->GetComponent<PhysicsComponent>();
+	CameraComponent& camera_comp = player->GetComponent<CameraComponent>();
+	PhysicsComponent& physics_comp = player->GetComponent<PhysicsComponent>();
 	Camera* camera = camera_comp.camera.get();
 	PhysicsBody* body = physics_comp.physics_body.get();
 
@@ -125,11 +131,22 @@ void Player::OnUpdate(const float& delta_time)
 	bool is_moving = glm::length(move_direction) > 0.0f;
 	glm::vec3 bob_offset = CalculateCameraBob(delta_time, is_moving);
 	camera->position = body->GetPosition() + camera_offset + bob_offset;
+
+	for (int i = recent_hitbox_cooldowns.size() - 1; i >= 0; i--)
+	{
+		recent_hitbox_cooldowns[i].timer -= delta_time;
+		if (recent_hitbox_cooldowns[i].timer <= 0.0f)
+		{
+			recent_hitbox_cooldowns.erase(recent_hitbox_cooldowns.begin() + i);
+		}
+	}
 }
+
 void Player::OnInterfaceUpdate()
 {
 	
 }
+
 void Player::OnInput(Input& input)
 {
 	Project& project = Project::GetInstance();
@@ -196,6 +213,29 @@ void Player::OnInput(Input& input)
 		camera->UpdateCameraVectors();
 	}
 }
+
+void Player::TakeDamage(float damage, std::shared_ptr<Entity> hitbox)
+{
+	if (!hitbox) return;
+
+	for (const auto& cooldown : recent_hitbox_cooldowns)
+	{
+		if (cooldown.hitbox == hitbox)
+			return;
+	}
+
+	current_health -= damage;
+	Log::Info("Player took " + std::to_string(damage) + " damage");
+
+	recent_hitbox_cooldowns.push_back(HitboxCooldown(hitbox, DAMAGE_COOLDOWN_TIME));
+
+	if (current_health <= 0.0f)
+	{
+		current_health = 0.0f;
+		Log::Info("Player has no health remaining");
+	}
+}
+
 
 glm::vec3 Player::CalculateCameraBob(const float& delta_time, bool is_moving)
 {

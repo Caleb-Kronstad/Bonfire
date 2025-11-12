@@ -56,7 +56,6 @@ namespace Bonfire
 		window->SetVSync(project_config.vsync);
 
 		editor_running = project_config.enable_editor;
-		project_running = !project_config.enable_editor;
 
 		InitializeOpenGL();
 
@@ -90,6 +89,7 @@ namespace Bonfire
 				static_physics_system->OnUpdate(delta_time);
 				static_audio_system->OnUpdate(delta_time);
 			}
+			
 			static_renderer->OnUpdate(delta_time);
 			if (project_running)
 			{

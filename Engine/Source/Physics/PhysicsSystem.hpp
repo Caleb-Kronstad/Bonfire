@@ -3,6 +3,7 @@
 #include "Core/Layer.hpp"
 #include "PhysicsBody.hpp"
 #include "Renderer/Model.hpp"
+#include "Renderer/Entity.hpp"
 
 namespace Bonfire
 {
@@ -45,9 +46,13 @@ namespace Bonfire
         virtual bool ShouldCollide(JPH::ObjectLayer object1, JPH::ObjectLayer object2) const override;
     };
 
+    class PhysicsSystem;
+    
     class ContactListener : public JPH::ContactListener
     {
     public:
+        ContactListener() {}
+        
         virtual JPH::ValidateResult OnContactValidate(
             const JPH::Body &inBody1,
             const JPH::Body &inBody2,
@@ -62,24 +67,16 @@ namespace Bonfire
             const JPH::Body &inBody1,
             const JPH::Body &inBody2,
             const JPH::ContactManifold &inManifold,
-            JPH::ContactSettings &ioSettings) override
-        {
-            // COLLISION STARTED
-        }
+            JPH::ContactSettings &ioSettings) override;
 
         virtual void OnContactPersisted(
             const JPH::Body &inBody1,
             const JPH::Body &inBody2,
             const JPH::ContactManifold &inManifold,
-            JPH::ContactSettings &ioSettings) override
-        {
-            
-        }
+            JPH::ContactSettings &ioSettings) override;
 
-        virtual void OnContactRemoved(const JPH::SubShapeIDPair &inSubShapePair) override
-        {
-            // COLLISION ENDED
-        }
+        virtual void OnContactRemoved(
+            const JPH::SubShapeIDPair &inSubShapePair) override;
     };
 
 
@@ -93,7 +90,15 @@ namespace Bonfire
         void OnDetach() override;
         void OnUpdate(const float& delta_time) override;
 
+        bool AreBodiesColliding(JPH::BodyID body1, JPH::BodyID body2);
         void SyncPhysicsToEntities();
+
+        void RegisterBodyEntity(JPH::BodyID body_id, std::shared_ptr<Entity> entity);
+        void UnregisterBodyEntity(JPH::BodyID body_id);
+        std::shared_ptr<Entity> GetEntityFromBodyId(JPH::BodyID body_id);
+        void OnCollisionEnter(JPH::BodyID body1, JPH::BodyID body2);
+        void OnCollisionConstant(JPH::BodyID body1, JPH::BodyID body2);
+        void OnCollisionExit(JPH::BodyID body1, JPH::BodyID body2);
 
         std::shared_ptr<PhysicsBody> CreateBoxBody(
             const glm::vec3& position,
@@ -146,6 +151,8 @@ namespace Bonfire
         const JPH::NarrowPhaseQuery& GetNarrowPhaseQuery() const { return jolt_physics_system->GetNarrowPhaseQuery(); }
 
     private:
+        std::unordered_set<uint64_t> active_collision_pairs;
+        std::unordered_map<JPH::BodyID, std::shared_ptr<Entity>> body_to_entity_map;
         std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;
         std::unique_ptr<JPH::JobSystemThreadPool> job_system;
         std::unique_ptr<BPLayerInterfaceImpl> broad_phase_layer_interface;

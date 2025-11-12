@@ -81,6 +81,8 @@ namespace Bonfire
 
         if (!extracted_texture_paths.empty())
             Log::Info("Extracted " + std::to_string(extracted_texture_paths.size()) + " textures from model");
+
+        loaded = true;
     }
     void Model::ProcessNode(aiNode* node, const aiScene* scene)
     {

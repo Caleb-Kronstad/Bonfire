@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "BonfireEngine.hpp"
+#include "Player.hpp"
 
 using namespace Bonfire;
 
@@ -19,7 +20,6 @@ public:
 private:
     void AttackPlayer();
     void HandleState(const float& delta_time);
-
     void SimpleFollowPlayer(const float& delta_time);
     
     void UpdatePathfinding(const float& delta_time);
@@ -28,9 +28,15 @@ private:
     std::vector<glm::vec3> CalculatePath(const glm::vec3& start, const glm::vec3& goal);
 
 private:
+    Player* player_layer = nullptr;
     std::shared_ptr<Entity> enemy;
     std::shared_ptr<Entity> player;
+    std::shared_ptr<Entity> hitbox;
     std::vector<glm::vec3> current_path;
+
+    const float HITBOX_ACTIVE_START = 0.3f;
+    const float HITBOX_ACTIVE_END = 0.7f;
+    bool hitbox_was_active = false;
 
     bool use_simple_movement = true; // default to simple movement for now because im stupid
 

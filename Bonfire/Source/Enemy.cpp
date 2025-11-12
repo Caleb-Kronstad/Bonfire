@@ -19,8 +19,26 @@ void Enemy::OnAttach()
     ScriptSystem& script_system = Project::GetScriptSystem();
     Scene& scene = renderer.GetScene();
 
-    enemy = scene.GetEntityByName("TestDummy");
     player = scene.GetEntityByName("Player");
+    enemy = scene.GetEntityByName("TestDummy");
+    hitbox = scene.GetEntityByName("TestDummyHitbox");
+
+    for (auto& layer : project.GetLayers())
+    {
+        Player* player_ptr = dynamic_cast<Player*>(layer.get());
+        if (player_ptr)
+        {
+            player_layer = player_ptr;
+            break;
+        }
+    }
+
+    if (hitbox && hitbox->HasComponent<PhysicsComponent>())
+    {
+        PhysicsComponent& physics_component = hitbox->GetComponent<PhysicsComponent>();
+        physics_system.RegisterBodyEntity(physics_component.physics_body->GetBodyID(), hitbox);
+        hitbox->enabled = false;
+    }
 
     spawn = enemy->position;
 }
@@ -50,6 +68,25 @@ void Enemy::OnInput(Input& input)
 {
 }
 
+void Enemy::AttackPlayer()
+{
+    if (!player || !hitbox || !player_layer) return;
+    if (!hitbox->enabled) return;
+    if (!hitbox->HasComponent<PhysicsComponent>() || !player->HasComponent<PhysicsComponent>()) return;
+
+    PhysicsComponent& hitbox_physics = hitbox->GetComponent<PhysicsComponent>();
+    PhysicsComponent& player_physics = player->GetComponent<PhysicsComponent>();
+    PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+
+    JPH::BodyID hitbox_body_id = hitbox_physics.physics_body->GetBodyID();
+    JPH::BodyID player_body_id = player_physics.physics_body->GetBodyID();
+
+    if (physics_system.AreBodiesColliding(hitbox_body_id, player_body_id))
+    {
+        player_layer->TakeDamage(damage, hitbox);
+    }
+}
+
 void Enemy::HandleState(const float& delta_time)
 {
     PhysicsComponent& enemy_physics = enemy->GetComponent<PhysicsComponent>();
@@ -68,6 +105,34 @@ void Enemy::HandleState(const float& delta_time)
     if (is_attacking)
     {
         attack_timer += delta_time;
+
+        float attack_progress = attack_timer / attack_duration;
+        bool should_hitbox_be_active = (attack_progress >= HITBOX_ACTIVE_START && attack_progress <= HITBOX_ACTIVE_END);
+
+        if (hitbox)
+        {
+            if (should_hitbox_be_active && !hitbox_was_active)
+            {
+                hitbox->enabled = true;
+                Log::Info("Hitbox activated");
+            }
+            else if (!should_hitbox_be_active && hitbox_was_active)
+            {
+                hitbox->enabled = false;
+                Log::Info("Hitbox deactivated");
+            }
+            hitbox_was_active = should_hitbox_be_active;
+        }
+        if (attack_timer >= attack_duration)
+        {
+            is_attacking = false;
+            attack_timer = 0.0f;
+            if (hitbox)
+            {
+                hitbox->enabled = false;
+                hitbox_was_active = false;
+            }
+        }
 
         glm::vec3 current_velocity = enemy_body.GetLinearVelocity();
         enemy_body.SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
@@ -94,37 +159,36 @@ void Enemy::HandleState(const float& delta_time)
 
             if (alignment < rotation_before_attack_threshold)
             {
-                    is_rotating_to_attack = true;
-                    attack_rotation_timer += delta_time;
+                is_rotating_to_attack = true;
+                attack_rotation_timer += delta_time;
 
-                    float target_yaw = atan2f(-to_player_2d.z, to_player_2d.x);
-                    glm::quat target_rotation = glm::angleAxis(target_yaw, glm::vec3(0.0f, 1.0f, 0.0f));
-                    glm::quat new_rotation = glm::slerp(current_rotation, target_rotation, rotation_speed * delta_time);
-                    enemy_body.SetRotation(new_rotation);
+                float target_yaw = atan2f(-to_player_2d.z, to_player_2d.x);
+                glm::quat target_rotation = glm::angleAxis(target_yaw, glm::vec3(0.0f, 1.0f, 0.0f));
+                glm::quat new_rotation = glm::slerp(current_rotation, target_rotation, rotation_speed * delta_time);
+                enemy_body.SetRotation(new_rotation);
 
-                    glm::vec3 current_velocity = enemy_body.GetLinearVelocity();
-                    enemy_body.SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
-                    enemy_body.SetAngularVelocity(glm::vec3(0.0f, 0.0f, 0.0f));
+                glm::vec3 current_velocity = enemy_body.GetLinearVelocity();
+                enemy_body.SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
+                enemy_body.SetAngularVelocity(glm::vec3(0.0f, 0.0f, 0.0f));
 
-                    if (attack_rotation_timer > max_attack_rotation_time)
-                    {
-                            is_rotating_to_attack = false;
-                            attack_rotation_timer = 0.0f;
-                            current_path.clear();
-                    }
+                if (attack_rotation_timer > max_attack_rotation_time)
+                {
+                        is_rotating_to_attack = false;
+                        attack_rotation_timer = 0.0f;
+                        current_path.clear();
+                }
             }
             else
             {
-                    is_rotating_to_attack = false;
-                    attack_rotation_timer = 0.0f;
-                    is_attacking = true;
-                    attack_timer = 0.0f;
-                    AttackPlayer();
+                is_rotating_to_attack = false;
+                attack_rotation_timer = 0.0f;
+                is_attacking = true;
+                attack_timer = 0.0f;
 
-                    glm::vec3 current_velocity = enemy_body.GetLinearVelocity();
-                    enemy_body.SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
-                    enemy_body.SetAngularVelocity(glm::vec3(0.0f, 0.0f, 0.0f));
-                    current_path.clear();
+                glm::vec3 current_velocity = enemy_body.GetLinearVelocity();
+                enemy_body.SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
+                enemy_body.SetAngularVelocity(glm::vec3(0.0f, 0.0f, 0.0f));
+                current_path.clear();
             }
         }
         else
@@ -146,11 +210,10 @@ void Enemy::HandleState(const float& delta_time)
         enemy_body.SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
         current_path.clear();
     }
-}
 
-void Enemy::AttackPlayer()
-{
-    Log::Info("ATTACKING PLAYER");
+    // handle attacking state
+    if (is_attacking && hitbox && hitbox->enabled)
+        AttackPlayer();
 }
 
 void Enemy::SimpleFollowPlayer(const float& delta_time)

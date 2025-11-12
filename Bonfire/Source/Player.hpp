@@ -4,6 +4,14 @@
 
 using namespace Bonfire;
 
+struct HitboxCooldown
+{
+	std::shared_ptr<Entity> hitbox;
+	float timer;
+
+	HitboxCooldown(std::shared_ptr<Entity> hitbox, float timer) : hitbox(hitbox), timer(timer) {}
+};
+
 struct WeaponStats
 {
 	std::string name;
@@ -39,12 +47,16 @@ public:
 	void OnInterfaceUpdate() override;
 	void OnInput(Input& input) override;
 
+	void TakeDamage(float damage, std::shared_ptr<Entity> hitbox);
+
 private:
 	glm::vec3 CalculateCameraBob(const float& delta_time, bool is_moving);
 
 private:
 	PlayerStats player_stats;
 	WeaponStats weapon_stats;
+	std::vector<HitboxCooldown> recent_hitbox_cooldowns;
+	const float DAMAGE_COOLDOWN_TIME = 1.0f;
 	
 	std::shared_ptr<Entity> player;
 	std::shared_ptr<Entity> arm;

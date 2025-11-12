@@ -21,6 +21,7 @@ namespace Bonfire
         virtual bool IsAnimated() const { return false; }
 
     public:
+        bool loaded = false;
         bool casts_shadow = true;
         uint32_t param_id;
         std::string name;

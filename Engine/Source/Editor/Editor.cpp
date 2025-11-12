@@ -88,18 +88,6 @@ namespace Bonfire
     			}
     		}
     	}
-
-    	if (project.GetProjectRunState())
-    	{
-    		Log::Info("Running...");
-    		serialized_scene_data = scene.SerializeToString(renderer.GetParamDatabase());
-    		for (std::shared_ptr<Layer> layer : project.GetLayers())
-    			layer->OnAttach();
-    		selected_entity = nullptr;
-    		Project::GetScriptSystem().StartScripts(scene);
-    		ImGui::SetWindowFocus("Project Name Here");
-    	}
-    	
     }
     void Editor::OnDetach()
     {

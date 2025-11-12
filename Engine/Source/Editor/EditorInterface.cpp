@@ -49,7 +49,22 @@ namespace Bonfire
 		}
 		else
 		{
-			DrawProjectViewport(window_flags);
+			if (!project.GetProjectRunState())
+			{
+				ImGui::Begin("Play", nullptr, window_flags);
+				if (ImGui::Button("PLAY", ImVec2(50.0f, 25.0f)))
+				{
+					Log::Info("Running...");
+					for (const auto& layer : project.GetLayers())
+						layer->OnAttach();
+					Project::GetScriptSystem().StartScripts(scene);
+					project.SetProjectRunState(true);
+					ImGui::SetWindowFocus("Project Name Here");
+				}
+				ImGui::End();
+			}
+			else
+				DrawProjectViewport(window_flags);
 			ImGui::PopStyleVar(2);
 		}
 	}
@@ -467,7 +482,7 @@ namespace Bonfire
     		{
     			Log::Info("Running...");
     			serialized_scene_data = scene.SerializeToString(param_database);
-    			for (std::shared_ptr<Layer> layer : project.GetLayers())
+    			for (const auto& layer : project.GetLayers())
     				layer->OnAttach();
     			project.SetProjectRunState(true);
     			selected_entity = nullptr;
@@ -501,7 +516,7 @@ namespace Bonfire
     			}
     			
     			Project::GetScriptSystem().DestroyScripts(scene);
-    			for (std::shared_ptr<Layer> layer : project.GetLayers())
+    			for (const auto& layer : project.GetLayers())
     				layer->OnDetach();
     			scene.DeserializeFromString(serialized_scene_data, param_database);
 
