@@ -168,5 +168,22 @@
             1.0,
             1.0
         ]
+    },
+    "1010": {
+        "diffuse-id": 1014,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Rock 04",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 32.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
     }
 }

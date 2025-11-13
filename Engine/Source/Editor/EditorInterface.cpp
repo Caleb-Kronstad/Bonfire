@@ -362,7 +362,7 @@ namespace Bonfire
 		Window& project_window = project.GetWindow();
 		Renderer& renderer = project.GetRenderer();
 		Scene& scene = renderer.GetScene();
-		
+
 		ImGui::PushFont(editor_font);
 		project_viewport_visible = ImGui::Begin("Project Name Here", nullptr, window_flags);
 		if (project.GetEngineRunState())

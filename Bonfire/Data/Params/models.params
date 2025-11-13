@@ -88,5 +88,40 @@
         "is_animated": false,
         "name": "Cave",
         "path": "Data/Resources/Models/Cave.fbx"
+    },
+    "1018": {
+        "is_animated": false,
+        "name": "TestDummy",
+        "path": "Data/Resources/Models/TestDummy.obj"
+    },
+    "1019": {
+        "is_animated": true,
+        "name": "StoneGolem",
+        "path": "Data/Resources/Models/StoneGolem.fbx"
+    },
+    "1020": {
+        "is_animated": false,
+        "name": "Rock01",
+        "path": "Data/Resources/Models/Rock01.fbx"
+    },
+    "1021": {
+        "is_animated": false,
+        "name": "Rock02",
+        "path": "Data/Resources/Models/Rock02.fbx"
+    },
+    "1022": {
+        "is_animated": false,
+        "name": "Rock03",
+        "path": "Data/Resources/Models/Rock03.fbx"
+    },
+    "1023": {
+        "is_animated": false,
+        "name": "Rock04",
+        "path": "Data/Resources/Models/Rock04.fbx"
+    },
+    "1024": {
+        "is_animated": false,
+        "name": "Rock05",
+        "path": "Data/Resources/Models/Rock05.fbx"
     }
 }

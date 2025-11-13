@@ -76,5 +76,17 @@
         "name": "Well",
         "path": "Data/Resources/Textures/Maps/CalcifiedVillage/Well.png",
         "type": 0
+    },
+    "1013": {
+        "flip": false,
+        "name": "Rock05",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/Rock05.png",
+        "type": 0
+    },
+    "1014": {
+        "flip": false,
+        "name": "Rock04",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/Rock04.png",
+        "type": 0
     }
 }

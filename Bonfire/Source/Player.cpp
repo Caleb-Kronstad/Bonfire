@@ -22,11 +22,11 @@ void Player::OnAttach()
 	current_health = player_stats.max_health;
 	weapon_stats = WeaponStats("Greatsword", glm::vec3(-1.0f, 0.1f, 0.0f), 5, 1, 10);
 
-	player = scene.GetEntityByName("Player");
-	arm = scene.GetEntityByName("PlayerArm");
-	weapon = scene.GetEntityByName(weapon_stats.name);
+	player = scene.GetEntityOfName("Player");
+	arm = scene.GetEntityOfName("PlayerArm");
+	weapon = scene.GetEntityOfName(weapon_stats.name);
 	
-	global_audio = scene.GetEntityByName("Global Audio")->GetComponent<AudioComponent>().audio;
+	global_audio = scene.GetEntityOfName("Global Audio")->GetComponent<AudioComponent>().audio;
 	global_audio->SetSpatialization(false);
 	global_audio->Play();
 

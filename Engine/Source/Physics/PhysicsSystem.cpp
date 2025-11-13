@@ -452,7 +452,14 @@ namespace Bonfire
         }
         return nullptr;
     }
-
+    
+    JPH::Ref<JPH::GroupFilterTable> PhysicsSystem::Filter(const std::string& filter_name, uint32_t num_subgroups)
+    {
+        if (collision_filters.contains(filter_name)) return collision_filters.at(filter_name);
+        JPH::Ref<JPH::GroupFilterTable> filter = new JPH::GroupFilterTable(num_subgroups);
+        collision_filters.insert_or_assign(filter_name, filter);
+        return filter;
+    }
 
     // COLLISION HANDLING
 

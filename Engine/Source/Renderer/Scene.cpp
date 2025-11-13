@@ -18,15 +18,27 @@ namespace Bonfire
         return false;
     }
 
-    std::shared_ptr<Entity> Scene::GetEntityByName(const std::string& name)
+    std::shared_ptr<Entity> Scene::GetEntityOfName(const std::string& name)
     {
         for (auto& [entity_id, entity] : GetEntities())
         {
             if (entity->name == name)
                 return entity;
         }
-        Log::Error("Could not find entity by name: " + name);
+        Log::Warning("Could not find entity of name " + name);
         return nullptr;
+    }
+    std::vector<std::shared_ptr<Entity>> Scene::GetAllEntitiesOfName(const std::string& name)
+    {
+        std::vector<std::shared_ptr<Entity>> entities;
+        for (auto& [entity_id, entity] : GetEntities())
+        {
+            if (entity->name == name)
+                entities.push_back(entity);
+        }
+        if (entities.empty())
+            Log::Warning("Could not find any entities of name " + name);
+        return entities;
     }
     std::shared_ptr<Entity> Scene::GetEntityById(uint32_t id)
     {

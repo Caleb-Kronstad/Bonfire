@@ -53,13 +53,13 @@ namespace Bonfire
 		{
 			for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 			{
-				if (entity->HasComponent<AnimationComponent>() && editor.PreviewAnimations())
+				if (entity->HasComponent<AnimationComponent>())
 				{
 					AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
 					if (animation_component.animator)
 						animation_component.animator->Update(delta_time);
 				}
-				if (entity->HasComponent<AudioComponent>() && editor.PreviewAudios())
+				if (entity->HasComponent<AudioComponent>())
 				{
 					AudioComponent& audio_component = entity->GetComponent<AudioComponent>();
 					if (audio_component.audio && audio_component.enabled)

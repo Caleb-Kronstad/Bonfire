@@ -21,6 +21,7 @@ namespace Bonfire
         void SetLinearVelocity(const glm::vec3& velocity);
         void SetAngularVelocity(const glm::vec3& angular_velocity);
         void SetAllowedDOFS(bool translation_x, bool translation_y, bool translation_z, bool rotation_x, bool rotation_y, bool rotation_z);
+        void SetCollisionGroup(const JPH::CollisionGroup& group);
 
         void AddForce(const glm::vec3& force);
         void AddImpulse(const glm::vec3& impulse);

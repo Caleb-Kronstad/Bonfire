@@ -41,8 +41,8 @@ private:
     std::shared_ptr<Entity> player;
     std::vector<glm::vec3> current_path;
 
-    std::shared_ptr<Entity> rock_hitbox;
-    glm::vec3 rock_position_offset = glm::vec3(0.5f, 1.0f, 0.0f);
+    std::shared_ptr<Entity> rock;
+    glm::vec3 rock_position_offset = glm::vec3(-0.25f, -1.0f, 0.0f);
     const float HITBOX_ACTIVE_START = 0.17f;
     const float HITBOX_ACTIVE_END = 0.34f;
     bool hitbox_was_active = false;

@@ -2,6 +2,7 @@
 
 #include "Core/Layer.hpp"
 #include "PhysicsBody.hpp"
+#include "Jolt/Physics/Collision/GroupFilterTable.h"
 #include "Renderer/Model.hpp"
 #include "Renderer/Entity.hpp"
 
@@ -149,8 +150,10 @@ namespace Bonfire
         const JPH::BodyInterface& GetBodyInterface() const { return jolt_physics_system->GetBodyInterface(); }
         const JPH::BodyLockInterface& GetBodyLockInterface() const { return jolt_physics_system->GetBodyLockInterface(); }
         const JPH::NarrowPhaseQuery& GetNarrowPhaseQuery() const { return jolt_physics_system->GetNarrowPhaseQuery(); }
+        JPH::Ref<JPH::GroupFilterTable> Filter(const std::string& filter_name, uint32_t num_subgroups = 2);
 
     private:
+        std::unordered_map<std::string, JPH::Ref<JPH::GroupFilterTable>> collision_filters;
         std::unordered_set<uint64_t> active_collision_pairs;
         std::unordered_map<JPH::BodyID, std::shared_ptr<Entity>> body_to_entity_map;
         std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;

@@ -43,12 +43,19 @@ namespace Bonfire
             if (rotation_x) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::RotationX;
             if (rotation_y) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::RotationY;
             if (rotation_z) allowed_dofs = allowed_dofs | JPH::EAllowedDOFs::RotationZ;
-\
+            
             float current_mass = 1.0f / body.GetMotionProperties()->GetInverseMass();
             JPH::MassProperties mass_properties = body.GetShape()->GetMassProperties();
             mass_properties.ScaleToMass(current_mass);
             body.GetMotionProperties()->SetMassProperties(allowed_dofs, mass_properties);
         }
+    }
+
+    void PhysicsBody::SetCollisionGroup(const JPH::CollisionGroup& group)
+    {
+        PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+        JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
+        body_interface.SetCollisionGroup(body_id, group);
     }
     
     void PhysicsBody::SetPosition(const glm::vec3& position)

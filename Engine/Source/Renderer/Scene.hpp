@@ -44,7 +44,8 @@ namespace Bonfire
         std::unique_ptr<Skybox>& GetSkybox() { return skybox; }
         std::unique_ptr<Fog>& GetFog() { return fog; }
 
-        std::shared_ptr<Entity> GetEntityByName(const std::string& name);
+        std::shared_ptr<Entity> GetEntityOfName(const std::string& name);
+        std::vector<std::shared_ptr<Entity>> GetAllEntitiesOfName(const std::string& name);
         std::shared_ptr<Entity> GetEntityById(uint32_t id);
 
     private:
