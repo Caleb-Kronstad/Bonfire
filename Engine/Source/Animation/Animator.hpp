@@ -29,6 +29,7 @@ namespace Bonfire
         float GetCurrentAnimationTime() const { return current_time; }
         const std::string& GetCurrentAnimationName() const { return current_animation_name; }
         std::shared_ptr<Animation> GetCurrentAnimation() const { return current_animation; }
+        std::shared_ptr<Animation> GetAnimation(const std::string& name) const { return animations.at(name); }
         const std::unordered_map<std::string, std::shared_ptr<Animation>>& GetAnimations() const { return animations; }
 
     private:

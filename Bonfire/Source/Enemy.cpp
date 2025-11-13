@@ -37,32 +37,20 @@ void StoneGolem::OnAttach()
     {
         PhysicsComponent& physics_component = rock_hitbox->GetComponent<PhysicsComponent>();
         physics_system.RegisterBodyEntity(physics_component.physics_body->GetBodyID(), rock_hitbox);
-        rock_hitbox->enabled = false;
+        rock_collision_enabled = false;
+    }
+    
+    if (enemy->HasComponent<AnimationComponent>())
+    {
+        AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
+        Animator& animator = *animation_component.animator;
+
+        if (auto attack_anim = animator.GetAnimation("Armature|ATTACK"))
+            attack_duration = attack_anim->GetDuration() / 24.0f;
     }
 
     spawn = enemy->position;
-
-    
-    if (!enemy || !enemy->HasComponent<AnimationComponent>()) {
-        Log::Error("Cannot list bones - no animation component");
-        return;
-    }
-
-    AnimationComponent& anim_comp = enemy->GetComponent<AnimationComponent>();
-    if (!anim_comp.animator || !anim_comp.animator->skeleton) {
-        Log::Error("Cannot list bones - no skeleton");
-        return;
-    }
-
-    std::shared_ptr<Skeleton> skeleton = anim_comp.animator->skeleton;
-    int bone_count = skeleton->GetBoneCount();
-
-    Log::Info("=== Listing all " + std::to_string(bone_count) + " bones ===");
-    for (int i = 0; i < bone_count; i++) {
-        const Bone& bone = skeleton->GetBone(i);
-        Log::Info("Bone " + std::to_string(i) + ": " + bone.name);
-    }
-    Log::Info("===================");
+    PlayAnimation("Armature|IDLE");
 }
 
 void StoneGolem::OnDetach()
@@ -72,12 +60,20 @@ void StoneGolem::OnDetach()
 
 void StoneGolem::OnUpdate(const float& delta_time)
 {
+    if (dead) return;
+    
     if (!enemy || !player) return;
     if (!enemy->HasComponent<PhysicsComponent>() || !player->HasComponent<PhysicsComponent>()) return;
 
+    
+    if (enemy->HasComponent<AnimationComponent>())
+    {
+        AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
+        animation_component.animator->Update(delta_time);
+    }
+    
     HandleState(delta_time);
-    HandleAnimation(delta_time);
-    AttachRockToHand("ArmR");
+    AttachRockToHand("HandR");
 }
 
 void StoneGolem::OnInterfaceUpdate()
@@ -100,10 +96,14 @@ void StoneGolem::AttachRockToHand(const std::string& bone_name)
     AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
     glm::mat4 bone_transform = animation_component.animator->GetBoneWorldTransform(bone_name);
     glm::mat4 entity_world = enemy->GetWorldTransformMatrix(scene.GetEntities());
-    glm::mat4 attachment_world = entity_world * bone_transform;
+    
+    glm::mat4 model_rotation_offset = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 attachment_world = entity_world * model_rotation_offset * bone_transform;
 
     glm::vec3 new_position = glm::vec3(attachment_world[3]);
     glm::quat new_rotation = glm::quat_cast(attachment_world);
+    glm::vec3 rotated_offset = new_rotation * rock_position_offset;
+    new_position += rotated_offset;
 
     rock_hitbox->position = new_position;
     rock_hitbox->rotation = glm::eulerAngles(new_rotation);
@@ -122,7 +122,7 @@ void StoneGolem::AttachRockToHand(const std::string& bone_name)
 void StoneGolem::AttackPlayer()
 {
     if (!player || !rock_hitbox || !player_layer) return;
-    if (!rock_hitbox->enabled) return;
+    if (!rock_collision_enabled) return;
     if (!rock_hitbox->HasComponent<PhysicsComponent>() || !player->HasComponent<PhysicsComponent>()) return;
 
     PhysicsComponent& hitbox_physics = rock_hitbox->GetComponent<PhysicsComponent>();
@@ -133,20 +133,32 @@ void StoneGolem::AttackPlayer()
     JPH::BodyID player_body_id = player_physics.physics_body->GetBodyID();
 
     if (physics_system.AreBodiesColliding(hitbox_body_id, player_body_id))
-    {
         player_layer->TakeDamage(damage, rock_hitbox);
-    }
 }
 
-void StoneGolem::HandleAnimation(const float& delta_time)
+void StoneGolem::PlayAnimation(const std::string& animation_name)
 {
     if (!enemy->HasComponent<AnimationComponent>()) return;
     AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
     Animator& animator = *animation_component.animator;
-
-    animator.Update(delta_time);
     if (animator.GetState() != AnimationState::PLAYING)
-        animator.Play("Armature|IDLE");
+        animator.Play(animation_name);
+}
+void StoneGolem::StopAnimation()
+{
+    if (!enemy->HasComponent<AnimationComponent>()) return;
+    AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
+    Animator& animator = *animation_component.animator;
+    animator.Stop();
+}
+bool StoneGolem::IsAnimationPlaying(const std::string& animation_name)
+{
+    if (!enemy->HasComponent<AnimationComponent>()) return false;
+    AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
+    Animator& animator = *animation_component.animator;
+    if (animator.GetCurrentAnimation()->GetName() == animation_name)
+        return true;
+    return false;
 }
 
 void StoneGolem::HandleState(const float& delta_time)
@@ -166,6 +178,8 @@ void StoneGolem::HandleState(const float& delta_time)
 
     if (is_attacking)
     {
+        PlayAnimation("Armature|ATTACK");
+        
         attack_timer += delta_time;
 
         float attack_progress = attack_timer / attack_duration;
@@ -175,41 +189,37 @@ void StoneGolem::HandleState(const float& delta_time)
         {
             if (should_hitbox_be_active && !hitbox_was_active)
             {
-                rock_hitbox->enabled = true;
+                rock_collision_enabled = true;
                 Log::Info("Hitbox activated");
             }
             else if (!should_hitbox_be_active && hitbox_was_active)
             {
-                rock_hitbox->enabled = false;
+                rock_collision_enabled = false;
                 Log::Info("Hitbox deactivated");
             }
             hitbox_was_active = should_hitbox_be_active;
         }
+        
         if (attack_timer >= attack_duration)
         {
             is_attacking = false;
             attack_timer = 0.0f;
-            if (rock_hitbox)
-            {
-                rock_hitbox->enabled = false;
-                hitbox_was_active = false;
-            }
+            rock_collision_enabled = false;
+            hitbox_was_active = false;
+            StopAnimation();
+            PlayAnimation("Armature|IDLE");
         }
 
         glm::vec3 current_velocity = enemy_body.GetLinearVelocity();
         enemy_body.SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
         enemy_body.SetAngularVelocity(glm::vec3(0.0f, 0.0f, 0.0f));
-
-        if (attack_timer >= attack_duration)
-        {
-            is_attacking = false;
-            attack_timer = 0.0f;
-        }
     }
     else if (chasing)
     {
+        // PlayAnimation("Armature|WALK");
         if (distance_from_player < attack_range)
         {
+            Log::Info(std::to_string(distance_from_player));
             glm::quat current_rotation = enemy_body.GetRotation();
             glm::vec3 forward = current_rotation * forward_alignment;
             glm::vec3 forward_2d = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
@@ -217,14 +227,14 @@ void StoneGolem::HandleState(const float& delta_time)
             glm::vec3 to_player = player->position - enemy->position;
             glm::vec3 to_player_2d = glm::normalize(glm::vec3(to_player.x, 0.0f, to_player.z));
 
-            float alignment = glm::dot(forward_2d, to_player_2d);
+            float alignment = -glm::dot(forward_2d, to_player_2d);
 
             if (alignment < rotation_before_attack_threshold)
             {
                 is_rotating_to_attack = true;
                 attack_rotation_timer += delta_time;
 
-                float target_yaw = atan2f(-to_player_2d.z, to_player_2d.x);
+                float target_yaw = atan2f(to_player_2d.x, to_player_2d.z);
                 glm::quat target_rotation = glm::angleAxis(target_yaw, glm::vec3(0.0f, 1.0f, 0.0f));
                 glm::quat new_rotation = glm::slerp(current_rotation, target_rotation, rotation_speed * delta_time);
                 enemy_body.SetRotation(new_rotation);
@@ -235,13 +245,14 @@ void StoneGolem::HandleState(const float& delta_time)
 
                 if (attack_rotation_timer > max_attack_rotation_time)
                 {
-                        is_rotating_to_attack = false;
-                        attack_rotation_timer = 0.0f;
-                        current_path.clear();
+                    is_rotating_to_attack = false;
+                    attack_rotation_timer = 0.0f;
+                    current_path.clear();
                 }
             }
             else
             {
+                StopAnimation();
                 is_rotating_to_attack = false;
                 attack_rotation_timer = 0.0f;
                 is_attacking = true;
@@ -255,26 +266,20 @@ void StoneGolem::HandleState(const float& delta_time)
         }
         else
         {
-            if (use_simple_movement)
-            {
-                SimpleFollowPlayer(delta_time);
-            }
-            else
-            {
-                UpdatePathfinding(delta_time);
-                FollowPath(delta_time);
-            }
+            PlayAnimation("Armature|IDLE");
+            SimpleFollowPlayer(delta_time);
         }
     }
     else
     {
+        PlayAnimation("Armature|IDLE");
         glm::vec3 current_velocity = enemy_body.GetLinearVelocity();
         enemy_body.SetLinearVelocity(glm::vec3(0.0f, current_velocity.y, 0.0f));
         current_path.clear();
     }
 
     // handle attacking state
-    if (is_attacking && rock_hitbox && rock_hitbox->enabled)
+    if (is_attacking && rock_hitbox && rock_collision_enabled)
         AttackPlayer();
 }
 
@@ -290,22 +295,22 @@ void StoneGolem::SimpleFollowPlayer(const float& delta_time)
     glm::vec3 to_player_2d = glm::normalize(glm::vec3(to_player.x, 0.0f, to_player.z));
 
     glm::quat current_rotation = enemy_body.GetRotation();
-    glm::vec3 forward = current_rotation * forward_alignment;
-    glm::vec3 forward_2d = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
-
-    float alignment = glm::dot(forward_2d, to_player_2d);
-
-    float target_yaw = atan2f(-to_player_2d.z, to_player_2d.x);
+    
+    float target_yaw = atan2f(to_player_2d.x, to_player_2d.z);
     glm::quat target_rotation = glm::angleAxis(target_yaw, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::quat new_rotation = glm::slerp(current_rotation, target_rotation, rotation_speed * delta_time);
     enemy_body.SetRotation(new_rotation);
 
+    glm::vec3 new_forward = new_rotation * forward_alignment;
+    glm::vec3 new_forward_2d = glm::normalize(glm::vec3(new_forward.x, 0.0f, new_forward.z));
+    
+    float alignment = glm::dot(new_forward_2d, to_player_2d);
     glm::vec3 current_velocity = enemy_body.GetLinearVelocity();
 
     if (alignment > min_alignment_to_move)
     {
-        float speed_scale = (glm::max)(alignment, 0.0f);
-        glm::vec3 desired_velocity = forward_2d * (move_speed * speed_scale);
+        float speed_scale = -glm::abs(alignment);
+        glm::vec3 desired_velocity = new_forward_2d * (move_speed * speed_scale);
         desired_velocity.y = current_velocity.y;
         enemy_body.SetLinearVelocity(desired_velocity);
     }
@@ -315,6 +320,31 @@ void StoneGolem::SimpleFollowPlayer(const float& delta_time)
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// UNUSED FOR NOW
 void StoneGolem::UpdatePathfinding(const float& delta_time)
 {
     bool need_recalculation = false;

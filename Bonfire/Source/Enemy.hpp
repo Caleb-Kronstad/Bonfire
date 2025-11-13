@@ -20,30 +20,35 @@ public:
 private:
     void AttackPlayer();
     void AttachRockToHand(const std::string& bone_name);
-    void HandleAnimation(const float& delta_time);
+    void PlayAnimation(const std::string& animation_name);
+    void StopAnimation();
+    bool IsAnimationPlaying(const std::string& animation_name);
     void HandleState(const float& delta_time);
     void SimpleFollowPlayer(const float& delta_time);
     
+    
+    // UNUSED FOR NOW
     void UpdatePathfinding(const float& delta_time);
     void FollowPath(const float& delta_time);
     bool HasLineOfSight(const glm::vec3& from, const glm::vec3& to);
     std::vector<glm::vec3> CalculatePath(const glm::vec3& start, const glm::vec3& goal);
 
 private:
+    bool dead = false;
+    
     Player* player_layer = nullptr;
     std::shared_ptr<Entity> enemy;
     std::shared_ptr<Entity> player;
-    std::shared_ptr<Entity> rock_hitbox;
     std::vector<glm::vec3> current_path;
 
-    const float HITBOX_ACTIVE_START = 0.3f;
-    const float HITBOX_ACTIVE_END = 0.7f;
+    std::shared_ptr<Entity> rock_hitbox;
+    glm::vec3 rock_position_offset = glm::vec3(0.5f, 1.0f, 0.0f);
+    const float HITBOX_ACTIVE_START = 0.17f;
+    const float HITBOX_ACTIVE_END = 0.34f;
     bool hitbox_was_active = false;
     bool rock_collision_enabled = false;
 
-    bool use_simple_movement = true; // default to simple movement for now because im stupid
-
-    glm::vec3 forward_alignment = glm::vec3(1.0f, 0.0f, 0.0f);
+    glm::vec3 forward_alignment = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 spawn;
     float move_speed = 3.0f;
     float rotation_speed = 3.0f;
@@ -53,10 +58,10 @@ private:
 
     bool is_attacking = false;
     float attack_timer = 0.0f;
-    float attack_duration = 1.0f;
+    float attack_duration;
     float attack_range = 5.0f;
 
-    float min_alignment_to_move = 0.0f;
+    float min_alignment_to_move = -1.0f;
     float rotation_before_attack_threshold = 0.95;
     bool is_rotating_to_attack = false;
     float attack_rotation_timer = 0.0f;
