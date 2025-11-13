@@ -55,6 +55,7 @@ namespace Bonfire
             current_animation_name = animation_name;
             current_animation = it->second;
             state = AnimationState::PLAYING;
+            current_time = 0.0f;
         }
     }
     void Animator::Pause()
@@ -68,18 +69,50 @@ namespace Bonfire
         current_time = 0.0f;
         current_animation = nullptr;
     }
+
+    int Animator::GetBoneIndex(const std::string& name) const
+    {
+        if (!skeleton) return -1;
+        return skeleton->GetBoneIndex(name);
+    }
+
+    glm::mat4 Animator::GetBoneWorldTransform(int bone_index) const
+    {
+        if (bone_index < 0 || bone_index >= bone_transforms.size()) return glm::mat4(1.0f);
+        return bone_transforms[bone_index];
+    }
+
+    glm::mat4 Animator::GetBoneWorldTransform(const std::string& name) const
+    {
+        int bone_index = skeleton->GetBoneIndex(name);
+        if (bone_index < 0 || bone_index >= bone_transforms.size()) return glm::mat4(1.0f);
+        return bone_transforms[bone_index];
+    }
     
     void Animator::CalculateBoneTransforms(std::shared_ptr<Animation> animation, float time)
     {
         for (int i = 0; i < skeleton->GetBoneCount(); i++)
         {
-            glm::mat4 parent_transform = glm::mat4(1.0f);
-            int parent_index = skeleton->GetParentIndex(i);
-            if (parent_index >= 0)
-                parent_transform = bone_transforms[parent_index];
-            CalculateBoneTransform(animation, i, parent_transform);
+            if (skeleton->GetParentIndex(i) == -1)
+            {
+                CalculateBoneTransformRecursive(animation, i, glm::mat4(1.0f));
+            }
         }
     }
+
+    void Animator::CalculateBoneTransformRecursive(std::shared_ptr<Animation> animation, int bone_index, const glm::mat4& parent_transform)
+    {
+        CalculateBoneTransform(animation, bone_index, parent_transform);
+
+        for (int i = 0; i < skeleton->GetBoneCount(); i++)
+        {
+            if (skeleton->GetParentIndex(i) == bone_index)
+            {
+                CalculateBoneTransformRecursive(animation, i, bone_transforms[bone_index]);
+            }
+        }
+    }
+    
     void Animator::CalculateBoneTransform(std::shared_ptr<Animation> animation, int bone_index, const glm::mat4& parent_transform)
     {
         const Bone& bone = skeleton->GetBone(bone_index);

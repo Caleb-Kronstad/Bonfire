@@ -5,11 +5,11 @@
 
 using namespace Bonfire;
 
-class Enemy : public Layer
+class StoneGolem : public Layer
 {
 public:
-    Enemy();
-    ~Enemy() override;
+    StoneGolem();
+    ~StoneGolem() override;
 
     void OnAttach() override;
     void OnDetach() override;
@@ -19,6 +19,8 @@ public:
 
 private:
     void AttackPlayer();
+    void AttachRockToHand(const std::string& bone_name);
+    void HandleAnimation(const float& delta_time);
     void HandleState(const float& delta_time);
     void SimpleFollowPlayer(const float& delta_time);
     
@@ -31,12 +33,13 @@ private:
     Player* player_layer = nullptr;
     std::shared_ptr<Entity> enemy;
     std::shared_ptr<Entity> player;
-    std::shared_ptr<Entity> hitbox;
+    std::shared_ptr<Entity> rock_hitbox;
     std::vector<glm::vec3> current_path;
 
     const float HITBOX_ACTIVE_START = 0.3f;
     const float HITBOX_ACTIVE_END = 0.7f;
     bool hitbox_was_active = false;
+    bool rock_collision_enabled = false;
 
     bool use_simple_movement = true; // default to simple movement for now because im stupid
 

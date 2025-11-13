@@ -23,6 +23,7 @@ namespace Bonfire
         int GetBoneCount() const { return static_cast<int>(bones.size()); }
         int GetParentIndex(int bone_index) const { return parent_indices[bone_index]; }
         const glm::mat4& GetOffsetMatrix(int bone_index) const { return bones[bone_index].offset_matrix; }
+        const std::vector<Bone>& GetBones() { return bones; }
 
     private:
         std::vector<Bone> bones;

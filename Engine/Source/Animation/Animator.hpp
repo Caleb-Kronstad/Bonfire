@@ -22,6 +22,9 @@ namespace Bonfire
         void Update(float delta_time);
 
         const std::vector<glm::mat4>& GetBoneTransforms() const { return final_bone_transforms; }
+        int GetBoneIndex(const std::string& name) const;
+        glm::mat4 GetBoneWorldTransform(int bone_index) const;
+        glm::mat4 GetBoneWorldTransform(const std::string& name) const;
         AnimationState GetState() const { return state; }
         float GetCurrentAnimationTime() const { return current_time; }
         const std::string& GetCurrentAnimationName() const { return current_animation_name; }
@@ -29,6 +32,7 @@ namespace Bonfire
         const std::unordered_map<std::string, std::shared_ptr<Animation>>& GetAnimations() const { return animations; }
 
     private:
+        void CalculateBoneTransformRecursive(std::shared_ptr<Animation> animation, int bone_index, const glm::mat4& parent_transform);
         void CalculateBoneTransforms(std::shared_ptr<Animation> animation, float time);
         void CalculateBoneTransform(std::shared_ptr<Animation> animation, int bone_index, const glm::mat4& parent_transform);
 

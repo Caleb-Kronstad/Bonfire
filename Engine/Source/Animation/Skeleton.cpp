@@ -15,5 +15,6 @@ namespace Bonfire
     {
         auto it = bone_map.find(name);
         return it != bone_map.end() ? it->second : -1;
+        
     }
 }

@@ -154,7 +154,6 @@ namespace Bonfire
 
               if (result.IsValid())
               {
-                  Log::Info("VALID RESULT");
                   new_shape = result.Get();
 
                   shape_data.dimensions = glm::vec3(

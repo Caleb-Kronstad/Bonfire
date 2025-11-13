@@ -89,11 +89,12 @@ namespace Bonfire
         
         Assimp::Importer importer;
         ai_scene = importer.ReadFile(path,
-            aiProcess_Triangulate |
-            aiProcess_FlipUVs |
-            aiProcess_CalcTangentSpace |
-            aiProcess_GenNormals |
-            aiProcess_LimitBoneWeights);
+              aiProcess_Triangulate |
+              aiProcess_FlipUVs |
+              aiProcess_CalcTangentSpace |
+              aiProcess_GenNormals | // change to GenSmoothNormals for smoother lighting
+              aiProcess_FixInfacingNormals |
+              aiProcess_LimitBoneWeights);
   
         if (!ai_scene || ai_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !ai_scene->mRootNode)
         {
@@ -103,6 +104,42 @@ namespace Bonfire
   
         this->path = path;
         this->directory = path.substr(0, path.find_last_of('/'));
+
+        for (unsigned int i = 0; i < ai_scene->mNumMaterials; i++)
+        {
+            aiMaterial* material = ai_scene->mMaterials[i];
+
+            auto extractTextures = [&](aiTextureType ai_type, TextureType engine_type) {
+                for (unsigned int j = 0; j < material->GetTextureCount(ai_type); j++)
+                {
+                    aiString str;
+                    material->GetTexture(ai_type, j, &str);
+                    std::string texture_path = str.C_Str();
+
+                    std::filesystem::path full_path = std::filesystem::path(directory) / texture_path;
+                    if (std::filesystem::exists(full_path))
+                    {
+                        std::string abs_str = full_path.string();
+                        size_t data_pos = abs_str.find("Data");
+                        if (data_pos != std::string::npos)
+                        {
+                            texture_path = abs_str.substr(data_pos);
+                            std::replace(texture_path.begin(), texture_path.end(), '\\', '/');
+                        }
+                    }
+                    extracted_texture_paths.push_back({texture_path, engine_type});
+                }
+            };
+
+            extractTextures(aiTextureType_DIFFUSE, TextureType::DIFFUSE);
+            extractTextures(aiTextureType_SPECULAR, TextureType::SPECULAR);
+            extractTextures(aiTextureType_NORMALS, TextureType::NORMAL);
+            extractTextures(aiTextureType_HEIGHT, TextureType::HEIGHT);
+            extractTextures(aiTextureType_EMISSIVE, TextureType::EMISSION);
+        }
+
+        if (!extracted_texture_paths.empty())
+            Log::Info("Extracted " + std::to_string(extracted_texture_paths.size()) + " textures from skeletal model");
   
         ExtractBoneHierarchy(ai_scene->mRootNode, -1);
   
@@ -111,6 +148,8 @@ namespace Bonfire
         LoadAnimations(ai_scene);
   
         CalculateAABB(); // for editor ray
+
+        loaded = true;
     }
   
     void SkeletalModel::ExtractBoneHierarchy(aiNode* node, int parent_index)
