@@ -9,7 +9,7 @@ public:
 	BonfireProject() : Project("Bonfire")
 	{
 		PushLayer(std::make_shared<Player>());
-		PushLayer(std::make_shared<StoneGolem>());
+		PushLayer(std::make_shared<StoneGolem>("StoneGolem", "Player", "StoneGolemRock"));
 	}
 
 	~BonfireProject()

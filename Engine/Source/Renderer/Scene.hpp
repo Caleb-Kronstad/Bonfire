@@ -48,8 +48,10 @@ namespace Bonfire
         std::vector<std::shared_ptr<Entity>> GetAllEntitiesOfName(const std::string& name);
         std::shared_ptr<Entity> GetEntityById(uint32_t id);
 
-    private:
+    public:
         std::string path;
+        
+    private:
         
         std::unordered_map<uint32_t, std::shared_ptr<Entity>> entities;
         std::unordered_map<uint32_t, std::shared_ptr<Model>> models;

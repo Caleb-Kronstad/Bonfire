@@ -24,7 +24,7 @@ namespace Bonfire
 		int antialiasing_level = 4;
 		bool fullscreen = true;
 		bool enable_editor = true;
-		std::string initial_scene_path = "";
+		std::vector<std::string> scene_paths;
 		std::string project_manager_script_path = "";
 		bool vsync = true;
 	};

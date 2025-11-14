@@ -26,9 +26,9 @@ void Player::OnAttach()
 	arm = scene.GetEntityOfName("PlayerArm");
 	weapon = scene.GetEntityOfName(weapon_stats.name);
 	
-	global_audio = scene.GetEntityOfName("Global Audio")->GetComponent<AudioComponent>().audio;
-	global_audio->SetSpatialization(false);
-	global_audio->Play();
+	music_audio = scene.GetEntityOfName("GlobalMusic")->GetComponent<AudioComponent>().audio;
+	music_audio->SetSpatialization(false);
+	music_audio->Play();
 
 	if (player->HasComponent<PhysicsComponent>())
 	{
@@ -39,7 +39,7 @@ void Player::OnAttach()
 
 void Player::OnDetach()
 {
-	global_audio->Stop();
+	music_audio->Stop();
 }
 
 void Player::OnUpdate(const float& delta_time)
@@ -144,7 +144,38 @@ void Player::OnUpdate(const float& delta_time)
 
 void Player::OnInterfaceUpdate()
 {
-	
+	Renderer& renderer = Project::GetRenderer();
+	Scene& scene = renderer.GetScene();
+
+	int current_scene_index = -1;
+	if (scene.path.find("calcifiedvillage") != std::string::npos)
+		current_scene_index = 0;
+	else if (scene.path.find("thehollow") != std::string::npos)
+		current_scene_index = 1;
+
+	ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+	if (current_scene_index == 0)
+		ImGui::Text("Current Scene: Calcified Village");
+	else if (current_scene_index == 1)
+		ImGui::Text("Current Scene: The Hollow");
+	else if (current_scene_index == 2)
+		ImGui::Text("Current Scene: Unknown");
+
+	ImGui::Separator();
+
+	if (current_scene_index == 0)
+	{
+		if (ImGui::Button("Go to The Hollow", ImVec2(200, 22)))
+			renderer.NextScene(1);
+	}
+	else if (current_scene_index == 1)
+	{
+		if (ImGui::Button("Go to Calcified Village", ImVec2(200, 22)))
+			renderer.NextScene(0);
+	}
+
+	ImGui::End();
 }
 
 void Player::OnInput(Input& input)

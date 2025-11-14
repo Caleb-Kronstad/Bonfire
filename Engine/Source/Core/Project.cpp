@@ -72,8 +72,11 @@ namespace Bonfire
 		static_script_system->ExecuteGlobalScript(project_config.project_manager_script_path);
 		
 		static_renderer->OnAttach();
-		std::unique_ptr<Scene> initial_scene = std::make_unique<Scene>(project_config.initial_scene_path);
-		static_renderer->AddScene(std::move(initial_scene));
+		for (const std::string& scene_path : project_config.scene_paths)
+		{
+			std::unique_ptr<Scene> scene = std::make_unique<Scene>(scene_path);
+			static_renderer->AddScene(std::move(scene));
+		}
 		static_renderer->Load();
 		static_editor->OnAttach();
 		
@@ -147,7 +150,7 @@ namespace Bonfire
 			project_config.window_height = json["window-height"].get<int>();
 			project_config.fullscreen = json["fullscreen"].get<bool>();
 			project_config.enable_editor = json["enable-editor"].get<bool>();
-			project_config.initial_scene_path = json["initial-scene-path"].get<std::string>();
+			project_config.scene_paths = json["scene-paths"].get<std::vector<std::string>>();
 			project_config.vsync = json["vsync"].get<bool>();
 			project_config.project_manager_script_path = json["project-manager-script"].get<std::string>();
 			project_config.antialiasing_level = json["antialiasing-level"].get<int>();

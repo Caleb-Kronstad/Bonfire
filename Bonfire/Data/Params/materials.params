@@ -185,5 +185,22 @@
             1.0,
             1.0
         ]
+    },
+    "1011": {
+        "diffuse-id": 1015,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Stone Golem",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 64.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
     }
 }

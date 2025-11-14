@@ -163,17 +163,6 @@ namespace Bonfire
 	    {
 	        if (ImGui::BeginMenu("File"))
 	        {
-	            if (ImGui::MenuItem("Reload", "Ctrl+L"))
-	            {
-	            	LoadEditorConfig();
-		            renderer.Load();
-	            }
-	            if (ImGui::MenuItem("Save", "Ctrl+S"))
-	            {
-	            	SaveEditorConfig();
-		            renderer.Save();
-	            }
-	            
 	            ImGui::Separator();
 	            if (ImGui::MenuItem("Build"))
 	            {
@@ -199,6 +188,21 @@ namespace Bonfire
 	            }
 	            ImGui::EndMenu();
 	        }
+
+	    	if (ImGui::BeginMenu("Scene"))
+	    	{
+	            if (ImGui::MenuItem("Reload", "Ctrl+L"))
+	            {
+	            	LoadEditorConfig();
+		            renderer.NextScene(renderer.GetCurrentSceneIndex());
+	            }
+	            if (ImGui::MenuItem("Save", "Ctrl+S"))
+	            {
+	            	SaveEditorConfig();
+		            renderer.Save();
+	            }
+	            ImGui::EndMenu();
+	    	}
 	        
 	        if (ImGui::BeginMenu("Help"))
 	        {
@@ -583,8 +587,30 @@ namespace Bonfire
     	DrawActiveTitleLine(highlight_primary, background_tertiary);
     	ImGui::Indent(8.0f);
     	ImGui::PushTextWrapPos(0.0f);
-    	ImGui::Spacing(); 
+    	ImGui::Spacing();
 
+		ImGui::Text(("Scene: " + renderer.GetScene().path).c_str());
+		if (ImGui::Button(renderer.GetScene().path.c_str(), ImVec2(100, 22)))
+			ImGui::OpenPopup("ChangeCurrentScene");
+		ImGui::SameLine(); ImGui::Text("Current Scene");
+
+		if (ImGui::BeginPopup("ChangeCurrentScene"))
+		{
+			for (int i = 0; i < renderer.GetScenes().size(); i++)
+			{
+				ImGui::PushID(i);
+				if (ImGui::Selectable(renderer.GetScenes().at(i)->path.c_str(), false, 0))
+				{
+					selected_entity = nullptr;
+					renderer.NextScene(i);
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::PopID();
+			}
+			ImGui::EndPopup();
+		}
+
+		ImGui::Separator();
 		ImGui::PushItemWidth(100.0f);
     	ImGui::DragFloat("Drag Step", &drag_step, 0.1f, 0.1f, 100.0f, "%.2f");
 		int temp_undo_redo_steps = undo_redo_steps;

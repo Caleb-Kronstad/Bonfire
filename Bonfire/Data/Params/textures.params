@@ -88,5 +88,11 @@
         "name": "Rock04",
         "path": "Data/Resources/Textures/Maps/CalcifiedVillage/Rock04.png",
         "type": 0
+    },
+    "1015": {
+        "flip": false,
+        "name": "StoneGolem",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/StoneGolem.png",
+        "type": 0
     }
 }

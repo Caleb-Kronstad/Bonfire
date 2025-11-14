@@ -1,6 +1,7 @@
 ﻿#include "Enemy.hpp"
 
-StoneGolem::StoneGolem() : Layer("New Layer")
+StoneGolem::StoneGolem(const std::string& enemy_entity_name, const std::string& target_entity_name, const std::string& rock_name) : Layer("Enemy Layer"),
+enemy_entity_name(enemy_entity_name), target_entity_name(target_entity_name), rock_name(rock_name)
 {
 
 }
@@ -19,9 +20,23 @@ void StoneGolem::OnAttach()
     ScriptSystem& script_system = Project::GetScriptSystem();
     Scene& scene = renderer.GetScene();
 
-    player = scene.GetEntityOfName("Player");
-    enemy = scene.GetEntityOfName("StoneGolem");
-    rock = scene.GetEntityOfName("StoneGolemRock");
+    std::vector<std::string> scenes_present = { "calcifiedvillage" };
+
+    present = false;
+    for (const std::string& scene_path : scenes_present)
+    {
+        if (scene.path.find(scene_path) != std::string::npos)
+        {
+            present = true;
+            break;
+        }
+    }
+
+    if (!present) return;
+
+    player = scene.GetEntityOfName(target_entity_name);
+    enemy = scene.GetEntityOfName(enemy_entity_name);
+    rock = scene.GetEntityOfName(rock_name);
 
     for (auto& layer : project.GetLayers())
     {
@@ -83,7 +98,7 @@ void StoneGolem::OnDetach()
 
 void StoneGolem::OnUpdate(const float& delta_time)
 {
-    if (dead) return;
+    if (dead || !present) return;
     if (!player || !enemy || !rock || !player_layer) return;
 
     HandleState(delta_time);
@@ -117,10 +132,12 @@ void StoneGolem::AttachRockToHand(const std::string& bone_name)
     glm::mat4 entity_world = enemy->GetWorldTransformMatrix(scene.GetEntities());
     
     glm::mat4 model_rotation_offset = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    model_rotation_offset = glm::translate(model_rotation_offset, glm::vec3(0.0f, 0.0f, -1.0f));
+    
     glm::mat4 attachment_world = entity_world * model_rotation_offset * bone_transform;
 
     glm::vec3 new_position = glm::vec3(attachment_world[3]);
-    glm::quat new_rotation = glm::quat_cast(attachment_world);
+    glm::quat new_rotation = glm::normalize(glm::quat_cast(attachment_world));
     
     glm::vec3 rotated_offset = new_rotation * rock_position_offset;
     new_position += rotated_offset;
@@ -160,6 +177,7 @@ void StoneGolem::PlayAnimation(const std::string& animation_name)
     if (!enemy->HasComponent<AnimationComponent>()) return;
     AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
     Animator& animator = *animation_component.animator;
+    if (animator.GetCurrentAnimation() != nullptr && animator.GetCurrentAnimation()->GetName() != animation_name) animator.Stop();
     if (animator.GetState() != AnimationState::PLAYING)
         animator.Play(animation_name);
 }
@@ -237,7 +255,6 @@ void StoneGolem::HandleState(const float& delta_time)
     }
     else if (chasing)
     {
-        // PlayAnimation("Armature|WALK");
         if (distance_from_player < attack_range)
         {
             Log::Info(std::to_string(distance_from_player));
@@ -287,7 +304,7 @@ void StoneGolem::HandleState(const float& delta_time)
         }
         else
         {
-            PlayAnimation("Armature|IDLE");
+            PlayAnimation("Armature|WALK");
             SimpleFollowPlayer(delta_time);
         }
     }

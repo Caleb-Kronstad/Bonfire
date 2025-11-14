@@ -8,7 +8,7 @@ using namespace Bonfire;
 class StoneGolem : public Layer
 {
 public:
-    StoneGolem();
+    StoneGolem(const std::string& enemy_entity_name, const std::string& target_entity_name, const std::string& rock_name);
     ~StoneGolem() override;
 
     void OnAttach() override;
@@ -26,7 +26,6 @@ private:
     void HandleState(const float& delta_time);
     void SimpleFollowPlayer(const float& delta_time);
     
-    
     // UNUSED FOR NOW
     void UpdatePathfinding(const float& delta_time);
     void FollowPath(const float& delta_time);
@@ -35,14 +34,23 @@ private:
 
 private:
     bool dead = false;
+    bool present = false;
+
+    std::string enemy_entity_name;
+    std::string target_entity_name;
+    std::string rock_name;
     
     Player* player_layer = nullptr;
     std::shared_ptr<Entity> enemy;
     std::shared_ptr<Entity> player;
     std::vector<glm::vec3> current_path;
 
+    std::shared_ptr<Audio> rock_hit_ground_audio;
+    std::shared_ptr<Audio> golem_walk_audio;
+    std::shared_ptr<Audio> golem_alert_audio;
+
     std::shared_ptr<Entity> rock;
-    glm::vec3 rock_position_offset = glm::vec3(-0.25f, -1.0f, 0.0f);
+    glm::vec3 rock_position_offset = glm::vec3(0.0f, 1.5f, -1.0f);
     const float HITBOX_ACTIVE_START = 0.17f;
     const float HITBOX_ACTIVE_END = 0.34f;
     bool hitbox_was_active = false;
@@ -52,14 +60,14 @@ private:
     glm::vec3 spawn;
     float move_speed = 3.0f;
     float rotation_speed = 3.0f;
-    float max_distance_from_spawn = 25.0f;
-    float chase_range = 25.0f;
+    float max_distance_from_spawn = 50.0f;
+    float chase_range = 50.0f;
     bool chasing = false;
 
     bool is_attacking = false;
     float attack_timer = 0.0f;
     float attack_duration;
-    float attack_range = 5.0f;
+    float attack_range = 10.0f;
 
     float min_alignment_to_move = -1.0f;
     float rotation_before_attack_threshold = 0.95;

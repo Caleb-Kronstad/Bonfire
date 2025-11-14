@@ -454,8 +454,8 @@ namespace Bonfire
 	bool Renderer::Load()
 	{
 		bool params_loaded = param_database->LoadParams();
-		bool scene_loaded = scenes.at(current_scene_index)->LoadScene(*param_database);
-		return scene_loaded || params_loaded;
+		NextScene(0);
+		return  params_loaded;
 	}
 	bool Renderer::Save()
 	{
@@ -484,7 +484,32 @@ namespace Bonfire
 		if (scene_index >= scenes.size())
 			scene_index = scenes.size() - 1;
 
+		if (Project::GetInstance().GetProjectRunState())
+		{
+			for (auto& layer : Project::GetInstance().GetLayers())
+				layer->OnDetach();
+		}
+		
 		current_scene_index = scene_index;
 		scenes.at(current_scene_index)->LoadScene(*param_database);
+		
+		if (Project::GetInstance().GetProjectRunState())
+		{
+			for (auto& layer : Project::GetInstance().GetLayers())
+				layer->OnAttach();
+		}
+		
+		for (auto& [entity_id, entity] : Project::GetRenderer().GetScene().GetEntities())
+		{
+			if (entity->HasComponent<ModelComponent>() && entity->HasComponent<PhysicsComponent>())
+			{
+				ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+				PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
+				if (physics_component.physics_body->GetShapeData().type == PhysicsShapeType::MESH)
+				{
+					physics_component.physics_body->SetScale(entity->scale, model_component.model);
+				}
+			}
+		}
 	}
 }

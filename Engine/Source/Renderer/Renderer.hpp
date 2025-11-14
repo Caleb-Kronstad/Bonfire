@@ -33,6 +33,7 @@ namespace Bonfire
 		bool AddScene(std::unique_ptr<Scene> scene);
 		bool RemoveScene(std::unique_ptr<Scene> scene);
 		void NextScene(unsigned int scene_index);
+		const std::vector<std::unique_ptr<Scene>>& GetScenes() { return scenes; }
 
 		void RenderEditorViewport(const float& delta_time);
 		void RenderProjectViewport(const float& delta_time);
@@ -50,6 +51,7 @@ namespace Bonfire
 		bool& GetDrawMeshColliders() { return draw_mesh_colliders; }
 		float& GetDrawCollidersLineWidth() { return draw_colliders_line_width; }
 		std::shared_ptr<Shader>& GetInstancedShader() { return instanced_shader; }
+		const int& GetCurrentSceneIndex() { return current_scene_index; }
 
 	private:
 		glm::mat4 projection = glm::mat4(0.0f);
@@ -62,7 +64,7 @@ namespace Bonfire
 		
 		// scene
 		std::vector<std::unique_ptr<Scene>> scenes;
-		unsigned int current_scene_index = 0;
+		int current_scene_index = 0;
 		std::unique_ptr<ParamDatabase> param_database;
         std::unique_ptr<Framebuffer> editor_viewport_framebuffer;
 		std::unique_ptr<Framebuffer> project_viewport_framebuffer;

@@ -50,7 +50,7 @@ namespace Bonfire
         }
         if (audios.contains(audio->id))
         {
-            Log::Error("Audio with id " + std::to_string(audio->id) + " already exists");
+            //Log::Error("Audio with id " + std::to_string(audio->id) + " already exists");
             return false;
         }
         audios.insert_or_assign(audio->id, audio);

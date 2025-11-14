@@ -62,7 +62,7 @@ private:
 	std::shared_ptr<Entity> arm;
 	std::shared_ptr<Entity> weapon;
 	
-	std::shared_ptr<Audio> global_audio;
+	std::shared_ptr<Audio> music_audio;
 
 	glm::vec3 camera_offset = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::vec3 arm_offset = glm::vec3(1.2f, -1.5f, 1.0f);
