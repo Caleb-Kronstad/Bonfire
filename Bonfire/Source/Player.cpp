@@ -2,7 +2,9 @@
 
 Player::Player() : Layer("New Layer")
 {
-
+	player_stats = PlayerStats();
+	current_health = player_stats.max_health;
+	weapon_stats = WeaponStats("Greatsword", glm::vec3(-1.0f, 0.1f, 0.0f), 5, 1, 10);
 }
 Player::~Player()
 {
@@ -17,10 +19,6 @@ void Player::OnAttach()
 	AudioSystem& audio_system = Project::GetAudioSystem();
 	ScriptSystem& script_system = Project::GetScriptSystem();
 	Scene& scene = renderer.GetScene();
-
-	player_stats = PlayerStats();
-	current_health = player_stats.max_health;
-	weapon_stats = WeaponStats("Greatsword", glm::vec3(-1.0f, 0.1f, 0.0f), 5, 1, 10);
 
 	player = scene.GetEntityOfName("Player");
 	arm = scene.GetEntityOfName("PlayerArm");
@@ -192,8 +190,8 @@ void Player::DrawHealthBar()
 	float screen_height = static_cast<float>(window.GetHeight());
 	float bar_width = screen_width * 0.15f;
 	float bar_height = screen_height * 0.03f;
-	float offset_x = screen_width * 0.02f;
-	float offset_y = screen_height * 0.02f;
+	float offset_x = screen_width * 0.1f;
+	float offset_y = screen_height * 0.1f;
 
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
 									 ImGuiWindowFlags_NoBackground |
@@ -207,8 +205,9 @@ void Player::DrawHealthBar()
 	float health_percentage = current_health / player_stats.max_health;
 	health_percentage = glm::clamp(health_percentage, 0.0f, 1.0f);
 
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+	ImGui::Dummy(ImVec2(bar_width, bar_height));
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	ImU32 bg_color = IM_COL32(80, 80, 80, 255);
 	ImU32 health_color = IM_COL32(220, 20, 20, 255);
@@ -219,7 +218,7 @@ void Player::DrawHealthBar()
 	if (filled_width > 0.0f)
 		draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + filled_width, cursor_pos.y + bar_height), health_color, 0.0f);
 
-	draw_list->AddRect(cursor_pos, ImVec2(cursor_pos.x + bar_width, cursor_pos.y + bar_height), border_color, 0.0f);
+	//draw_list->AddRect(cursor_pos, ImVec2(cursor_pos.x + bar_width, cursor_pos.y + bar_height), border_color, 0.0f);
 
 	ImGui::End();
 }
