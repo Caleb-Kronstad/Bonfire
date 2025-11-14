@@ -86,7 +86,7 @@ namespace Bonfire
 
 			// Update Project
 			static_editor->OnUpdate(delta_time);
-			if (project_running)
+			if (project_running && static_renderer->GetScene().loaded)
 			{
 				static_script_system->OnUpdate(delta_time);
 				static_physics_system->OnUpdate(delta_time);

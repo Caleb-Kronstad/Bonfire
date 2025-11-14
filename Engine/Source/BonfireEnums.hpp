@@ -23,7 +23,7 @@ namespace Bonfire
         SPECULAR,
         NORMAL,
         HEIGHT,
-        EMISSION,
+        EMISSION
     };
     
     enum class AnimationState : std::uint8_t

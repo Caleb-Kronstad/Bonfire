@@ -35,6 +35,8 @@ void Player::OnAttach()
 		PhysicsComponent& physics_component = player->GetComponent<PhysicsComponent>();
 		physics_system.RegisterBodyEntity(physics_component.physics_body->GetBodyID(), player);
 	}
+
+	spawn = player->position;
 }
 
 void Player::OnDetach()
@@ -147,6 +149,9 @@ void Player::OnInterfaceUpdate()
 	Renderer& renderer = Project::GetRenderer();
 	Scene& scene = renderer.GetScene();
 
+	DrawHealthBar();
+	
+	// -- DEBUG --
 	int current_scene_index = -1;
 	if (scene.path.find("calcifiedvillage") != std::string::npos)
 		current_scene_index = 0;
@@ -174,6 +179,47 @@ void Player::OnInterfaceUpdate()
 		if (ImGui::Button("Go to Calcified Village", ImVec2(200, 22)))
 			renderer.NextScene(0);
 	}
+
+	ImGui::End();
+	// --
+}
+
+void Player::DrawHealthBar()
+{
+	Window& window = Project::GetInstance().GetWindow();
+
+	float screen_width = static_cast<float>(window.GetWidth());
+	float screen_height = static_cast<float>(window.GetHeight());
+	float bar_width = screen_width * 0.15f;
+	float bar_height = screen_height * 0.03f;
+	float offset_x = screen_width * 0.02f;
+	float offset_y = screen_height * 0.02f;
+
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
+									 ImGuiWindowFlags_NoBackground |
+									 ImGuiWindowFlags_NoMove |
+									 ImGuiWindowFlags_NoInputs |
+									 ImGuiWindowFlags_NoSavedSettings |
+									 ImGuiWindowFlags_AlwaysAutoResize;
+
+	ImGui::SetNextWindowPos(ImVec2(offset_x, offset_y), ImGuiCond_Always);
+	ImGui::Begin("##HealthBar", nullptr, window_flags);
+	float health_percentage = current_health / player_stats.max_health;
+	health_percentage = glm::clamp(health_percentage, 0.0f, 1.0f);
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+
+	ImU32 bg_color = IM_COL32(80, 80, 80, 255);
+	ImU32 health_color = IM_COL32(220, 20, 20, 255);
+	ImU32 border_color = IM_COL32(0, 0, 0, 255);
+
+	draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + bar_width, cursor_pos.y + bar_height), bg_color, 0.0f);
+	float filled_width = bar_width * health_percentage;
+	if (filled_width > 0.0f)
+		draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + filled_width, cursor_pos.y + bar_height), health_color, 0.0f);
+
+	draw_list->AddRect(cursor_pos, ImVec2(cursor_pos.x + bar_width, cursor_pos.y + bar_height), border_color, 0.0f);
 
 	ImGui::End();
 }

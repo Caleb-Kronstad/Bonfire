@@ -476,13 +476,16 @@ namespace Bonfire
 		scenes.erase(it);
 		return true;
 	}
-	void Renderer::NextScene(unsigned int scene_index)
+	
+	void Renderer::NextScene(int scene_index)
 	{
 		if (scene_index < 0)
 			scene_index = 0;
 
 		if (scene_index >= scenes.size())
 			scene_index = scenes.size() - 1;
+		
+		scenes.at(current_scene_index)->loaded = false;
 
 		if (Project::GetInstance().GetProjectRunState())
 		{
@@ -492,11 +495,14 @@ namespace Bonfire
 		
 		current_scene_index = scene_index;
 		scenes.at(current_scene_index)->LoadScene(*param_database);
-		
-		if (Project::GetInstance().GetProjectRunState())
+
+		for (auto& [entity_id, entity] : Project::GetRenderer().GetScene().GetEntities())
 		{
-			for (auto& layer : Project::GetInstance().GetLayers())
-				layer->OnAttach();
+			if (entity->HasComponent<PhysicsComponent>())
+			{
+				PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
+				physics_component.physics_body->SetEnabled(false);
+			}
 		}
 		
 		for (auto& [entity_id, entity] : Project::GetRenderer().GetScene().GetEntities())
@@ -511,5 +517,22 @@ namespace Bonfire
 				}
 			}
 		}
+		
+		if (Project::GetInstance().GetProjectRunState())
+		{
+			for (auto& layer : Project::GetInstance().GetLayers())
+				layer->OnAttach();
+		}
+		
+		/*for (auto& [entity_id, entity] : Project::GetRenderer().GetScene().GetEntities())
+		{
+			if (entity->HasComponent<PhysicsComponent>())
+			{
+				PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
+				physics_component.physics_body->SetEnabled(true);
+			}
+		}*/
+		
+		scenes.at(current_scene_index)->loaded = true;
 	}
 }

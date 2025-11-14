@@ -49,6 +49,8 @@ public:
 
 	void TakeDamage(float damage, std::shared_ptr<Entity> hitbox);
 
+	void DrawHealthBar();
+
 private:
 	glm::vec3 CalculateCameraBob(const float& delta_time, bool is_moving);
 
@@ -57,6 +59,8 @@ private:
 	WeaponStats weapon_stats;
 	std::vector<HitboxCooldown> recent_hitbox_cooldowns;
 	const float DAMAGE_COOLDOWN_TIME = 1.0f;
+
+	glm::vec3 spawn;
 	
 	std::shared_ptr<Entity> player;
 	std::shared_ptr<Entity> arm;

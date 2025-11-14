@@ -50,6 +50,7 @@ namespace Bonfire
 
     public:
         std::string path;
+        bool loaded;
         
     private:
         

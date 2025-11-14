@@ -40,6 +40,8 @@ private:
     std::string target_entity_name;
     std::string rock_name;
     
+    glm::vec3 spawn;
+    
     Player* player_layer = nullptr;
     std::shared_ptr<Entity> enemy;
     std::shared_ptr<Entity> player;
@@ -57,7 +59,6 @@ private:
     bool rock_collision_enabled = false;
 
     glm::vec3 forward_alignment = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 spawn;
     float move_speed = 3.0f;
     float rotation_speed = 3.0f;
     float max_distance_from_spawn = 50.0f;

@@ -32,7 +32,7 @@ namespace Bonfire
 
 		bool AddScene(std::unique_ptr<Scene> scene);
 		bool RemoveScene(std::unique_ptr<Scene> scene);
-		void NextScene(unsigned int scene_index);
+		void NextScene(int scene_index);
 		const std::vector<std::unique_ptr<Scene>>& GetScenes() { return scenes; }
 
 		void RenderEditorViewport(const float& delta_time);

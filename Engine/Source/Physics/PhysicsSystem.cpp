@@ -209,7 +209,7 @@ namespace Bonfire
             body_settings.mMassPropertiesOverride.mMass = mass;
 
         JPH::Body* body = jolt_physics_system->GetBodyInterface().CreateBody(body_settings);
-        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::Activate);
+        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::DontActivate);
 
         PhysicsShapeData shape_data;
         shape_data.type = PhysicsShapeType::BOX;
@@ -263,7 +263,7 @@ namespace Bonfire
             body_settings.mMassPropertiesOverride.mMass = mass;
 
         JPH::Body* body = jolt_physics_system->GetBodyInterface().CreateBody(body_settings);
-        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::Activate);
+        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::DontActivate);
 
         PhysicsShapeData shape_data;
         shape_data.type = PhysicsShapeType::SPHERE;
@@ -320,7 +320,7 @@ namespace Bonfire
             body_settings.mMassPropertiesOverride.mMass = mass;
 
         JPH::Body* body = jolt_physics_system->GetBodyInterface().CreateBody(body_settings);
-        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::Activate);
+        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::DontActivate);
 
         PhysicsShapeData shape_data;
         shape_data.type = PhysicsShapeType::CAPSULE;
@@ -419,7 +419,7 @@ namespace Bonfire
             return nullptr;
         }
 
-        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::Activate);
+        jolt_physics_system->GetBodyInterface().AddBody(body->GetID(), JPH::EActivation::DontActivate);
 
         PhysicsShapeData shape_data;
         shape_data.type = PhysicsShapeType::MESH;

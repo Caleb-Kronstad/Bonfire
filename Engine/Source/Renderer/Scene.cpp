@@ -887,6 +887,7 @@ namespace Bonfire
         }
         shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, shadow_activated_shaders, "Data/Editor/Defaults/Textures/default-diffuse.png");
 
+        current_camera_id = cameras.begin()->first;
         return true;
     }
 

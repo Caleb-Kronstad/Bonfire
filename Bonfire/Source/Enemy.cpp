@@ -100,7 +100,7 @@ void StoneGolem::OnUpdate(const float& delta_time)
 {
     if (dead || !present) return;
     if (!player || !enemy || !rock || !player_layer) return;
-
+    
     HandleState(delta_time);
     AttachRockToHand("HandR");
 }
