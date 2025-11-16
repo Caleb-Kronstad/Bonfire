@@ -4,6 +4,8 @@
 
 using namespace Bonfire;
 
+class StoneGolem;
+
 struct HitboxCooldown
 {
 	std::shared_ptr<Entity> hitbox;
@@ -53,10 +55,15 @@ public:
 
 private:
 	glm::vec3 CalculateCameraBob(const float& delta_time, bool is_moving);
+	void CheckWeaponHit();
 
-private:
+public:
 	PlayerStats player_stats;
 	WeaponStats weapon_stats;
+	float default_move_speed;
+	bool camera_can_move;
+
+private:
 	std::vector<HitboxCooldown> recent_hitbox_cooldowns;
 	const float DAMAGE_COOLDOWN_TIME = 1.0f;
 
@@ -68,7 +75,7 @@ private:
 	
 	std::shared_ptr<Audio> music_audio;
 
-	glm::vec3 camera_offset = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 camera_offset = glm::vec3(0.0f, 2.5f, 0.0f);
 	glm::vec3 arm_offset = glm::vec3(1.2f, -1.5f, 1.0f);
 	
 	float current_health;
@@ -78,6 +85,9 @@ private:
 	float attack_duration = 1.0f;
 	glm::vec3 attack_rotation_start = glm::vec3(0.0f, 0.0f, -90.0f);
 	glm::vec3 attack_rotation_end = glm::vec3(0.0f, 0.0f, 90.0f);
+	
+	bool already_hit_this_swing = false;
+	StoneGolem* stone_golem_layer = nullptr;
 
 	float bob_timer = 0.0f;
 	float bob_frequency = 10.0f;

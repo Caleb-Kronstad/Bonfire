@@ -130,14 +130,10 @@ namespace Bonfire
 
 		std::string physics_name = "Physics Object";
 		PhysicsBodyType body_type = PhysicsBodyType::STATIC;
-		PhysicsShapeType shape_type = PhysicsShapeType::BOX;
-		glm::vec3 dimensions = glm::vec3(
-			(std::max)(entity->scale.x, 0.1f),
-			(std::max)(entity->scale.y, 0.1f),
-			(std::max)(entity->scale.z, 0.1f)
-			);
+		PhysicsShapeType shape_type = PhysicsShapeType::CAPSULE;
+		glm::vec3 dimensions = glm::vec3(1.0f, 1.0f, 0.0f);
 
-		std::shared_ptr<PhysicsBody> physics_body = physics_system.CreateBoxBody(entity->position, glm::quat(glm::radians(entity->rotation)), dimensions, body_type);
+		std::shared_ptr<PhysicsBody> physics_body = physics_system.CreateCapsuleBody(entity->position, glm::quat(glm::radians(entity->rotation)), dimensions.x, dimensions.y, body_type);
 		physics_body->id = next_po_id;
 		physics_body->enabled = true;
 		physics_body->SetEnabled(true);

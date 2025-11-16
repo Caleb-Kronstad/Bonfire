@@ -51,8 +51,8 @@ namespace Bonfire
 		for (std::shared_ptr<Shader> shader : shadow_activated_shaders)
 		{
 			shader->Use();
-			shader->SetInt("shadow_map", 0);
-			shader->SetInt("point_shadow_map", 1);
+			shader->SetInt("shadow_map", 10);
+			shader->SetInt("point_shadow_map", 11);
 		}
 	}
 
@@ -89,12 +89,12 @@ namespace Bonfire
 
 	}
 
-	void ShadowMap::LoadDirectional(glm::vec3& light_dir)
+	void ShadowMap::LoadDirectional(glm::vec3& light_dir, glm::vec3& camera_pos)
 	{
 		float near_plane = 1.0f, far_plane = 500.0f;
-		glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		glm::vec3 light_pos = -light_dir * 10.0f;
-		glm::mat4 light_view = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 light_projection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, near_plane, far_plane);
+		glm::vec3 light_pos = camera_pos - light_dir * 100.0f;
+		glm::mat4 light_view = glm::lookAt(light_pos, camera_pos, glm::vec3(0.0f, 1.0f, 0.0f));
 		light_space_matrix = light_projection * light_view;
 	}
 
@@ -124,13 +124,13 @@ namespace Bonfire
 
 	void ShadowMap::Draw()
 	{
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE10);
 		glBindTexture(GL_TEXTURE_2D, directional_shadow_map);
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE11);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, shadow_cubemap);
 	}
 
-	void ShadowMap::Reset(bool cull) // unbinds the frame buffer and switches the cull setting to back faces (if cull is set to true)
+	void ShadowMap::Reset(bool cull)
 	{
 		if (cull) glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -157,7 +157,7 @@ namespace Bonfire
 			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat 
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

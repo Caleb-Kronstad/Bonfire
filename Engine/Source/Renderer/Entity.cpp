@@ -26,6 +26,11 @@ namespace Bonfire
 			manipulation_matrix = glm::rotate(manipulation_matrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			manipulation_matrix = glm::translate(manipulation_matrix, glm::vec3(0.0f, 0.0f, -1.0f));
 		}
+		else if (model_component.model->name == "Greatsword")
+		{
+			manipulation_matrix = glm::rotate(manipulation_matrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			manipulation_matrix = glm::translate(manipulation_matrix, glm::vec3(0.0f, 0.0f, -10.0f));
+		}
 		
 		shader->SetMat4("model", manipulation_matrix);
 		model_component.model->Draw(*shader, model_component.material);

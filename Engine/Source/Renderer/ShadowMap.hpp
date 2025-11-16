@@ -10,7 +10,7 @@ namespace Bonfire
         ShadowMap(std::shared_ptr<Shader> point_shadow_map_shader, std::shared_ptr<Shader> shadow_map_shader, std::vector<std::shared_ptr<Shader>> shadow_activated_shaders, const std::string& path);
         ~ShadowMap();
         void Load(glm::vec3& light_pos);
-        void LoadDirectional(glm::vec3& light_dir);
+        void LoadDirectional(glm::vec3& light_dir, glm::vec3& camera_pos);
         void SetDirectional();
         void Set(glm::vec3& light_pos);
         void Draw();

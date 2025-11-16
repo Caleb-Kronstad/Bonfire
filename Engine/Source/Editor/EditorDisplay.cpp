@@ -474,9 +474,9 @@ namespace Bonfire
     			audio.SetLoop(loop);
     		if (ImGui::Checkbox("Play On Awake", &play_on_awake))
     			audio.SetPlayOnAwake(play_on_awake);
-    		if (ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f, "%.2f"))
+    		if (ImGui::SliderFloat("Volume", &volume, 0.0f, 10.0f, "%.2f"))
     			audio.SetVolume(volume);
-    		if (ImGui::SliderFloat("Pitch", &pitch, 0.0f, 1.0f, "%.2f"))
+    		if (ImGui::SliderFloat("Pitch", &pitch, 0.0f, 10.0f, "%.2f"))
     			audio.SetPitch(pitch);
 
     		if (ImGui::Button(audio_component.audio->name.c_str(), ImVec2(100, 22)))

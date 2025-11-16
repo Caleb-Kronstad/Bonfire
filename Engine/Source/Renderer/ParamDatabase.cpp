@@ -7,6 +7,13 @@ namespace Bonfire
 {
     bool ParamDatabase::LoadParams()
     {
+        model_params.clear();
+        texture_params.clear();
+        material_params.clear();
+        shader_params.clear();
+        audio_params.clear();
+        script_params.clear();
+        
         // model params
         std::ifstream model_file(model_path);
         if (!model_file.is_open())

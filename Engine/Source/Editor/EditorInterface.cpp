@@ -194,6 +194,7 @@ namespace Bonfire
 	            if (ImGui::MenuItem("Reload", "Ctrl+L"))
 	            {
 	            	LoadEditorConfig();
+	            	renderer.GetParamDatabase().LoadParams();
 		            renderer.NextScene(renderer.GetCurrentSceneIndex());
 	            }
 	            if (ImGui::MenuItem("Save", "Ctrl+S"))
@@ -1074,14 +1075,18 @@ namespace Bonfire
 		    {
 		        for (auto& [model_id, model_data] : param_database.model_params)
 		        {
-		        	ImGui::PushID(&model_data);
-		            if (ImGui::CollapsingHeader(std::to_string(model_id).c_str()))
+		        	ImGui::PushID(&model_id);
+		        	std::string new_name = model_data.name;
+		            if (ImGui::CollapsingHeader(model_data.name.c_str()))
 		            {
+		            	ImGui::Text(std::to_string(model_id).c_str());
 		            	ImGui::Text(model_data.path.c_str());
 		                ImGui::SetNextItemWidth(200.0f);
-		            	ImGui::InputText("Name", &model_data.name);
+		            	ImGui::InputText("Name", &new_name);
+		            	ImGui::Checkbox("Animated", &model_data.is_animated);
 		            }
 		        	ImGui::PopID();
+		        	model_data.name = new_name;
 		        }
 
 				ImGui::Separator();

@@ -94,5 +94,17 @@
         "name": "StoneGolem",
         "path": "Data/Resources/Textures/Maps/CalcifiedVillage/StoneGolem.png",
         "type": 0
+    },
+    "1016": {
+        "flip": false,
+        "name": "TheHollow",
+        "path": "Data/Resources/Textures/Maps/TheHollow/TheHollow.png",
+        "type": 0
+    },
+    "1017": {
+        "flip": false,
+        "name": "Knight",
+        "path": "Data/Resources/Textures/Characters/Knight.png",
+        "type": 0
     }
 }

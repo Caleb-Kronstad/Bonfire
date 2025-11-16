@@ -1,4 +1,4 @@
-﻿#include "Enemy.hpp"
+﻿#include "StoneGolem.hpp"
 
 StoneGolem::StoneGolem(const std::string& enemy_entity_name, const std::string& target_entity_name, const std::string& rock_name) : Layer("Enemy Layer"),
 enemy_entity_name(enemy_entity_name), target_entity_name(target_entity_name), rock_name(rock_name)
@@ -20,23 +20,11 @@ void StoneGolem::OnAttach()
     ScriptSystem& script_system = Project::GetScriptSystem();
     Scene& scene = renderer.GetScene();
 
-    std::vector<std::string> scenes_present = { "calcifiedvillage" };
-
-    present = false;
-    for (const std::string& scene_path : scenes_present)
-    {
-        if (scene.path.find(scene_path) != std::string::npos)
-        {
-            present = true;
-            break;
-        }
-    }
-
-    if (!present) return;
-
     player = scene.GetEntityOfName(target_entity_name);
-    enemy = scene.GetEntityOfName(enemy_entity_name);
+    golem = scene.GetEntityOfName(enemy_entity_name);
     rock = scene.GetEntityOfName(rock_name);
+
+    if (!player || !golem || !rock) return;
 
     for (auto& layer : project.GetLayers())
     {
@@ -47,28 +35,28 @@ void StoneGolem::OnAttach()
         }
     }
 
-    if (!player || !enemy || !rock || !player_layer) return;
+    if (!player_layer) return;
 
-    JPH::Ref<JPH::GroupFilterTable> collision_filter = physics_system.Filter("enemy_hitboxes", 2);
-    collision_filter->DisableCollision(0, 1);
+    JPH::Ref<JPH::GroupFilterTable> collision_filter = physics_system.Filter("game_entities", 4);
 
-    if (enemy->HasComponent<PhysicsComponent>())
+    if (golem->HasComponent<PhysicsComponent>())
     {
-        PhysicsComponent& physics_component = enemy->GetComponent<PhysicsComponent>();
-        physics_component.physics_body->SetCollisionGroup(JPH::CollisionGroup(collision_filter, 0, 0));
+        PhysicsComponent& physics_component = golem->GetComponent<PhysicsComponent>();
+        physics_component.physics_body->SetCollisionGroup(JPH::CollisionGroup(collision_filter, 0, 1));
+        physics_component.physics_body->SetMass(100.0f);
     }
 
     if (rock->HasComponent<PhysicsComponent>())
     {
         PhysicsComponent& physics_component = rock->GetComponent<PhysicsComponent>();
-        physics_component.physics_body->SetCollisionGroup(JPH::CollisionGroup(collision_filter, 0, 1));
+        physics_component.physics_body->SetCollisionGroup(JPH::CollisionGroup(collision_filter, 0, 0));
         physics_system.RegisterBodyEntity(physics_component.physics_body->GetBodyID(), rock);
         rock_collision_enabled = false;
     }
     
-    if (enemy->HasComponent<AnimationComponent>())
+    if (golem->HasComponent<AnimationComponent>())
     {
-        AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
+        AnimationComponent& animation_component = golem->GetComponent<AnimationComponent>();
         Animator& animator = *animation_component.animator;
 
         Log::Info("=== Available Animations ===");
@@ -87,49 +75,68 @@ void StoneGolem::OnAttach()
             Log::Error("ATTACK animation not found!");
     }
 
-    spawn = enemy->position;
+    spawn = golem->position;
+    health = max_health;
     PlayAnimation("Armature|IDLE");
 }
 
 void StoneGolem::OnDetach()
 {
-
+    chasing = false;
+    is_attacking = false;
+    hitbox_was_active = false;
+    rock_collision_enabled = false;
+    is_rotating_to_attack = false;
 }
 
 void StoneGolem::OnUpdate(const float& delta_time)
 {
-    if (dead || !present) return;
-    if (!player || !enemy || !rock || !player_layer) return;
+    if (dead) return;
+    if (!player || !golem || !rock || !player_layer) return;
     
     HandleState(delta_time);
     AttachRockToHand("HandR");
+
+    for (auto it = recent_hitbox_cooldowns.begin(); it != recent_hitbox_cooldowns.end();)
+    {
+        it->timer -= delta_time;
+        if (it->timer <= 0.0f)
+            it = recent_hitbox_cooldowns.erase(it);
+        else
+            ++it;
+    }
 }
 
 void StoneGolem::OnInterfaceUpdate()
 {
+    if (dead) return;
 
 }
 
 void StoneGolem::OnInput(Input& input)
 {
+    if (dead) return;
+    
 }
 
 void StoneGolem::AttachRockToHand(const std::string& bone_name)
 {
+    if (dead) return;
+    
     Project& project = Project::GetInstance();
     Renderer& renderer = Project::GetRenderer();
     Scene& scene = renderer.GetScene();
 
-    if (!rock || !enemy->HasComponent<AnimationComponent>()) return;
+    if (!rock || !golem->HasComponent<AnimationComponent>()) return;
 
-    AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
+    AnimationComponent& animation_component = golem->GetComponent<AnimationComponent>();
     if (!animation_component.animator || !animation_component.animator->skeleton) {
         Log::Error("Animator or skeleton is null");
         return;
     }
     
     glm::mat4 bone_transform = animation_component.animator->GetBoneWorldTransform(bone_name);
-    glm::mat4 entity_world = enemy->GetWorldTransformMatrix(scene.GetEntities());
+    glm::mat4 entity_world = golem->GetWorldTransformMatrix(scene.GetEntities());
     
     glm::mat4 model_rotation_offset = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     model_rotation_offset = glm::translate(model_rotation_offset, glm::vec3(0.0f, 0.0f, -1.0f));
@@ -157,6 +164,8 @@ void StoneGolem::AttachRockToHand(const std::string& bone_name)
 
 void StoneGolem::AttackPlayer()
 {
+    if (dead) return;
+    
     if (!player || !rock || !player_layer) return;
     if (!rock_collision_enabled) return;
     if (!rock->HasComponent<PhysicsComponent>() || !player->HasComponent<PhysicsComponent>()) return;
@@ -172,46 +181,22 @@ void StoneGolem::AttackPlayer()
         player_layer->TakeDamage(damage, rock);
 }
 
-void StoneGolem::PlayAnimation(const std::string& animation_name)
-{
-    if (!enemy->HasComponent<AnimationComponent>()) return;
-    AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
-    Animator& animator = *animation_component.animator;
-    if (animator.GetCurrentAnimation() != nullptr && animator.GetCurrentAnimation()->GetName() != animation_name) animator.Stop();
-    if (animator.GetState() != AnimationState::PLAYING)
-        animator.Play(animation_name);
-}
-void StoneGolem::StopAnimation()
-{
-    if (!enemy->HasComponent<AnimationComponent>()) return;
-    AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
-    Animator& animator = *animation_component.animator;
-    animator.Stop();
-}
-bool StoneGolem::IsAnimationPlaying(const std::string& animation_name)
-{
-    if (!enemy->HasComponent<AnimationComponent>()) return false;
-    AnimationComponent& animation_component = enemy->GetComponent<AnimationComponent>();
-    Animator& animator = *animation_component.animator;
-    if (animator.GetCurrentAnimation()->GetName() == animation_name)
-        return true;
-    return false;
-}
-
 void StoneGolem::HandleState(const float& delta_time)
 {
-    if (!enemy->HasComponent<PhysicsComponent>() || !player->HasComponent<PhysicsComponent>()) return;
+    if (dead) return;
     
-    PhysicsComponent& enemy_physics = enemy->GetComponent<PhysicsComponent>();
+    if (!golem->HasComponent<PhysicsComponent>() || !player->HasComponent<PhysicsComponent>()) return;
+    
+    PhysicsComponent& enemy_physics = golem->GetComponent<PhysicsComponent>();
     PhysicsComponent& player_physics = player->GetComponent<PhysicsComponent>();
     PhysicsBody& enemy_body = *enemy_physics.physics_body;
     PhysicsBody& player_body = *player_physics.physics_body;
     
-    float distance_from_spawn = glm::distance(enemy->position, spawn);
+    float distance_from_spawn = glm::distance(golem->position, spawn);
     if (distance_from_spawn > max_distance_from_spawn)
         chasing = false;
 
-    float distance_from_player = glm::distance(enemy->position, player->position);
+    float distance_from_player = glm::distance(golem->position, player->position);
     if (distance_from_player < chase_range)
         chasing = true;
     
@@ -229,12 +214,13 @@ void StoneGolem::HandleState(const float& delta_time)
             if (should_hitbox_be_active && !hitbox_was_active)
             {
                 rock_collision_enabled = true;
-                Log::Info("Hitbox activated");
+
+                if (rock->HasComponent<AudioComponent>())
+                    rock->GetComponent<AudioComponent>().audio->Play();
             }
             else if (!should_hitbox_be_active && hitbox_was_active)
             {
                 rock_collision_enabled = false;
-                Log::Info("Hitbox deactivated");
             }
             hitbox_was_active = should_hitbox_be_active;
         }
@@ -257,12 +243,11 @@ void StoneGolem::HandleState(const float& delta_time)
     {
         if (distance_from_player < attack_range)
         {
-            Log::Info(std::to_string(distance_from_player));
             glm::quat current_rotation = enemy_body.GetRotation();
             glm::vec3 forward = current_rotation * forward_alignment;
             glm::vec3 forward_2d = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
 
-            glm::vec3 to_player = player->position - enemy->position;
+            glm::vec3 to_player = player->position - golem->position;
             glm::vec3 to_player_2d = glm::normalize(glm::vec3(to_player.x, 0.0f, to_player.z));
 
             float alignment = -glm::dot(forward_2d, to_player_2d);
@@ -321,15 +306,46 @@ void StoneGolem::HandleState(const float& delta_time)
         AttackPlayer();
 }
 
+void StoneGolem::TakeDamage(float& damage, std::shared_ptr<Entity> hitbox)
+{
+    if (dead) return;
+    if (!hitbox) return;
+
+    for (const auto& cooldown : recent_hitbox_cooldowns)
+    {
+        if (cooldown.hitbox == hitbox)
+            return;
+    }
+    
+    health -= damage;
+    recent_hitbox_cooldowns.emplace_back(hitbox, DAMAGE_COOLDOWN_TIME);
+
+    Log::Warning("Golem hit!");
+    Log::Warning(std::to_string(health));
+    
+    if (health <= 0)
+    {
+        health = 0;
+        golem->GetComponent<ModelComponent>().enabled = false;
+        dead = true;
+        
+        PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+        PhysicsComponent& rock_physics = rock->GetComponent<PhysicsComponent>();
+        rock_physics.physics_body = physics_system.CreateSphereBody(rock_physics.physics_body->GetPosition(), rock_physics.physics_body->GetShapeData().dimensions.x, PhysicsBodyType::DYNAMIC);
+    }
+}
+
 void StoneGolem::SimpleFollowPlayer(const float& delta_time)
 {
-    if (!enemy->HasComponent<PhysicsComponent>())
+    if (dead) return;
+    
+    if (!golem->HasComponent<PhysicsComponent>())
         return;
 
-    auto& enemy_physics = enemy->GetComponent<PhysicsComponent>();
+    auto& enemy_physics = golem->GetComponent<PhysicsComponent>();
     PhysicsBody& enemy_body = *enemy_physics.physics_body;
 
-    glm::vec3 to_player = player->position - enemy->position;
+    glm::vec3 to_player = player->position - golem->position;
     glm::vec3 to_player_2d = glm::normalize(glm::vec3(to_player.x, 0.0f, to_player.z));
 
     glm::quat current_rotation = enemy_body.GetRotation();
@@ -358,6 +374,31 @@ void StoneGolem::SimpleFollowPlayer(const float& delta_time)
     }
 }
 
+void StoneGolem::PlayAnimation(const std::string& animation_name)
+{
+    if (!golem->HasComponent<AnimationComponent>()) return;
+    AnimationComponent& animation_component = golem->GetComponent<AnimationComponent>();
+    Animator& animator = *animation_component.animator;
+    if (animator.GetCurrentAnimation() != nullptr && animator.GetCurrentAnimation()->GetName() != animation_name) animator.Stop();
+    if (animator.GetState() != AnimationState::PLAYING)
+        animator.Play(animation_name);
+}
+void StoneGolem::StopAnimation()
+{
+    if (!golem->HasComponent<AnimationComponent>()) return;
+    AnimationComponent& animation_component = golem->GetComponent<AnimationComponent>();
+    Animator& animator = *animation_component.animator;
+    animator.Stop();
+}
+bool StoneGolem::IsAnimationPlaying(const std::string& animation_name)
+{
+    if (!golem->HasComponent<AnimationComponent>()) return false;
+    AnimationComponent& animation_component = golem->GetComponent<AnimationComponent>();
+    Animator& animator = *animation_component.animator;
+    if (animator.GetCurrentAnimation()->GetName() == animation_name)
+        return true;
+    return false;
+}
 
 
 
@@ -391,23 +432,23 @@ void StoneGolem::UpdatePathfinding(const float& delta_time)
     else if (!current_path.empty())
     {
         glm::vec3 next_waypoint = current_path.front();
-        if (!HasLineOfSight(enemy->position, next_waypoint))
+        if (!HasLineOfSight(golem->position, next_waypoint))
             need_recalculation = true;
     }
 
     if (need_recalculation)
-        current_path = CalculatePath(enemy->position, player->position);
+        current_path = CalculatePath(golem->position, player->position);
 }
 
 void StoneGolem::FollowPath(const float& delta_time)
 {
-    if (current_path.empty() || !enemy->HasComponent<PhysicsComponent>())
+    if (current_path.empty() || !golem->HasComponent<PhysicsComponent>())
                 return;
 
-    auto& enemy_physics = enemy->GetComponent<PhysicsComponent>();
+    auto& enemy_physics = golem->GetComponent<PhysicsComponent>();
     PhysicsBody& enemy_body = *enemy_physics.physics_body;
 
-    glm::vec3 current_pos = enemy->position;
+    glm::vec3 current_pos = golem->position;
     glm::vec3 target_pos = current_path.front();
 
     float distance_to_waypoint = glm::distance(current_pos, target_pos);

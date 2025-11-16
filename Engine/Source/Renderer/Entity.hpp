@@ -41,8 +41,15 @@ namespace Bonfire {
         void ValidateDOFS();
         bool AddComponent(ComponentType type, std::shared_ptr<Component> component);
         bool RemoveComponent(ComponentType type);
-        template<typename T> T& GetComponent() { return *std::static_pointer_cast<T>(components.at(GetComponentType<T>())); }
-        template<typename T> bool HasComponent() const { return components.contains(GetComponentType<T>()); }
+        template<typename T> T& GetComponent()
+        {
+            assert(HasComponent<T>() && "Entity does not have component");
+            return *std::static_pointer_cast<T>(components.at(GetComponentType<T>()));
+        }
+        template<typename T> bool HasComponent() const
+        {
+            return components.contains(GetComponentType<T>());
+        }
         
         glm::quat GetTransformOrientation() const ;
         glm::mat4 GetTransformMatrix();

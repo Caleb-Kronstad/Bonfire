@@ -4,7 +4,7 @@
     "window-height": 720,
     "fullscreen": false,
     "enable-editor": true,
-    "initial-scene-path": "Data/Scenes/testscene.bonfire",
+    "scene-paths": [ "Data/Scenes/calcifiedvillage.bonfire", "Data/Scenes/thehollow.bonfire" ],
     "project-manager-script": "Data/Resources/Scripts/ProjectManager.lua",
     "vsync": true,
     "antialiasing-level": 4,

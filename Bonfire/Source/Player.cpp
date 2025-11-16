@@ -1,10 +1,12 @@
 #include "Player.hpp"
+#include "StoneGolem.hpp"
 
 Player::Player() : Layer("New Layer")
 {
 	player_stats = PlayerStats();
 	current_health = player_stats.max_health;
-	weapon_stats = WeaponStats("Greatsword", glm::vec3(-1.0f, 0.1f, 0.0f), 5, 1, 10);
+	weapon_stats = WeaponStats("Greatsword", glm::vec3(-1.0f, 1.9f, 0.0f), 5, 1, 10);
+	default_move_speed = player_stats.move_speed;
 }
 Player::~Player()
 {
@@ -19,6 +21,7 @@ void Player::OnAttach()
 	AudioSystem& audio_system = Project::GetAudioSystem();
 	ScriptSystem& script_system = Project::GetScriptSystem();
 	Scene& scene = renderer.GetScene();
+	Window& window = project.GetWindow();
 
 	player = scene.GetEntityOfName("Player");
 	arm = scene.GetEntityOfName("PlayerArm");
@@ -34,11 +37,41 @@ void Player::OnAttach()
 		physics_system.RegisterBodyEntity(physics_component.physics_body->GetBodyID(), player);
 	}
 
+	for (auto& layer : project.GetLayers())
+	{
+		if (StoneGolem* golem_ptr = dynamic_cast<StoneGolem*>(layer.get()))
+		{
+			stone_golem_layer = golem_ptr;
+			break;
+		}
+	}
+
+	JPH::Ref<JPH::GroupFilterTable> collision_filter = physics_system.Filter("game_entities", 4);
+	collision_filter->DisableCollision(0, 1);
+	collision_filter->DisableCollision(0, 3);
+	collision_filter->DisableCollision(2, 3);
+
+	if (player->HasComponent<PhysicsComponent>())
+	{
+		PhysicsComponent& physics_component = player->GetComponent<PhysicsComponent>();
+		physics_component.physics_body->SetCollisionGroup(JPH::CollisionGroup(collision_filter, 0, 2));
+	}
+	if (weapon->HasComponent<PhysicsComponent>())
+	{
+		PhysicsComponent& physics = weapon->GetComponent<PhysicsComponent>();
+		physics.physics_body->SetCollisionGroup(JPH::CollisionGroup(collision_filter, 0, 3));
+		physics_system.RegisterBodyEntity(physics.physics_body->GetBodyID(), weapon);
+		physics.physics_body->SetScale(glm::vec3(0.5f, 1.0f, 0.0f));
+	}
+
 	spawn = player->position;
+	glfwSetInputMode(window.GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void Player::OnDetach()
 {
+	camera_can_move = true;
+	player_stats.move_speed = default_move_speed;
 	music_audio->Stop();
 }
 
@@ -50,6 +83,8 @@ void Player::OnUpdate(const float& delta_time)
 	
 	if (!player || !player->HasComponent<CameraComponent>() || !player->HasComponent<PhysicsComponent>())
 		return;
+
+	if (player_stats.move_speed == 0.0f) return;
 
 	CameraComponent& camera_comp = player->GetComponent<CameraComponent>();
 	PhysicsComponent& physics_comp = player->GetComponent<PhysicsComponent>();
@@ -120,9 +155,17 @@ void Player::OnUpdate(const float& delta_time)
     arm->rotation = glm::degrees(glm::eulerAngles(final_arm_rotation));
     glm::vec3 rotated_weapon_offset = final_arm_rotation * weapon_stats.offset;
     weapon->position = arm->position + rotated_weapon_offset;
-	glm::quat weapon_local_rotation = glm::quat(glm::radians(glm::vec3(270.0f, 270.0f, 0.0f)));
+	glm::quat weapon_local_rotation = glm::quat(glm::radians(glm::vec3(0.0f, 270.0f, 0.0f)));
 	glm::quat final_weapon_rotation = final_arm_rotation * weapon_local_rotation;
     weapon->rotation = glm::degrees(glm::eulerAngles(final_weapon_rotation));
+	if (weapon->HasComponent<PhysicsComponent>())
+	{
+		PhysicsComponent& physics = weapon->GetComponent<PhysicsComponent>();
+		physics.physics_body->SetPosition(weapon->position);
+		physics.physics_body->SetRotation(final_weapon_rotation);
+		physics.physics_body->SetLinearVelocity(glm::vec3(0.0f));
+		physics.physics_body->SetAngularVelocity(glm::vec3(0.0f));
+	}
 
 	// update player entity rotation
     player->rotation = glm::vec3(0.0f, glm::radians(camera->yaw), 0.0f);
@@ -140,6 +183,8 @@ void Player::OnUpdate(const float& delta_time)
 			recent_hitbox_cooldowns.erase(recent_hitbox_cooldowns.begin() + i);
 		}
 	}
+
+	CheckWeaponHit();
 }
 
 void Player::OnInterfaceUpdate()
@@ -209,16 +254,13 @@ void Player::DrawHealthBar()
 	ImGui::Dummy(ImVec2(bar_width, bar_height));
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	ImU32 bg_color = IM_COL32(80, 80, 80, 255);
-	ImU32 health_color = IM_COL32(220, 20, 20, 255);
-	ImU32 border_color = IM_COL32(0, 0, 0, 255);
+	ImU32 bg_color = IM_COL32(25, 25, 25, 255);
+	ImU32 health_color = IM_COL32(107, 27, 10, 255);
 
 	draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + bar_width, cursor_pos.y + bar_height), bg_color, 0.0f);
 	float filled_width = bar_width * health_percentage;
 	if (filled_width > 0.0f)
 		draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + filled_width, cursor_pos.y + bar_height), health_color, 0.0f);
-
-	//draw_list->AddRect(cursor_pos, ImVec2(cursor_pos.x + bar_width, cursor_pos.y + bar_height), border_color, 0.0f);
 
 	ImGui::End();
 }
@@ -239,6 +281,7 @@ void Player::OnInput(Input& input)
 		{
 			is_attacking = true;
 			attack_timer = 0.0f;
+			already_hit_this_swing = false;
 		}
 	}
 
@@ -247,46 +290,54 @@ void Player::OnInput(Input& input)
 		const auto key_input = dynamic_cast<KeyPressedInput&>(input);
 		if (key_input.GetKeyCode() == InputCode::Escape)
 		{
-			int current_mode = glfwGetInputMode(glfw_window, GLFW_CURSOR);
-			if (current_mode == GLFW_CURSOR_DISABLED)
-				glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			else
-				glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			// debug in-engine
+			//if (project.GetEngineRunState())
+			//{
+				int current_mode = glfwGetInputMode(glfw_window, GLFW_CURSOR);
+				if (current_mode == GLFW_CURSOR_DISABLED)
+					glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				else
+					glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			//}
 		}
 	}
 	
 	if (input.GetInputType() == InputType::MouseMoved)
 	{
 		auto& mouse_input = dynamic_cast<MouseMovedInput&>(input);
-		auto& camera_comp = player->GetComponent<CameraComponent>();
-		Camera* camera = camera_comp.camera.get();
 
-		float x = mouse_input.GetX();
-		float y = mouse_input.GetY();
-
-		if (camera->IsFirstMouse())
+		if (camera_can_move)
 		{
+			auto& camera_comp = player->GetComponent<CameraComponent>();
+			Camera* camera = camera_comp.camera.get();
+
+			float x = mouse_input.GetX();
+			float y = mouse_input.GetY();
+
+			if (camera->IsFirstMouse())
+			{
+				camera->GetLastX() = x;
+				camera->GetLastY() = y;
+				camera->IsFirstMouse() = false;
+			}
+
+			float x_offset = x - camera->GetLastX();
+			float y_offset = y - camera->GetLastY();
+
 			camera->GetLastX() = x;
 			camera->GetLastY() = y;
-			camera->IsFirstMouse() = false;
+
+			const float sensitivity = 0.1f;
+			x_offset *= sensitivity;
+			y_offset *= sensitivity;
+
+			camera->yaw += x_offset;
+			camera->pitch -= y_offset;
+
+			camera->pitch = (std::max)(-89.0f, (std::min)(89.0f, camera->pitch));
+
+			camera->UpdateCameraVectors();
 		}
-
-		float x_offset = x - camera->GetLastX();
-		float y_offset = y - camera->GetLastY();
-
-		camera->GetLastX() = x;
-		camera->GetLastY() = y;
-
-		const float sensitivity = 0.1f;
-		x_offset *= sensitivity;
-		y_offset *= sensitivity;
-
-		camera->yaw += x_offset;
-		camera->pitch -= y_offset;
-
-		camera->pitch = (std::max)(-89.0f, (std::min)(89.0f, camera->pitch));
-
-		camera->UpdateCameraVectors();
 	}
 }
 
@@ -312,6 +363,30 @@ void Player::TakeDamage(float damage, std::shared_ptr<Entity> hitbox)
 	}
 }
 
+void Player::CheckWeaponHit()
+{
+	if (!is_attacking) return;
+	if (already_hit_this_swing) return;
+	if (!stone_golem_layer) return;
+	if (!weapon || !weapon->HasComponent<PhysicsComponent>()) return;
+
+	std::shared_ptr<Entity> golem_entity = stone_golem_layer->golem;
+	if (!golem_entity || !golem_entity->HasComponent<PhysicsComponent>()) return;
+
+	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+	JPH::BodyID weapon_body_id = weapon->GetComponent<PhysicsComponent>().physics_body->GetBodyID();
+	JPH::BodyID golem_body_id = golem_entity->GetComponent<PhysicsComponent>().physics_body->GetBodyID();
+	
+	if (physics_system.AreBodiesColliding(weapon_body_id, golem_body_id))
+	{
+		stone_golem_layer->TakeDamage(weapon_stats.damage, weapon);
+		already_hit_this_swing = true;
+		
+		PhysicsComponent& golem_physics = golem_entity->GetComponent<PhysicsComponent>();
+		golem_physics.physics_body->SetLinearVelocity(glm::vec3(0.0f));
+		golem_physics.physics_body->SetAngularVelocity(glm::vec3(0.0f));
+	}
+}
 
 glm::vec3 Player::CalculateCameraBob(const float& delta_time, bool is_moving)
 {

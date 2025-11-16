@@ -202,5 +202,39 @@
             1.0,
             1.0
         ]
+    },
+    "1012": {
+        "diffuse-id": 1016,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "The Hollow",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 8.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1013": {
+        "diffuse-id": 1017,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "The Knight",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 64.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
     }
 }

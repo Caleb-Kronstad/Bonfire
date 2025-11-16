@@ -55,7 +55,7 @@ namespace Bonfire
     void Audio::SetVolume(float volume)
     {
         if (!initialized) return;
-        ma_sound_set_volume(&sound, glm::clamp(volume, 0.0f, 1.0f));
+        ma_sound_set_volume(&sound, glm::clamp(volume, 0.0f, 10.0f));
     }
 
     float Audio::GetVolume() const

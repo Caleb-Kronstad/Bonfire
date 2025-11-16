@@ -128,7 +128,7 @@ namespace Bonfire
 		
 		if (scenes.at(current_scene_index)->GetDirectionalLight() != nullptr && scenes.at(current_scene_index)->GetDirectionalLight()->enabled)
 		{
-			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction);
+			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction, editor.GetEngineCamera().position);
 			scenes.at(current_scene_index)->GetShadowMap()->SetDirectional();
 
 			for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
@@ -224,7 +224,7 @@ namespace Bonfire
 		
 		if (scenes.at(current_scene_index)->GetDirectionalLight() != nullptr && scenes.at(current_scene_index)->GetDirectionalLight()->enabled)
 		{
-			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction);
+			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction, scenes.at(current_scene_index)->GetCurrentCamera()->position);
 			scenes.at(current_scene_index)->GetShadowMap()->SetDirectional();
 
 			for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
@@ -306,7 +306,7 @@ namespace Bonfire
 			{
 				ModelComponent& model_component = entity->GetComponent<ModelComponent>();
 				std::shared_ptr<Shader> shader = model_component.shader;
-				if (shader->name == "Lit" )
+				if (shader->name == "Lit" || shader->name == "Lit PSX")
 				{
 					if (!shader->updated_this_frame)
 					{

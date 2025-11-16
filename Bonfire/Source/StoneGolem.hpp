@@ -17,6 +17,8 @@ public:
     void OnInterfaceUpdate() override;
     void OnInput(Input& input) override;
 
+    void TakeDamage(float& damage, std::shared_ptr<Entity> hitbox);
+
 private:
     void AttackPlayer();
     void AttachRockToHand(const std::string& bone_name);
@@ -32,9 +34,18 @@ private:
     bool HasLineOfSight(const glm::vec3& from, const glm::vec3& to);
     std::vector<glm::vec3> CalculatePath(const glm::vec3& start, const glm::vec3& goal);
 
+public:
+    std::shared_ptr<Entity> golem;
+
 private:
     bool dead = false;
-    bool present = false;
+    bool can_take_damage = true;
+    float health;
+    float max_health = 25.0f;
+    float damage = 1.0f;
+
+    std::vector<HitboxCooldown> recent_hitbox_cooldowns;
+    const float DAMAGE_COOLDOWN_TIME = 1.0f;
 
     std::string enemy_entity_name;
     std::string target_entity_name;
@@ -43,7 +54,6 @@ private:
     glm::vec3 spawn;
     
     Player* player_layer = nullptr;
-    std::shared_ptr<Entity> enemy;
     std::shared_ptr<Entity> player;
     std::vector<glm::vec3> current_path;
 
@@ -75,8 +85,4 @@ private:
     bool is_rotating_to_attack = false;
     float attack_rotation_timer = 0.0f;
     float max_attack_rotation_time = 2.0f;
-
-    float damage = 1.0f;
-    float max_health = 10.0f;
-    float current_health;
 };

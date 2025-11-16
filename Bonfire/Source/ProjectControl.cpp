@@ -1,7 +1,8 @@
 #include "BonfireEngine.hpp"
 
 #include "Player.hpp"
-#include "Enemy.hpp"
+#include "StoneGolem.hpp"
+#include "NPCManager.hpp"
 
 class BonfireProject : public Project
 {
@@ -9,6 +10,7 @@ public:
 	BonfireProject() : Project("Bonfire")
 	{
 		PushLayer(std::make_shared<Player>());
+		PushLayer(std::make_shared<NPCManager>());
 		PushLayer(std::make_shared<StoneGolem>("StoneGolem", "Player", "StoneGolemRock"));
 	}
 
