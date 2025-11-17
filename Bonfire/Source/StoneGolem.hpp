@@ -62,7 +62,7 @@ private:
     std::shared_ptr<Audio> golem_alert_audio;
 
     std::shared_ptr<Entity> rock;
-    glm::vec3 rock_position_offset = glm::vec3(0.0f, 1.5f, -1.0f);
+    glm::vec3 rock_position_offset = glm::vec3(-0.5f, 3.5f, -2.0f);
     const float HITBOX_ACTIVE_START = 0.17f;
     const float HITBOX_ACTIVE_END = 0.34f;
     bool hitbox_was_active = false;
@@ -81,7 +81,7 @@ private:
     float attack_range = 10.0f;
 
     float min_alignment_to_move = -1.0f;
-    float rotation_before_attack_threshold = 0.95;
+    float rotation_before_attack_threshold = 0.95f;
     bool is_rotating_to_attack = false;
     float attack_rotation_timer = 0.0f;
     float max_attack_rotation_time = 2.0f;

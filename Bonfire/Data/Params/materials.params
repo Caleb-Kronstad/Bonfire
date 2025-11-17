@@ -236,5 +236,90 @@
             1.0,
             1.0
         ]
+    },
+    "1014": {
+        "diffuse-id": 1018,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Petrified Villager",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 8.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1015": {
+        "diffuse-id": 1019,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Merchant",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 64.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1016": {
+        "diffuse-id": 1020,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Forsaken",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 64.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1017": {
+        "diffuse-id": 1022,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Water",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 256.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
+    },
+    "1018": {
+        "diffuse-id": 1023,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "LCS",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 64.0,
+        "specular-id": 1001,
+        "tiling": [
+            1.0,
+            1.0
+        ]
     }
 }

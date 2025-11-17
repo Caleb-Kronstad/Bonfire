@@ -4,7 +4,7 @@
 
 using namespace Bonfire;
 
-class StoneGolem;
+class EnemyManager;
 
 struct HitboxCooldown
 {
@@ -37,6 +37,37 @@ struct PlayerStats
 		: name(name), max_health(max_health),  move_speed(move_speed), petrification_stacks(petrification_stacks) { }
 };
 
+enum class ItemType
+{
+	WEAPON,
+	CONSUMABLE,
+	KEY,
+	MISC
+};
+
+struct InventoryItem
+{
+    std::shared_ptr<Texture> icon;
+	std::string name;
+	std::string description;
+	ItemType type = ItemType::MISC;
+	int width = 1;
+	int height = 1;
+	bool rotated = false;
+
+	int grid_x = -1;
+	int grid_y = -1;
+
+	int GetWidth() const { return rotated ? height : width; }
+	int GetHeight() const { return rotated ? width : height; }
+};
+
+struct InventorySlot
+{
+	bool filled = false;
+	std::shared_ptr<InventoryItem> item;
+};
+
 class Player : public Layer
 {
 public:
@@ -57,6 +88,15 @@ private:
 	glm::vec3 CalculateCameraBob(const float& delta_time, bool is_moving);
 	void CheckWeaponHit();
 
+	bool CanPlaceItem(int grid_x, int grid_y, const InventoryItem& item, int ignore_index = -1);
+	bool PlaceItem(int grid_x, int grid_y, InventoryItem item);
+	bool RemoveItem(int item_index);
+	void RotateSelectedItem();
+	int GetItemAt(int grid_x, int grid_y);
+	std::pair<int, int> FindFreeSpace(const InventoryItem& item);
+	void InitializeInventory();
+	void DrawInventoryGrid();
+
 public:
 	PlayerStats player_stats;
 	WeaponStats weapon_stats;
@@ -64,6 +104,21 @@ public:
 	bool camera_can_move;
 
 private:
+	float current_health;
+
+	static constexpr int INVENTORY_ROWS = 6;
+	static constexpr int INVENTORY_COLUMNS = 10;
+
+	std::array<std::array<int, INVENTORY_COLUMNS>, INVENTORY_ROWS> inventory_grid;
+	std::vector<InventoryItem> inventory_items;
+
+	int selected_slot_x = 0;
+	int selected_slot_y = 0;
+	int dragging_item_index = -1;
+	ImVec2 drag_offset = ImVec2(0, 0);
+	bool is_dragging = false;
+	bool inventory_open = false;
+	
 	std::vector<HitboxCooldown> recent_hitbox_cooldowns;
 	const float DAMAGE_COOLDOWN_TIME = 1.0f;
 
@@ -77,8 +132,6 @@ private:
 
 	glm::vec3 camera_offset = glm::vec3(0.0f, 2.5f, 0.0f);
 	glm::vec3 arm_offset = glm::vec3(1.2f, -1.5f, 1.0f);
-	
-	float current_health;
 
 	bool is_attacking = false;
 	float attack_timer = 0.0f;
@@ -87,7 +140,7 @@ private:
 	glm::vec3 attack_rotation_end = glm::vec3(0.0f, 0.0f, 90.0f);
 	
 	bool already_hit_this_swing = false;
-	StoneGolem* stone_golem_layer = nullptr;
+	EnemyManager* stone_golem_layer = nullptr;
 
 	float bob_timer = 0.0f;
 	float bob_frequency = 10.0f;

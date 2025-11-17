@@ -22,12 +22,14 @@ struct PetrifiedNPC
     PetrifiedNPC(std::shared_ptr<Entity> entity, std::string animation) : entity(entity), animation(animation) {}
 };
 
-struct ShopItem
+struct ShopItem : InventoryItem
 {
-    //std::shared_ptr<Texture> image;
+    std::shared_ptr<Texture> icon;
     std::string name;
     std::string description;
     int price;
+
+    ShopItem(std::string name, std::string description, int price) : name(name), description(description), price(price) {}
 };
 
 namespace Bonfire
@@ -48,11 +50,12 @@ namespace Bonfire
         void DisplayMerchantShop();
 
     private:
-        std::shared_ptr<Entity> player_entity;
+        std::shared_ptr<Entity> player;
         Player* player_layer = nullptr;
         
         NPC knight;
         NPC merchant;
+        NPC forsaken;
 
         std::vector<ShopItem> shop_items;
         bool displaying_shop = false;

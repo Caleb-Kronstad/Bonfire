@@ -18,11 +18,13 @@ void NPCManager::OnAttach()
     ScriptSystem& script_system = Project::GetScriptSystem();
     Scene& scene = renderer.GetScene();
 
-    player_entity = scene.GetEntityOfName("Player");
+    player = scene.GetEntityOfName("Player");
     knight.entity = scene.GetEntityOfName("Knight");
     merchant.entity = scene.GetEntityOfName("Merchant");
+    forsaken.entity = scene.GetEntityOfName("Forsaken");
     knight.interact_range = 10.0f;
-    merchant.interact_range = 15.0f;
+    merchant.interact_range = 12.0f;
+    forsaken.interact_range = 10.0f;
     
     for (auto& layer : project.GetLayers())
     {
@@ -33,7 +35,7 @@ void NPCManager::OnAttach()
         }
     }
 
-    if (!player_layer || !player_entity) return;
+    if (!player_layer || !player) return;
 
     if (knight.entity != nullptr)
     {
@@ -48,8 +50,17 @@ void NPCManager::OnAttach()
         if (merchant.entity->HasComponent<AnimationComponent>())
         {
             AnimationComponent& animation_component = merchant.entity->GetComponent<AnimationComponent>();
-            animation_component.animator->Play("Armature|IDLE");
             animation_component.animator->loop = true;
+            animation_component.animator->Play("Armature|IDLE");
+        }
+    }
+    if (forsaken.entity != nullptr)
+    {
+        if (forsaken.entity->HasComponent<AnimationComponent>())
+        {
+            AnimationComponent& animation_component = forsaken.entity->GetComponent<AnimationComponent>();
+            animation_component.animator->loop = true;
+            animation_component.animator->Play("Armature|FORSAKEN");
         }
     }
     
@@ -87,43 +98,48 @@ void NPCManager::OnAttach()
 }
 void NPCManager::OnDetach()
 {
-    if (!player_entity) return;
+    if (!player) return;
 
     if (knight.entity != nullptr)
     {
-        if (knight.entity->HasComponent<AnimationComponent>())
+        if (knight.entity->HasComponent<AudioComponent>())
             knight.entity->GetComponent<AudioComponent>().audio->Stop();
     }
     if (merchant.entity != nullptr)
     {
-        if (merchant.entity->HasComponent<AnimationComponent>())
+        if (merchant.entity->HasComponent<AudioComponent>())
             merchant.entity->GetComponent<AudioComponent>().audio->Stop();
     }
+    if (forsaken.entity != nullptr)
+    {
+        if (forsaken.entity->HasComponent<AudioComponent>())
+            forsaken.entity->GetComponent<AudioComponent>().audio->Stop();
+    }
+    displaying_shop = false;
+
+    knight.interacting = false;
+    merchant.interacting = false;
+    forsaken.interacting = false;
 }
 
 void NPCManager::OnUpdate(const float& delta_time)
 {
-    if (!player_entity) return;
-    
-    Project& project = Project::GetInstance();
-    Renderer& renderer = Project::GetRenderer();
-    PhysicsSystem& physics_system = Project::GetPhysicsSystem();
-    AudioSystem& audio_system = Project::GetAudioSystem();
-    ScriptSystem& script_system = Project::GetScriptSystem();
-    Scene& scene = renderer.GetScene();
+    if (!player) return;
 
     if (knight.entity != nullptr)
     {
-        float knight_to_player = glm::distance(knight.entity->position, player_entity->position);
-        if (knight_to_player < knight.interact_range)
-            knight.can_interact = true;
-        else
-            knight.can_interact = false;
+        float knight_to_player = glm::distance(knight.entity->position, player->position);
+        knight.can_interact = knight_to_player < knight.interact_range;
     }
     if (merchant.entity != nullptr)
     {
-        float merchant_to_player = glm::distance(merchant.entity->position, player_entity->position);
+        float merchant_to_player = glm::distance(merchant.entity->position, player->position);
         merchant.can_interact = merchant_to_player < merchant.interact_range;
+    }
+    if (forsaken.entity != nullptr)
+    {
+        float forsaken_to_player = glm::distance(forsaken.entity->position, player->position);
+        forsaken.can_interact = forsaken_to_player < forsaken.interact_range;
     }
 }
 
@@ -131,8 +147,9 @@ void NPCManager::OnInput(Input& input)
 {
     Project& project = Project::GetInstance();
     Window& window = project.GetWindow();
+    AudioSystem& audio_system = Project::GetAudioSystem();
     
-    if (!player_entity) return;
+    if (!player) return;
 
     if (input.GetInputType() == InputType::KeyPressed)
     {
@@ -143,10 +160,14 @@ void NPCManager::OnInput(Input& input)
             if (knight.entity != nullptr && knight.can_interact && !knight.interacting)
             {
                 knight.interacting = true;
-                knight.interaction_count++;
+
+                if (knight.interaction_count == 0)
+                {
+                    if (knight.entity->HasComponent<AudioComponent>())
+                        knight.entity->GetComponent<AudioComponent>().audio->Play();
+                }
                 
-                if (knight.entity->HasComponent<AudioComponent>())
-                    knight.entity->GetComponent<AudioComponent>().audio->Play();
+                knight.interaction_count++;
             }
             
             if (merchant.entity != nullptr && merchant.can_interact && !merchant.interacting)
@@ -155,9 +176,9 @@ void NPCManager::OnInput(Input& input)
                 displaying_shop = true;
 
                 player_layer->camera_can_move = false;
-                player_entity->GetComponent<CameraComponent>().camera->LookAt(merchant.entity->position);
-                glm::vec3 velocity = player_entity->GetComponent<PhysicsComponent>().physics_body->GetLinearVelocity();
-                player_entity->GetComponent<PhysicsComponent>().physics_body->SetLinearVelocity(glm::vec3(0.0f, velocity.y, 0.0f));
+                player->GetComponent<CameraComponent>().camera->LookAt(merchant.entity->position);
+                glm::vec3 velocity = player->GetComponent<PhysicsComponent>().physics_body->GetLinearVelocity();
+                player->GetComponent<PhysicsComponent>().physics_body->SetLinearVelocity(glm::vec3(0.0f, velocity.y, 0.0f));
                 
                 if (merchant.entity->HasComponent<AnimationComponent>())
                 {
@@ -176,13 +197,49 @@ void NPCManager::OnInput(Input& input)
                 glfwSetInputMode(window.GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 player_layer->player_stats.move_speed = 0.0f;
             }
+
+            if (forsaken.entity != nullptr && forsaken.can_interact && !forsaken.interacting)
+            {
+                forsaken.interacting = true;
+                    
+                if (forsaken.entity->HasComponent<AudioComponent>())
+                {
+                    AudioComponent& audio_component = forsaken.entity->GetComponent<AudioComponent>();
+                    if (!audio_component.audio->IsPlaying())
+                    {
+                        if (forsaken.interaction_count == 0)
+                        {
+                            forsaken.interacting = false;
+                            audio_component.audio = audio_system.GetAudio(1013);
+                            audio_component.audio->SetVolume(2.0f);
+                            audio_component.audio->Play();
+                            forsaken.interaction_count++;
+                        }
+                        else if (forsaken.interaction_count == 1)
+                        {
+                            forsaken.interacting = false;
+                            audio_component.audio = audio_system.GetAudio(1014);
+                            audio_component.audio->SetVolume(2.0f);
+                            audio_component.audio->Play();
+                            forsaken.interaction_count++;
+                        }
+                        else if (forsaken.interaction_count == 2)
+                        {
+                            forsaken.interacting = false;
+                            audio_component.audio = audio_system.GetAudio(1015);
+                            audio_component.audio->SetVolume(2.0f);
+                            audio_component.audio->Play();
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 void NPCManager::OnInterfaceUpdate()
 {
-    if (!player_entity) return;
+    if (!player) return;
 
     if (displaying_shop && merchant.entity != nullptr)
         DisplayMerchantShop();
@@ -209,9 +266,9 @@ void NPCManager::DisplayMerchantShop()
     {
         ImGui::PushID(&item);
         ImGui::Text(item.name.c_str());
-        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), item.description.c_str());
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), std::to_string(item.price).c_str());
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), item.description.c_str());
 
         if (ImGui::Button("Purchase", ImVec2(60, 25)))
         {
@@ -233,7 +290,7 @@ void NPCManager::DisplayMerchantShop()
         
         player_layer->camera_can_move = true;
         player_layer->player_stats.move_speed = player_layer->default_move_speed;
-        player_entity->GetComponent<CameraComponent>().camera->IsFirstMouse() = true;
+        player->GetComponent<CameraComponent>().camera->IsFirstMouse() = true;
 
         AudioSystem& audio_system = Project::GetAudioSystem();
         AudioComponent& audio_component = merchant.entity->GetComponent<AudioComponent>();

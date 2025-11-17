@@ -620,8 +620,9 @@ namespace Bonfire
 
 		ImGui::Separator();
 		ImGui::Text("Engine Camera");
-		ImGui::SliderFloat("Camera Speed", &engine_camera_speed, 0.01f, 100.0f, "%.1f");
-		ImGui::SliderFloat("Camera Sensitivity", &engine_camera_turn_sensitivity, 0.01f, 10.0f, "%.1f");
+		ImGui::SliderFloat("Speed", &engine_camera_speed, 1.0f, 500.0f, "%.f");
+		ImGui::SliderFloat("Sensitivity", &engine_camera_turn_sensitivity, 0.1f, 10.0f, "%.1f");
+		ImGui::DragFloat3("Position", (float*)&engine_camera->position, 1.0f, -500.0f, 500.0f, "%.3f");
     	ImGui::PopItemWidth();
 
     	ImGui::Separator();

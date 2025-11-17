@@ -65,6 +65,7 @@ namespace Bonfire
 		// scene
 		std::vector<std::unique_ptr<Scene>> scenes;
 		int current_scene_index = 0;
+		bool scene_transition_in_progress = false;
 		std::unique_ptr<ParamDatabase> param_database;
         std::unique_ptr<Framebuffer> editor_viewport_framebuffer;
 		std::unique_ptr<Framebuffer> project_viewport_framebuffer;

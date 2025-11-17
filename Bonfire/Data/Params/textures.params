@@ -106,5 +106,41 @@
         "name": "Knight",
         "path": "Data/Resources/Textures/Characters/Knight.png",
         "type": 0
+    },
+    "1018": {
+        "flip": false,
+        "name": "PetrifiedVillager",
+        "path": "Data/Resources/Textures/Maps/CalcifiedVillage/PetrifiedVillager.png",
+        "type": 0
+    },
+    "1019": {
+        "flip": false,
+        "name": "Merchant",
+        "path": "Data/Resources/Textures/Characters/Merchant.png",
+        "type": 0
+    },
+    "1020": {
+        "flip": false,
+        "name": "Forsaken",
+        "path": "Data/Resources/Textures/Characters/Forsaken.png",
+        "type": 0
+    },
+    "1021": {
+        "flip": false,
+        "name": "Greatsword",
+        "path": "Data/Resources/Textures/Icons/Greatsword.png",
+        "type": 0
+    },
+    "1022": {
+        "flip": false,
+        "name": "Water",
+        "path": "Data/Resources/Textures/Maps/TheHollow/Water.png",
+        "type": 0
+    },
+    "1023": {
+        "flip": false,
+        "name": "LongCubeSubdivided",
+        "path": "Data/Resources/Textures/Maps/TheHollow/LongCubeSubdivided.png",
+        "type": 0
     }
 }

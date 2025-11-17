@@ -1,4 +1,5 @@
 #include "BonfireEngine.hpp"
+#include "EnemyManager.hpp"
 
 #include "Player.hpp"
 #include "StoneGolem.hpp"
@@ -11,7 +12,8 @@ public:
 	{
 		PushLayer(std::make_shared<Player>());
 		PushLayer(std::make_shared<NPCManager>());
-		PushLayer(std::make_shared<StoneGolem>("StoneGolem", "Player", "StoneGolemRock"));
+		PushLayer(std::make_shared<EnemyManager>());
+		//PushLayer(std::make_shared<StoneGolem>("StoneGolem", "Player", "StoneGolemRock"));
 	}
 
 	~BonfireProject()

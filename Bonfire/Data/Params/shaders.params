@@ -36,9 +36,15 @@
         "vert-path": "Data/Editor/Defaults/Shaders/skybox.vert"
     },
     "1006": {
-        "frag-path": "Data/Editor/Defaults/Shaders/litinstanced.frag",
+        "frag-path": "Data/Resources/Shaders/lit-psx.frag",
         "geom-path": "None",
-        "name": "Lit Instanced",
-        "vert-path": "Data/Editor/Defaults/Shaders/litinstanced.vert"
+        "name": "Lit PSX",
+        "vert-path": "Data/Resources/Shaders/lit-psx.vert"
+    },
+    "1007": {
+        "frag-path": "Data/Resources/Shaders/water.frag",
+        "geom-path": "None",
+        "name": "Water",
+        "vert-path": "Data/Resources/Shaders/water.vert"
     }
 }

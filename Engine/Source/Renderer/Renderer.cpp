@@ -303,66 +303,82 @@ namespace Bonfire
 		Editor& editor = Project::GetEditor();
 		
 		if (entity->HasComponent<ModelComponent>())
+		{
+			ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+			std::shared_ptr<Shader> shader = model_component.shader;
+		
+			shader->Use();
+			if (shader->name == "Lit" || shader->name == "Lit PSX")
 			{
-				ModelComponent& model_component = entity->GetComponent<ModelComponent>();
-				std::shared_ptr<Shader> shader = model_component.shader;
-				if (shader->name == "Lit" || shader->name == "Lit PSX")
+				if (!shader->updated_this_frame)
 				{
+					shader->SetMat4("projection", projection);
+					shader->SetMat4("view", view);
+					shader->SetVec3("view_pos", camera.position);
+					shader->SetFloat("far_plane", scenes.at(current_scene_index)->GetShadowMap()->far_plane);
+					shader->SetMat4("light_space_matrix", scenes.at(current_scene_index)->GetShadowMap()->light_space_matrix);
+					scenes.at(current_scene_index)->UpdateLightSources(*shader);
+					scenes.at(current_scene_index)->GetShadowMap()->Draw();
+
+					scenes.at(current_scene_index)->GetFog()->ApplyToShader(*shader);
+
+					shader->updated_this_frame = true;
+				}
+
+				if (model_component.model->IsAnimated() && entity->HasComponent<AnimationComponent>())
+				{
+					AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
 					if (!shader->updated_this_frame)
 					{
-						shader->Use();
-						shader->SetMat4("projection", projection);
-						shader->SetMat4("view", view);
-						shader->SetVec3("view_pos", camera.position);
-						shader->SetFloat("far_plane", scenes.at(current_scene_index)->GetShadowMap()->far_plane);
-						shader->SetMat4("light_space_matrix", scenes.at(current_scene_index)->GetShadowMap()->light_space_matrix);
-						scenes.at(current_scene_index)->UpdateLightSources(*shader);
-						scenes.at(current_scene_index)->GetShadowMap()->Draw();
+						const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
+						Log::Info("Uploading " + std::to_string(bone_transforms.size()) + " bone transforms");
 
-						scenes.at(current_scene_index)->GetFog()->ApplyToShader(*shader);
-
-						shader->updated_this_frame = true;
+						// Check first bone transform
+						if (!bone_transforms.empty())
+						{
+							glm::mat4 first = bone_transforms[0];
+							Log::Info("First bone: [" + std::to_string(first[0][0]) + ", " + std::to_string(first[1][1]) + ", " + std::to_string(first[2][2]) + ", " + std::to_string(first[3][3]) + "]");
+						}
 					}
-
-					if (model_component.model->IsAnimated() && entity->HasComponent<AnimationComponent>())
+					if (animation_component.animator)
 					{
-						AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
-						if (!shader->updated_this_frame)
+						const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
+						for (size_t i = 0; i < bone_transforms.size() && i < MAX_BONES; i++)
 						{
-							const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
-							Log::Info("Uploading " + std::to_string(bone_transforms.size()) + " bone transforms");
-
-							// Check first bone transform
-							if (!bone_transforms.empty())
-							{
-								glm::mat4 first = bone_transforms[0];
-								Log::Info("First bone: [" + std::to_string(first[0][0]) + ", " + std::to_string(first[1][1]) + ", " + std::to_string(first[2][2]) + ", " + std::to_string(first[3][3]) + "]");
-							}
+							shader->SetMat4("bone_transforms["+std::to_string(i)+"]", bone_transforms[i]);
 						}
-						if (animation_component.animator)
-						{
-							const std::vector<glm::mat4>& bone_transforms = animation_component.animator->GetBoneTransforms();
-							for (size_t i = 0; i < bone_transforms.size() && i < MAX_BONES; i++)
-							{
-								shader->SetMat4("bone_transforms["+std::to_string(i)+"]", bone_transforms[i]);
-							}
-							shader->SetBool("is_animated", true);
-						}
-						else
-							shader->SetBool("is_animated", false);
+						shader->SetBool("is_animated", true);
 					}
 					else
 						shader->SetBool("is_animated", false);
-
-					bool has_emission = false;
-					if (model_component.material && model_component.material->HasTexture(TextureType::EMISSION))
-						has_emission = true;
-					shader->SetBool("is_emissive", has_emission);
 				}
-				
-				shader->SetBool("reverse_normals", false);
-				entity->Draw(model_component.shader, *scenes.at(current_scene_index));
+				else
+					shader->SetBool("is_animated", false);
+
+				bool has_emission = false;
+				if (model_component.material && model_component.material->HasTexture(TextureType::EMISSION))
+					has_emission = true;
+				shader->SetBool("is_emissive", has_emission);
 			}
+			else if (shader->name == "Water")
+			{
+				if (!shader->updated_this_frame)
+				{
+					shader->SetMat4("projection", projection);
+					shader->SetMat4("view", view);
+					shader->SetVec3("view_pos", camera.position);
+					shader->SetFloat("time", glfwGetTime());
+					shader->SetVec3("water_color", glm::vec3(1.0f, 1.0f, 1.0f));
+					shader->SetFloat("wave_amplitude", 0.3f);
+					shader->SetFloat("wave_frequency", 4.0f);
+					// maybe add light space matrix for caustics
+					shader->updated_this_frame = true;
+				}
+			}
+			
+			shader->SetBool("reverse_normals", false);
+			entity->Draw(model_component.shader, *scenes.at(current_scene_index));
+		}
 	}
 
 	void Renderer::DrawColliders(const glm::mat4& projection, const glm::mat4& view)
@@ -459,6 +475,8 @@ namespace Bonfire
 	}
 	bool Renderer::Save()
 	{
+		if (scene_transition_in_progress) return false;
+		
 		bool scene_saved = scenes.at(current_scene_index)->SaveScene(*param_database);
 		bool params_saved = param_database->SaveParams(scenes.at(current_scene_index)->GetMaterials());
 		return scene_saved || params_saved;
@@ -479,6 +497,8 @@ namespace Bonfire
 	
 	void Renderer::NextScene(int scene_index)
 	{
+		scene_transition_in_progress = true;
+		
 		if (scene_index < 0)
 			scene_index = 0;
 
@@ -534,5 +554,6 @@ namespace Bonfire
 		}*/
 		
 		scenes.at(current_scene_index)->loaded = true;
+		scene_transition_in_progress = false;
 	}
 }

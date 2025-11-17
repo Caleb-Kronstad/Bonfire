@@ -1,5 +1,7 @@
 #include "Player.hpp"
-#include "StoneGolem.hpp"
+
+#include "EnemyManager.hpp"
+#include "EnemyManager.hpp"
 
 Player::Player() : Layer("New Layer")
 {
@@ -39,7 +41,7 @@ void Player::OnAttach()
 
 	for (auto& layer : project.GetLayers())
 	{
-		if (StoneGolem* golem_ptr = dynamic_cast<StoneGolem*>(layer.get()))
+		if (EnemyManager* golem_ptr = dynamic_cast<EnemyManager*>(layer.get()))
 		{
 			stone_golem_layer = golem_ptr;
 			break;
@@ -63,6 +65,28 @@ void Player::OnAttach()
 		physics_system.RegisterBodyEntity(physics.physics_body->GetBodyID(), weapon);
 		physics.physics_body->SetScale(glm::vec3(0.5f, 1.0f, 0.0f));
 	}
+	
+	InitializeInventory();
+	
+	InventoryItem test_item;
+	test_item.name = "Greatsword";
+	test_item.description = "Big sword";
+	test_item.width = 2;
+	test_item.height = 5;
+	test_item.type = ItemType::WEAPON;
+	test_item.icon = scene.GetTextures().at(1021);
+	PlaceItem(0, 0, test_item);
+	
+	InventoryItem test_item_2;
+	test_item_2.name = "Mining Key";
+	test_item_2.description = "A key made my miners";
+	test_item_2.width = 1;
+	test_item_2.height = 2;
+	test_item_2.type = ItemType::KEY;
+	test_item_2.icon = scene.GetTextures().at(1000);
+	auto [x,y] = FindFreeSpace(test_item_2);
+	if (x != -1 || y != -1)
+		PlaceItem(x, y, test_item_2);
 
 	spawn = player->position;
 	glfwSetInputMode(window.GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -193,6 +217,7 @@ void Player::OnInterfaceUpdate()
 	Scene& scene = renderer.GetScene();
 
 	DrawHealthBar();
+	DrawInventoryGrid();
 	
 	// -- DEBUG --
 	int current_scene_index = -1;
@@ -277,7 +302,7 @@ void Player::OnInput(Input& input)
 	if (input.GetInputType() == InputType::MouseButtonPressed)
 	{
 		const auto mouse_button_input = dynamic_cast<MouseButtonPressedInput&>(input);
-		if (mouse_button_input.GetMouseButton() == InputCode::ButtonLeft && !is_attacking)
+		if (mouse_button_input.GetMouseButton() == InputCode::ButtonLeft && !is_attacking && !inventory_open)
 		{
 			is_attacking = true;
 			attack_timer = 0.0f;
@@ -299,6 +324,11 @@ void Player::OnInput(Input& input)
 				else
 					glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			//}
+		}
+		
+		if (key_input.GetKeyCode() == InputCode::Tab)
+		{
+			inventory_open = !inventory_open;
 		}
 	}
 	
@@ -341,6 +371,7 @@ void Player::OnInput(Input& input)
 	}
 }
 
+
 void Player::TakeDamage(float damage, std::shared_ptr<Entity> hitbox)
 {
 	if (!hitbox) return;
@@ -370,21 +401,24 @@ void Player::CheckWeaponHit()
 	if (!stone_golem_layer) return;
 	if (!weapon || !weapon->HasComponent<PhysicsComponent>()) return;
 
-	std::shared_ptr<Entity> golem_entity = stone_golem_layer->golem;
-	if (!golem_entity || !golem_entity->HasComponent<PhysicsComponent>()) return;
+	std::vector<EnemyInstance>& golems = stone_golem_layer->GetEnemies();
 
 	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
 	JPH::BodyID weapon_body_id = weapon->GetComponent<PhysicsComponent>().physics_body->GetBodyID();
-	JPH::BodyID golem_body_id = golem_entity->GetComponent<PhysicsComponent>().physics_body->GetBodyID();
-	
-	if (physics_system.AreBodiesColliding(weapon_body_id, golem_body_id))
+
+	for (EnemyInstance& golem : golems)
 	{
-		stone_golem_layer->TakeDamage(weapon_stats.damage, weapon);
-		already_hit_this_swing = true;
+		JPH::BodyID golem_body_id = golem.entity->GetComponent<PhysicsComponent>().physics_body->GetBodyID();
+	
+		if (physics_system.AreBodiesColliding(weapon_body_id, golem_body_id))
+		{
+			stone_golem_layer->TakeDamage(stone_golem_layer->GetEnemyIndexFromEntity(golem.entity), weapon_stats.damage, weapon);
+			already_hit_this_swing = true;
 		
-		PhysicsComponent& golem_physics = golem_entity->GetComponent<PhysicsComponent>();
-		golem_physics.physics_body->SetLinearVelocity(glm::vec3(0.0f));
-		golem_physics.physics_body->SetAngularVelocity(glm::vec3(0.0f));
+			PhysicsComponent& golem_physics = golem.entity->GetComponent<PhysicsComponent>();
+			golem_physics.physics_body->SetLinearVelocity(glm::vec3(0.0f));
+			golem_physics.physics_body->SetAngularVelocity(glm::vec3(0.0f));
+		}
 	}
 }
 

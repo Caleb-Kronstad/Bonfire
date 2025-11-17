@@ -34,5 +34,29 @@
     "1008": {
         "name": "hmm_01",
         "path": "Data/Resources/Audio/Voice Lines/hmm_01.mp3"
+    },
+    "1009": {
+        "name": "RockSlam",
+        "path": "Data/Resources/Audio/Sound Effects/RockSlam.mp3"
+    },
+    "1011": {
+        "name": "merchant_01",
+        "path": "Data/Resources/Audio/Voice Lines/merchant_01.mp3"
+    },
+    "1012": {
+        "name": "merchant_02",
+        "path": "Data/Resources/Audio/Voice Lines/merchant_02.mp3"
+    },
+    "1013": {
+        "name": "forsaken_01",
+        "path": "Data/Resources/Audio/Voice Lines/forsaken_01.mp3"
+    },
+    "1014": {
+        "name": "forsaken_02",
+        "path": "Data/Resources/Audio/Voice Lines/forsaken_02.mp3"
+    },
+    "1015": {
+        "name": "forsaken_03",
+        "path": "Data/Resources/Audio/Voice Lines/forsaken_03.mp3"
     }
 }

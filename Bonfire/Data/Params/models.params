@@ -133,5 +133,25 @@
         "is_animated": true,
         "name": "Knight",
         "path": "Data/Resources/Models/Knight.fbx"
+    },
+    "1027": {
+        "is_animated": true,
+        "name": "PetrifiedVillager",
+        "path": "Data/Resources/Models/PetrifiedVillager.fbx"
+    },
+    "1028": {
+        "is_animated": true,
+        "name": "Merchant",
+        "path": "Data/Resources/Models/Merchant.fbx"
+    },
+    "1029": {
+        "is_animated": true,
+        "name": "Forsaken",
+        "path": "Data/Resources/Models/Forsaken.fbx"
+    },
+    "1030": {
+        "is_animated": false,
+        "name": "LongCubeSubdivided",
+        "path": "Data/Resources/Models/LongCubeSubdivided.fbx"
     }
 }
