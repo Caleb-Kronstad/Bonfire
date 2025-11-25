@@ -1,0 +1,47 @@
+Entity-Component System - Entity
+
+Function Signature
+bool Entity::AddComponent(ComponentType type, std::shared_ptr<Component> component)
+
+Description
+Adds a component to an entity in the Entity-Component System (ECS). Components define the capabilities and data of
+an entity - for example, a ModelComponent enables rendering, a PhysicsBody enables physics simulation, and an
+AudioComponent enables sound. This function registers the component with the entity and returns whether the
+operation was successful.
+
+Parameters
+- type (ComponentType): The type of component being added. Valid values include:
+- Component Types: MODEL, LIGHT, PHYSICS, ANIMATION, AUDIO, SCRIPT, CAMERA
+- component (std::shared_ptr<Component>): A shared pointer to the component instance being added. Must be an
+instance of the appropriate component class matching the specified type.
+
+Return Value
+- bool: Returns true if the component was successfully added, false if the entity already has a component of that
+type.
+
+Example Usage
+Creating a physics-enabled entity
+// Create an entity and add a physics component
+std::shared_ptr<Entity> crate = std::make_shared<Entity>();
+crate->SetPosition(glm::vec3(0.0f, 10.0f, 0.0f));
+
+// Create and add a box physics body
+auto physicsBody = physicsSystem->CreateBoxBody(
+    crate->GetPosition(),
+    crate->GetRotation(),
+    glm::vec3(1.0f, 1.0f, 1.0f), // half extents
+    PhysicsBodyType::Dynamic,
+    10.0f  // mass
+);
+
+bool success = crate->AddComponent(ComponentType::Physics, physicsBody);
+if (!success) {
+    Log::Error("Failed to add physics component!");
+}
+
+Notes
+- An entity can only have one component of each type
+- Components are automatically updated when Entity::UpdateComponents() is called
+- Component pointers must remain valid for the lifetime of the entity
+- When a component is added, the entity takes shared ownership via std::shared_ptr
+- Components synchronize with the entity's transform automatically during updates

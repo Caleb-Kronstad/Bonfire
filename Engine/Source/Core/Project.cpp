@@ -77,7 +77,8 @@ namespace Bonfire
 			std::unique_ptr<Scene> scene = std::make_unique<Scene>(scene_path);
 			static_renderer->AddScene(std::move(scene));
 		}
-		static_renderer->Load();
+		static_renderer->GetParamDatabase().LoadParams();
+		static_renderer->NextScene(0);
 		static_editor->OnAttach();
 		
 		while (running)
@@ -155,6 +156,13 @@ namespace Bonfire
 			project_config.project_manager_script_path = json["project-manager-script"].get<std::string>();
 			project_config.antialiasing_level = json["antialiasing-level"].get<int>();
 			project_config.shadow_resolution = json["shadow-resolution"].get<int>();
+
+			if (project_config.scene_paths.empty())
+			{
+				Log::Warning("[Project] No scene path found, using defaults");
+				std::filesystem::copy_file("Data/Editor/Defaults/defaultscene.bonfire", "Data/Scenes/defaultscene.bonfire");
+				project_config.scene_paths.emplace_back("Data/Scenes/defaultscene.bonfire");
+			}
 
 			Log::Info("[Project] Loaded project config: " + project_config.project_name);
 			return true;

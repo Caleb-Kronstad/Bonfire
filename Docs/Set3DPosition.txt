@@ -1,0 +1,36 @@
+Audio System - Audio
+
+Function Signature
+void Audio::Set3DPosition(glm::vec3 position)
+
+Description
+Sets the 3D world-space position of an audio source for spatial audio rendering. When spatialization is enabled,
+the audio system uses this position along with the listener position to calculate volume attenuation, panning, and
+other spatial effects. This creates realistic 3D audio where sounds appear to come from specific locations in the
+game world.
+
+Parameters
+- position (glm::vec3): The 3D world-space coordinates of the audio source
+- position.x: Position along the X axis (world units)
+- position.y: Position along the Y axis (world units)
+- position.z: Position along the Z axis (world units)
+
+Return Value
+None (void)
+
+Example Usage
+Positioning a static ambient sound
+// Place a waterfall sound at a specific location
+std::shared_ptr<Audio> waterfallSound = std::make_shared<Audio>("Assets/Audio/waterfall.wav");
+waterfallSound->Set3DPosition(glm::vec3(50.0f, 5.0f, 120.0f));
+waterfallSound->SetSpatialization(true);
+waterfallSound->SetLooping(true);
+waterfallSound->Play();
+
+Notes
+- Spatialization must be enabled via SetSpatialization(true) for 3D positioning to take effect
+- The listener position (the current active camera's position) must be updated via AudioSystem::UpdateListener()
+- Distance from the listener affects volume automatically when spatialization is active
+- Position is in the same world-space coordinate system as your entities
+- For moving sound sources, update the position every frame or whenever the source moves
+- Can use AudioComponent to have an Audio automatically follow an entity's position

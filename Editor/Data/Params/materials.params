@@ -1,0 +1,19 @@
+{
+    "1000": {
+        "diffuse-id": 1000,
+        "emission-id": 1004,
+        "height-id": 1003,
+        "name": "Default",
+        "normal-id": 1002,
+        "offset": [
+            0.0,
+            0.0
+        ],
+        "shininess": 64.0,
+        "specular-id": 1001,
+        "tiling": [
+            10.0,
+            10.0
+        ]
+    }
+}

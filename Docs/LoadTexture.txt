@@ -1,0 +1,33 @@
+Rendering System - Texture
+
+Function Signature
+void Texture::Load()
+
+Description
+Loads a texture from a file on disk and creates an OpenGL texture object. This function uses the stb_image library
+to read image data from various formats (PNG, JPG, BMP, TGA, etc.), automatically detects the number of color
+channels, configures OpenGL texture parameters, and generates mipmaps for optimal rendering performance at
+different distances.
+
+Parameters
+None - The texture path is set during object construction via the Texture constructor.
+
+Return Value
+None (void)
+
+Example Usage
+Loading a basic texture
+// Create and load a diffuse texture
+Texture diffuseTexture("Assets/Textures/brick_diffuse.png");
+diffuseTexture.Load();
+
+// Use the texture ID for rendering
+unsigned int textureID = diffuseTexture.texture_id;
+
+Notes
+- Supported formats include PNG, JPG, BMP, and others supported by stb_image
+- The function automatically detects RGB vs RGBA formats
+- Mipmaps are automatically generated for improved performance
+- Texture filtering is set to GL_LINEAR by default
+- The texture file path must be valid and accessible
+- Textures are stored in memory after loading

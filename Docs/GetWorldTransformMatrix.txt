@@ -1,0 +1,44 @@
+Transform System - Entity
+
+Function Signature
+glm::mat4 Entity::GetWorldTransformMatrix(const std::unordered_map<uint32_t, std::shared_ptr<Entity>>& entities)
+
+Description
+Calculates and returns the world-space transformation matrix for an entity, taking into account the entire
+parent-child hierarchy. This function traverses up the entity hierarchy, accumulating transformations from all
+parent entities to produce the final world-space transform. This is essential for rendering nested or hierarchical
+objects like character rigs, vehicles with turrets, or complex mechanical assemblies.
+
+Parameters
+- entities (const std::unordered_map<uint32_t, std::shared_ptr<Entity>>&): A reference to the map containing all
+entities in the scene, indexed by their unique IDs. This is required to look up parent entities when traversing
+the hierarchy.
+
+Return Value
+- glm::mat4: A 4x4 transformation matrix representing the entity's complete world-space transform, including
+position, rotation, and scale. This matrix can be directly used as the model matrix in rendering.
+
+Example Usage
+Rendering an entity with hierarchical transforms
+// Render an entity that may be part of a hierarchy
+void RenderEntity(std::shared_ptr<Entity> entity, Scene& scene, Shader& shader) {
+    // Get the world transform accounting for all parents
+    glm::mat4 modelMatrix = entity->GetWorldTransformMatrix(scene.GetEntities());
+
+    // Send to shader
+    shader.SetMat4("model", modelMatrix);
+
+    // Render the model
+    if (entity->HasComponent(ComponentType::Model)) {
+        auto modelComp = entity->GetComponent<ModelComponent>();
+        modelComp->model->Draw(shader, modelComp->material);
+    }
+}
+
+
+Notes
+- If the entity has no parent, this returns the local transform matrix
+- The function recursively traverses up the parent hierarchy
+- Parent transforms are applied in order from root to leaf
+- The resulting matrix includes translation, rotation, and scale from all parents
+- This function is called automatically during rendering in most cases

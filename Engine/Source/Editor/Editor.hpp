@@ -87,6 +87,12 @@ namespace Bonfire
         void DisplayAudioComponent();
         void DisplayCameraComponent();
         void DisplayScriptComponent();
+
+        void DisplayModelParams();
+        void DisplayTextureParams();
+        void DisplayMaterialParams();
+        void DisplayShaderParams();
+        void DisplayAudioParams();
         
         bool IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent);
         void ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent);
@@ -131,6 +137,12 @@ namespace Bonfire
         std::shared_ptr<Entity> entity_to_remove = nullptr;
         std::shared_ptr<Entity> entity_to_reparent = nullptr;
         std::shared_ptr<Entity> reparent_target = nullptr;
+
+        std::shared_ptr<Material> selected_material_param = nullptr;
+        ModelParamData* selected_model_param = nullptr;
+        TextureParamData* selected_texture_param = nullptr;
+        ShaderParamData* selected_shader_param = nullptr;
+        AudioParamData* selected_audio_param = nullptr;
         
         ComponentType component_to_remove = ComponentType::UNKNOWN;
 
@@ -171,6 +183,8 @@ namespace Bonfire
 
         std::array<std::shared_ptr<Texture>, 5> default_textures;
         float default_texture_shininess = 64.0f;
+
+        int view = 0;
         
         // CUSTOMIZATION
         ImFont* editor_font;

@@ -1,0 +1,12 @@
+{
+    "1000": {
+        "is_animated": false,
+        "name": "Cube",
+        "path": "Data/Editor/Defaults/Models/Cube.obj"
+    },
+    "1001": {
+        "is_animated": false,
+        "name": "Sphere",
+        "path": "Data/Editor/Defaults/Models/Sphere.obj"
+    }
+}

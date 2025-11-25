@@ -1,7 +1,7 @@
 workspace "Bonfire"
    architecture "x64"
    configurations { "Debug", "Release", "Dist" }
-   startproject "Bonfire"
+   startproject "Editor"
    location "Build"
 
    -- Workspace-wide build options for MSVC
@@ -41,6 +41,6 @@ group "Dependencies"
 group ""
 
 group "Engine"
-   include "Engine/Build-Engine.lua"
-   include "Bonfire/Build-Bonfire.lua"
+   include "Engine/Build-ENGINE.lua"
+   include "Editor/Build-EDITOR.lua"
 group ""

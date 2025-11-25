@@ -1,0 +1,32 @@
+Physics System - PhysicsBody
+
+Function Signature
+void PhysicsBody::SetLinearVelocity(const glm::vec3& velocity)
+
+Description
+Sets the linear velocity of a physics body in 3D space. This function directly modifies the body's velocity
+vector, causing it to move in the specified direction at the specified speed. Unlike applying forces or impulses,
+this immediately overrides the current velocity.
+
+Parameters
+- velocity (const glm::vec3&): A 3D vector representing the desired velocity in world space
+- velocity.x: Velocity along the X axis (units per second)
+- velocity.y: Velocity along the Y axis (units per second)
+- velocity.z: Velocity along the Z axis (units per second)
+
+Return Value
+None (void)
+
+Example Usage
+Moving a character forward
+// Make the player move forward at 5 units per second
+std::shared_ptr<PhysicsBody> playerBody = player->GetComponent<PhysicsBody>();
+glm::vec3 forwardVelocity(0.0f, 0.0f, 5.0f);
+playerBody->SetLinearVelocity(forwardVelocity);
+
+Notes
+- This function works only on dynamic physics bodies
+- The velocity is expressed in world space coordinates
+- Setting velocity directly overrides any previously applied forces
+- For more realistic physics interactions, consider using AddForce() or AddImpulse() instead
+- The units are typically meters per second if you're using standard physics scaling

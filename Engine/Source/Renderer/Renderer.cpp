@@ -467,21 +467,6 @@ namespace Bonfire
 		glDeleteBuffers(1, &vertex_buffer);
 	}
 
-	bool Renderer::Load()
-	{
-		bool params_loaded = param_database->LoadParams();
-		NextScene(0);
-		return  params_loaded;
-	}
-	bool Renderer::Save()
-	{
-		if (scene_transition_in_progress) return false;
-		
-		bool scene_saved = scenes.at(current_scene_index)->SaveScene(*param_database);
-		bool params_saved = param_database->SaveParams(scenes.at(current_scene_index)->GetMaterials());
-		return scene_saved || params_saved;
-	}
-
 	bool Renderer::AddScene(std::unique_ptr<Scene> scene)
 	{
 		scenes.push_back(std::move(scene));

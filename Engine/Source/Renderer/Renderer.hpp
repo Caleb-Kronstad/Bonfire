@@ -27,9 +27,6 @@ namespace Bonfire
 		void OnDetach() override;
 		void OnUpdate(const float& delta_time) override;
 
-		bool Load();
-		bool Save();
-
 		bool AddScene(std::unique_ptr<Scene> scene);
 		bool RemoveScene(std::unique_ptr<Scene> scene);
 		void NextScene(int scene_index);
