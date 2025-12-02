@@ -64,7 +64,10 @@ void Editor::DisplayModelParams()
     for (auto& [model_id, model_data] : param_database.model_params)
     {
         if (ImGui::Selectable(model_data.name.c_str(), selected_model_param_id == model_id))
+        {
+            model_preview_rotation = glm::vec3(0.0f);
             selected_model_param_id = model_id;
+        }
     }
     ImGui::EndChild();
 
@@ -79,6 +82,61 @@ void Editor::DisplayModelParams()
         ImGui::SetNextItemWidth(200.0f);
         ImGui::InputText("Name", &model_data.name);
         ImGui::Checkbox("Animated", &model_data.is_animated);
+
+        if (scene.GetModels().contains(selected_model_param_id))
+        {
+            std::shared_ptr<Model> preview_model = scene.GetModels().at(selected_model_param_id);
+            std::shared_ptr<Material> default_material = default_textures.at(0) ? scene.GetMaterials().begin()->second : nullptr;
+
+            if (preview_model && default_material)
+            {
+                renderer.RenderModelPreview(preview_model, default_material, *model_preview_framebuffer, model_preview_rotation);
+                ImGui::Spacing();
+                
+                ImVec2 preview_pos = ImGui::GetCursorScreenPos();
+                ImGui::Image((void*)(intptr_t)model_preview_framebuffer->GetColorAttachment(), ImVec2(300, 300), ImVec2(0, 1), ImVec2(1, 0));
+                
+                if (ImGui::IsItemHovered())
+                {
+                    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                    {
+                        model_preview_is_dragging = true;
+                        model_preview_auto_rotate = false;
+                        ImVec2 mouse_pos = ImGui::GetMousePos();
+                        model_preview_last_mouse_pos = glm::vec2(mouse_pos.x, mouse_pos.y);
+                    }
+                }
+
+                if (model_preview_is_dragging)
+                {
+                    if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+                    {
+                        ImVec2 current_mouse_pos = ImGui::GetMousePos();
+                        glm::vec2 mouse_delta = glm::vec2(current_mouse_pos.x, current_mouse_pos.y) - model_preview_last_mouse_pos;
+                        
+                        model_preview_rotation.y += mouse_delta.x * 0.5f;
+                        model_preview_rotation.x += mouse_delta.y * 0.5f;
+                        
+                        if (model_preview_rotation.x >= 360.0f)
+                            model_preview_rotation.x -= 360.0f;
+                        if (model_preview_rotation.x < 0.0f)
+                            model_preview_rotation.x += 360.0f;
+                        
+                        if (model_preview_rotation.y >= 360.0f)
+                            model_preview_rotation.y -= 360.0f;
+                        if (model_preview_rotation.y < 0.0f)
+                            model_preview_rotation.y += 360.0f;
+                        
+                        model_preview_last_mouse_pos = glm::vec2(current_mouse_pos.x, current_mouse_pos.y);
+                    }
+                    else
+                    {
+                        model_preview_is_dragging = false;
+                        model_preview_auto_rotate = true;
+                    }
+                }
+            }
+        }
     }
     ImGui::EndChild();
 

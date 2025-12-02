@@ -111,6 +111,12 @@ private:
     
     std::unique_ptr<Framebuffer> editor_viewport_framebuffer;
     glm::vec2 editor_viewport_size = { 1280, 720 };
+    
+    std::unique_ptr<Framebuffer> model_preview_framebuffer;
+    glm::vec3 model_preview_rotation = glm::vec3(0.0f);
+    bool model_preview_auto_rotate = true;
+    bool model_preview_is_dragging = false;
+    glm::vec2 model_preview_last_mouse_pos = glm::vec2(0.0f);
 
     bool preview_animations = false;
     bool preview_audios = false;

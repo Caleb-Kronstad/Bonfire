@@ -34,6 +34,7 @@ namespace Bonfire
 		const std::vector<std::unique_ptr<Scene>>& GetScenes() { return scenes; }
 
 		void RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2 viewport_size);
+		void RenderModelPreview(std::shared_ptr<Model> model, std::shared_ptr<Material> material, Framebuffer& framebuffer, glm::vec3 rotation_angle);
 		void DrawColliders(const glm::mat4& projection, const glm::mat4& view);
 		void DrawEntity(std::shared_ptr<Entity> entity, Camera& camera);
 

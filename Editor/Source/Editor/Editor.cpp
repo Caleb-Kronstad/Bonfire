@@ -65,6 +65,7 @@ void Editor::OnAttach()
 	command_history = std::make_unique<CommandHistory>(undo_redo_steps); // we need to load editor config first to make sure we have the correct undo/redo steps value :)
 
 	editor_viewport_framebuffer = std::make_unique<Framebuffer>(editor_viewport_size.x, editor_viewport_size.y);
+	model_preview_framebuffer = std::make_unique<Framebuffer>(300, 300);
     
     for (auto& [entity_id, entity] : scene.GetEntities())
     {
@@ -105,6 +106,13 @@ void Editor::OnUpdate(const float& delta_time)
     	if (glfwGetKey(glfw_window, InputCode::D) == GLFW_PRESS)
     		engine_camera->position += engine_camera->GetRightVector() * velocity;
     }
+	
+	if (model_preview_auto_rotate)
+	{
+		model_preview_rotation.y += delta_time * 30.0f;
+		if (model_preview_rotation.y >= 360.0f)
+			model_preview_rotation.y -= 360.0f;
+	}
 
 	if (EditorViewportVisible())
 		renderer.RenderViewport(delta_time, *engine_camera, *editor_viewport_framebuffer, editor_viewport_size);

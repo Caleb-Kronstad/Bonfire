@@ -192,6 +192,67 @@ namespace Bonfire
 		}
 	}
 
+	void Renderer::RenderModelPreview(std::shared_ptr<Model> model, std::shared_ptr<Material> material, Framebuffer& framebuffer, glm::vec3 rotation_angle)
+	{
+	    if (!model || !material) return;
+
+	    AABB model_aabb = model->CalculateAABB();
+	    glm::vec3 center = (model_aabb.minimum + model_aabb.maximum) * 0.5f;
+	    glm::vec3 size = model_aabb.maximum - model_aabb.minimum;
+	    float max_dimension = (glm::max)(size.x, (glm::max)(size.y, size.z));
+	    float camera_distance = max_dimension * 2.0f;
+
+	    Camera preview_camera(9999);
+	    preview_camera.position = center + glm::vec3(0.0f, max_dimension * 0.3f, camera_distance);
+	    preview_camera.LookAt(center);
+	    preview_camera.UpdateCameraVectors();
+
+	    framebuffer.Bind();
+	    glViewport(0, 0, 300, 300);
+	    glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	    glm::mat4 projection = preview_camera.GetProjectionMatrix(300, 300);
+	    glm::mat4 view = preview_camera.GetViewMatrix();
+
+	    std::shared_ptr<Shader> shader = nullptr;
+	    for (auto& [shader_id, scene_shader] : GetScene().GetShaders())
+	    {
+	        if (scene_shader->name == "Lit")
+	        {
+	            shader = scene_shader;
+	            break;
+	        }
+	    }
+
+	    if (shader)
+	    {
+	        shader->Use();
+	        shader->SetMat4("projection", projection);
+	        shader->SetMat4("view", view);
+	        shader->SetVec3("view_pos", preview_camera.position);
+	        shader->SetBool("is_animated", false);
+	        shader->SetBool("is_emissive", false);
+
+	        GetScene().GetFog()->ApplyToShader(*shader);
+	        GetScene().UpdateLightSources(*shader);
+
+	        glm::mat4 model_matrix = glm::mat4(1.0f);
+	        model_matrix = glm::translate(model_matrix, center);
+	        model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	        model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	        model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	        model_matrix = glm::translate(model_matrix, -center);
+
+	        shader->SetMat4("model", model_matrix);
+	        model->Draw(*shader, material);
+	    }
+
+	    GetScene().GetSkybox()->Draw(view, projection, *GetScene().GetFog());
+
+	    framebuffer.Unbind();
+	}
+
 	void Renderer::DrawEntity(std::shared_ptr<Entity> entity, Camera& camera)
 	{
 		if (entity->HasComponent<ModelComponent>())
