@@ -6,7 +6,6 @@
 namespace Bonfire
 {
 	Project* Project::static_project_instance = nullptr;
-	Editor* Project::static_editor = nullptr;
 	Renderer* Project::static_renderer = nullptr;
 	PhysicsSystem* Project::static_physics_system = nullptr;
 	AudioSystem* Project::static_audio_system = nullptr;
@@ -15,7 +14,6 @@ namespace Bonfire
 	Project::Project(std::string project_name)
 	{
 		static_project_instance = this;
-		static_editor = new Editor("Data/editorconfig.bonfire");
 		static_renderer = new Renderer();
 		static_physics_system = new PhysicsSystem();
 		static_audio_system = new AudioSystem();
@@ -26,10 +24,6 @@ namespace Bonfire
 
 	Project::~Project()
 	{
-		for (const auto& layer : layers)
-		{
-			layer->OnDetach();
-		}
 	}
 
 	void Project::PushLayer(std::shared_ptr<Layer> layer)
@@ -55,9 +49,7 @@ namespace Bonfire
 		window->window_props = WindowProperties(project_config.window_width, project_config.window_height, 0, 0, project_config.project_name);
 		window->SetVSync(project_config.vsync);
 
-		editor_running = project_config.enable_editor;
-
-		InitializeOpenGL();
+		InitOpenGL();
 
 		glfwSetKeyCallback(window->GetNativeWindow(), KeyCallbackDispatch);
 		glfwSetMouseButtonCallback(window->GetNativeWindow(), MouseButtonCallbackDispatch);
@@ -78,15 +70,17 @@ namespace Bonfire
 			static_renderer->AddScene(std::move(scene));
 		}
 		static_renderer->GetParamDatabase().LoadParams();
-		static_renderer->NextScene(0);
-		static_editor->OnAttach();
+		static_renderer->LoadScene(0);
+
+		InitImGui();
+		for (std::shared_ptr<Layer>& layer : layers)
+			layer->OnAttach();
 		
 		while (running)
 		{
 			TickDeltaTime();
 
 			// Update Project
-			static_editor->OnUpdate(delta_time);
 			if (project_running && static_renderer->GetScene().loaded)
 			{
 				static_script_system->OnUpdate(delta_time);
@@ -95,20 +89,16 @@ namespace Bonfire
 			}
 			
 			static_renderer->OnUpdate(delta_time);
-			if (project_running)
-			{
-				for (const auto& layer : layers)
-					layer->OnUpdate(delta_time);
-			}
+			for (const auto& layer : layers)
+				layer->OnUpdate(delta_time);
 
 			// Update Interface
-			static_editor->OnInterfaceUpdate();
-			if (project_running)
-			{
-				for (const auto& layer : layers)
-					layer->OnInterfaceUpdate();
-			}
-			static_editor->OnInterfaceEndUpdate();
+			BeginImGuiFrame();
+			static_renderer->OnInterfaceUpdate();
+			for (const auto& layer : layers)
+				layer->OnInterfaceUpdate();
+			static_script_system->OnInterfaceUpdate();
+			EndImGuiFrame();
 
 			glfwSwapBuffers(window->GetNativeWindow());
 			glfwPollEvents();
@@ -121,11 +111,11 @@ namespace Bonfire
 		static_renderer->OnDetach();
 		static_audio_system->OnDetach();
 		static_physics_system->OnDetach();
-		static_editor->OnDetach();
+		for (std::shared_ptr<Layer>& layer : layers)
+			layer->OnDetach();
 		glfwDestroyWindow(window->GetNativeWindow());
 		glfwTerminate();
 		delete static_script_system;
-		delete static_editor;
 		delete static_audio_system;
 		delete static_physics_system;
 		delete static_renderer;
@@ -150,7 +140,6 @@ namespace Bonfire
 			project_config.window_width = json["window-width"].get<int>();
 			project_config.window_height = json["window-height"].get<int>();
 			project_config.fullscreen = json["fullscreen"].get<bool>();
-			project_config.enable_editor = json["enable-editor"].get<bool>();
 			project_config.scene_paths = json["scene-paths"].get<std::vector<std::string>>();
 			project_config.vsync = json["vsync"].get<bool>();
 			project_config.project_manager_script_path = json["project-manager-script"].get<std::string>();
@@ -181,17 +170,17 @@ namespace Bonfire
 		{
 			KeyPressedInput input(keycode);
 
-			static_editor->OnInput(input);
 			for (const auto& layer : layers)
 				layer->OnInput(input);
+			static_script_system->OnInput(input);
 		}
 		else if (action == GLFW_RELEASE)
 		{
 			KeyReleasedInput input(keycode);
 
-			static_editor->OnInput(input);
 			for (const auto& layer : layers)
 				layer->OnInput(input);
+			static_script_system->OnInput(input);
 		}
 	}
 
@@ -201,17 +190,17 @@ namespace Bonfire
 		{
 			MouseButtonPressedInput input(button);
 
-			static_editor->OnInput(input);
 			for (const auto& layer : layers)
 				layer->OnInput(input);
+			static_script_system->OnInput(input);
 		}
 		else if (action == GLFW_RELEASE)
 		{
 			MouseButtonReleasedInput input(button);
 
-			static_editor->OnInput(input);
 			for (const auto& layer : layers)
 				layer->OnInput(input);
+			static_script_system->OnInput(input);
 		}
 	}
 
@@ -219,36 +208,28 @@ namespace Bonfire
 	{
 		MouseMovedInput input(xposin, yposin);
 
-		static_editor->OnInput(input);
 		for (const auto& layer : layers)
 			layer->OnInput(input);
+		static_script_system->OnInput(input);
 	}
 
 	void Project::scrollcallback(GLFWwindow* glfw_window, double xoffset, double yoffset)
 	{
 		MouseScrolledInput input(xoffset, yoffset);
 
-		static_editor->OnInput(input);
 		for (const auto& layer : layers)
 			layer->OnInput(input);
+		static_script_system->OnInput(input);
 	}
 
 	void Project::framebuffersizecallback(GLFWwindow* glfw_window, int width, int height)
 	{
 		window->GetWidth() = width;
 		window->GetHeight() = height;
-		/*unsigned int viewportWidth = window->GetWidth() * viewportSizeAdjust;
-		unsigned int viewportHeight = window->GetHeight() * viewportSizeAdjust;
-		m_ViewportProps.Width = viewportWidth;
-		m_ViewportProps.Height = viewportHeight;
-		m_ViewportProps.xOffset = window->GetWidth() - viewportWidth;
-		m_ViewportProps.yOffset = window->GetHeight() - viewportHeight;
-		glViewport(m_ViewportProps.xOffset, m_ViewportProps.yOffset, m_ViewportProps.Width, m_ViewportProps.Height);*/
-
-		glViewport(0, 0, width, height); // for testing before adding in custom rendering window size
+		glViewport(0, 0, width, height);
 	}
 
-	void Project::InitializeOpenGL()
+	void Project::InitOpenGL()
 	{
 		if (!glfwInit())
 		{
@@ -305,5 +286,42 @@ namespace Bonfire
 		float currentFrameTime = static_cast<float>(glfwGetTime());
 		delta_time = currentFrameTime - last_frame_time;
 		last_frame_time = currentFrameTime;
+	}
+
+	void Project::InitImGui()
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		
+		ImGui_ImplGlfw_InitForOpenGL(window->GetNativeWindow(), true);
+		ImGui_ImplOpenGL3_Init("#version 460");
+	}
+
+	void Project::BeginImGuiFrame()
+	{
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
+	}
+
+	void Project::EndImGuiFrame()
+	{
+		ImGui::Render();
+		ImGui::EndFrame();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
 	}
 }

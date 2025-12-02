@@ -7,7 +7,6 @@
 #include "Core/Window.hpp"
 #include "Core/Layer.hpp"
 
-#include "Editor/Editor.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Physics/PhysicsSystem.hpp"
 #include "Audio/AudioSystem.hpp"
@@ -23,9 +22,8 @@ namespace Bonfire
 		int shadow_resolution = 2048;
 		int antialiasing_level = 4;
 		bool fullscreen = true;
-		bool enable_editor = true;
 		std::vector<std::string> scene_paths;
-		std::string project_manager_script_path = "";
+		std::string project_manager_script_path;
 		bool vsync = true;
 	};
 	
@@ -41,20 +39,19 @@ namespace Bonfire
 
 		// Getters
 		static Project& GetInstance() { return *static_project_instance; }
-		static Editor& GetEditor() { return *static_editor; }
 		static Renderer& GetRenderer() { return *static_renderer; }
 		static PhysicsSystem& GetPhysicsSystem() { return *static_physics_system; }
 		static AudioSystem& GetAudioSystem() { return *static_audio_system; }
 		static ScriptSystem& GetScriptSystem() { return *static_script_system; }
 		const bool& GetProjectRunState() const { return project_running; }
-		const bool& GetEngineRunState() const { return editor_running; }
+		const bool& GetEditorRunState() const { return editor_running; }
 		const std::string& GetProjectName() const { return project_config.project_name; }
 		const float& GetDeltaTime() const { return delta_time; }
 		Window& GetWindow() const { return *window; }
 		std::vector<std::shared_ptr<Layer>>& GetLayers() { return layers; }
 
 		void SetProjectRunState(bool state) { project_running = state; }
-		void SetEngineRunState(bool state) { editor_running = state; }
+		void SetEditorRunState(bool state) { editor_running = state; }
 
 		// Callback functions
 		void keycallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -92,8 +89,12 @@ namespace Bonfire
 		const ProjectConfig& GetProjectConfig() const { return project_config; }
 
 	private:
-		void InitializeOpenGL();
+		void InitOpenGL();
 		void TickDeltaTime();
+
+		void InitImGui();
+		void BeginImGuiFrame();
+		void EndImGuiFrame();
 
 		bool LoadProjectConfig(const std::string& config_path);
 
@@ -112,7 +113,6 @@ namespace Bonfire
 
 		static Project* static_project_instance;
 		static Renderer* static_renderer;
-		static Editor* static_editor;
 		static PhysicsSystem* static_physics_system;
 		static AudioSystem* static_audio_system;
 		static ScriptSystem* static_script_system;

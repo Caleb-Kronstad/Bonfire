@@ -19,18 +19,6 @@ namespace Bonfire
 		if (!model_component.enabled || !model_component.model || !shader) return;
 
 		glm::mat4 manipulation_matrix = GetWorldTransformMatrix(scene.GetEntities());
-
-		// TESTING TESTING TESTING FIX LATER TO WORK WITH OTHER ENTITIES !!!!!!
-		if (model_component.model->name == "StoneGolem")
-		{
-			manipulation_matrix = glm::rotate(manipulation_matrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			manipulation_matrix = glm::translate(manipulation_matrix, glm::vec3(0.0f, 0.0f, -1.0f));
-		}
-		else if (model_component.model->name == "Greatsword")
-		{
-			manipulation_matrix = glm::rotate(manipulation_matrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			manipulation_matrix = glm::translate(manipulation_matrix, glm::vec3(0.0f, 0.0f, -10.0f));
-		}
 		
 		shader->SetMat4("model", manipulation_matrix);
 		model_component.model->Draw(*shader, model_component.material);

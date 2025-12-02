@@ -28,7 +28,31 @@ namespace Bonfire
 
     void ScriptSystem::OnUpdate(const float& delta_time)
     {
-        
+        for (std::shared_ptr<Layer>& cpp_script : cpp_scripts)
+            cpp_script->OnUpdate(delta_time);
+    }
+
+    void ScriptSystem::OnInterfaceUpdate()
+    {
+        for (std::shared_ptr<Layer>& cpp_script : cpp_scripts)
+            cpp_script->OnInterfaceUpdate();
+    }
+
+    void ScriptSystem::OnInput(Input& input)
+    {
+        for (std::shared_ptr<Layer>& cpp_script : cpp_scripts)
+            cpp_script->OnInput(input);
+    }
+
+    void ScriptSystem::AttachCppScripts()
+    {
+        for (std::shared_ptr<Layer>& cpp_script : cpp_scripts)
+            cpp_script->OnAttach();
+    }
+    void ScriptSystem::DetachCppScripts()
+    {
+        for (std::shared_ptr<Layer>& cpp_script : cpp_scripts)
+            cpp_script->OnDetach();
     }
 
     void ScriptSystem::ExecuteGlobalScript(const std::string& script_path)
@@ -84,7 +108,7 @@ namespace Bonfire
     {
         if (lua_state)
         {
-            scripts.clear();
+            lua_scripts.clear();
             lua_close(lua_state);
             lua_state = nullptr;
         }
@@ -109,14 +133,14 @@ namespace Bonfire
             return false;
         }
 
-        scripts.insert_or_assign(id, script);
+        lua_scripts.insert_or_assign(id, script);
         return true;
     }
     bool ScriptSystem::UnloadScript(uint32_t id)
     {
-        if (scripts.contains(id))
+        if (lua_scripts.contains(id))
         {
-            scripts.erase(id);
+            lua_scripts.erase(id);
             return true;
         }
         Log::Error("Failed to unload script: " + std::to_string(id) + " Script not found");
@@ -124,8 +148,8 @@ namespace Bonfire
     }
     std::shared_ptr<LuaScript> ScriptSystem::GetScript(uint32_t id)
     {
-        if (scripts.contains(id))
-            return scripts.at(id);
+        if (lua_scripts.contains(id))
+            return lua_scripts.at(id);
         Log::Error("Script not found: " + std::to_string(id));
         return nullptr;
     }

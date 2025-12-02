@@ -3,7 +3,7 @@
 
 #include "Core/Utility.hpp"
 #include "Core/Project.hpp"
-#include "Editor/Debug.hpp"
+#include "Core/Debug.hpp"
 
 namespace Bonfire
 {
@@ -18,9 +18,6 @@ namespace Bonfire
  
 	void Renderer::OnAttach()
 	{
-		Project& project = Project::GetInstance();
-		Window& project_window = project.GetWindow();
-		
 		background_color = RgbaToGlmVec4(23, 23, 23);
 
 		param_database = std::make_unique<ParamDatabase>(
@@ -31,20 +28,15 @@ namespace Bonfire
 		path_stream << "Project Path: " << std::filesystem::current_path();
 		Log::Info(path_stream.str());
 
-		editor_viewport_framebuffer = std::make_unique<Framebuffer>(editor_viewport_size.x, editor_viewport_size.y);
 		project_viewport_framebuffer = std::make_unique<Framebuffer>(project_viewport_size.x, project_viewport_size.y);
 	}
 	void Renderer::OnDetach()
 	{
-		for (auto& [model, buffer] : instance_buffers)
-			glDeleteBuffers(1, &buffer);
-		instance_buffers.clear();
 	}
 
 	void Renderer::OnUpdate(const float& delta_time)
 	{
 		Project& project = Project::GetInstance();
-		Editor& editor = Project::GetEditor();
 		PhysicsSystem& physics_system = Project::GetPhysicsSystem();
 		Window& project_window = project.GetWindow();
 		GLFWwindow* glfw_window = project_window.GetNativeWindow();
@@ -72,63 +64,81 @@ namespace Bonfire
 			}
 		}
 
+		Project::GetAudioSystem().UpdateListener(GetScene().GetCurrentCamera().position, GetScene().GetCurrentCamera().GetFrontVector(), GetScene().GetCurrentCamera().GetUpVector());
 		if (project.GetProjectRunState())
-		{
-			Project::GetAudioSystem().UpdateListener(scenes.at(current_scene_index)->GetCurrentCamera()->position, scenes.at(current_scene_index)->GetCurrentCamera()->GetFrontVector(), scenes.at(current_scene_index)->GetCurrentCamera()->GetUpVector());
 			Project::GetScriptSystem().UpdateScripts(*scenes.at(current_scene_index), delta_time);
-		}
-		else
-		{
-			Project::GetAudioSystem().UpdateListener(editor.GetEngineCamera().position, editor.GetEngineCamera().GetFrontVector(), editor.GetEngineCamera().GetUpVector());
-		}
-		
-		if (editor.EditorViewportVisible())
-			RenderEditorViewport(delta_time);
-		if (editor.ProjectViewportVisible())
-			RenderProjectViewport(delta_time);
+
+		RenderViewport(delta_time, GetScene().GetCurrentCamera(), *project_viewport_framebuffer, project_viewport_size);
 	}
 
-	void Renderer::RenderEditorViewport(const float& delta_time)
+	void Renderer::OnInterfaceUpdate()
+	{
+		if (!Project::GetInstance().GetProjectRunState()) return;
+		
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->WorkPos);
+		ImGui::SetNextWindowSize(viewport->WorkSize);
+		ImGui::SetNextWindowViewport(viewport->ID);
+		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+		project_viewport_visible = ImGui::Begin("Project Name Here", nullptr, window_flags);
+		project_viewport_focused = ImGui::IsWindowFocused();
+		project_viewport_hovered = ImGui::IsWindowHovered();
+		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
+	
+		if (!FloatEquals(viewport_panel_size.x, GetProjectViewportSize().x) || !FloatEquals(viewport_panel_size.y, GetProjectViewportSize().y))
+		{
+			if (viewport_panel_size.x > 0 && viewport_panel_size.y > 0)
+			{
+				GetProjectViewportSize() = {viewport_panel_size.x, viewport_panel_size.y};
+				GetProjectViewportFramebuffer().Resize(GetProjectViewportSize().x, GetProjectViewportSize().y);
+			}
+		}
+	
+		ImGui::Image((void*)(intptr_t)GetProjectViewportFramebuffer().GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
+		
+		ImGui::End();
+	}
+
+	void Renderer::RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2& viewport_size)
 	{
 		Project& project = Project::GetInstance();
-		Editor& editor = Project::GetEditor();
-		PhysicsSystem& physics_system = Project::GetPhysicsSystem();
 		Window& project_window = project.GetWindow();
-		GLFWwindow* glfw_window = project_window.GetNativeWindow();
+
+		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)
+			return;
 
 		switch (debug_type)
 		{
-			case DebugType::DEFAULT:
+		case DebugType::DEFAULT:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				break;
 			}
-			case DebugType::WIREFRAME:
+		case DebugType::WIREFRAME:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 				break;
 			}
-			case DebugType::POINT:
+		case DebugType::POINT:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 				break;
 			}
 		}
 
-		// --- TESTING - IMPROVE IMPLEMENTATION AT LATER TIME --- i dont remember why this was for testing but everything breaks if i remove it 
-		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)
-			return;
-		// ---
-
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
-		view = editor.GetEngineCamera().GetViewMatrix();
+		projection = camera.GetProjectionMatrix(viewport_size.x, viewport_size.y);
+		view = camera.GetViewMatrix();
 		
 		if (scenes.at(current_scene_index)->GetDirectionalLight() != nullptr && scenes.at(current_scene_index)->GetDirectionalLight()->enabled)
 		{
-			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction, editor.GetEngineCamera().position);
+			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction, camera.position);
 			scenes.at(current_scene_index)->GetShadowMap()->SetDirectional();
 
 			for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
@@ -144,7 +154,7 @@ namespace Bonfire
 			}
 
 			scenes.at(current_scene_index)->GetShadowMap()->Reset(false);
-			glViewport(0, 0, editor_viewport_size.x, editor_viewport_size.y);
+			glViewport(0, 0, viewport_size.x, viewport_size.y);
 		}
 		
 		bool shadow_rendered = false;
@@ -176,13 +186,13 @@ namespace Bonfire
 			}
 		}
 		
-		editor_viewport_framebuffer->Bind();
+		framebuffer.Bind();
 		
 		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
-		view = editor.GetEngineCamera().GetViewMatrix();
+		projection = camera.GetProjectionMatrix(viewport_size.x, viewport_size.y);
+		view = camera.GetViewMatrix();
 
 		scenes.at(current_scene_index)->GetShadowMap()->updated_this_frame = false;
 		for (auto& [shader_id, shader] : scenes.at(current_scene_index)->GetShaders())
@@ -191,117 +201,22 @@ namespace Bonfire
 		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
 		{
 			entity->UpdateComponents();
-			DrawEntity(entity, editor.GetEngineCamera());
+			DrawEntity(entity, camera);
 		}
 
-		DrawColliders(projection, view);
+		if (debug_type != DebugType::DEFAULT)
+			DrawColliders(projection, view);
 
-		projection = editor.GetEngineCamera().GetProjectionMatrix(editor_viewport_size.x, editor_viewport_size.y);
-		view = editor.GetEngineCamera().GetViewMatrix();
+		projection = camera.GetProjectionMatrix(viewport_size.x, viewport_size.y);
+		view = camera.GetViewMatrix();
 		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection, *scenes.at(current_scene_index)->GetFog());
 
-		editor_viewport_framebuffer->Unbind();
-		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
-	}
-
-	void Renderer::RenderProjectViewport(const float& delta_time)
-	{
-		Project& project = Project::GetInstance();
-		PhysicsSystem& physics_system = Project::GetPhysicsSystem();
-		Window& project_window = project.GetWindow();
-		GLFWwindow* glfw_window = project_window.GetNativeWindow();
-
-		// --- TESTING - IMPROVE IMPLEMENTATION AT LATER TIME ---
-		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)
-			return;
-		// ---
-
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		projection = scenes.at(current_scene_index)->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
-		view = scenes.at(current_scene_index)->GetCurrentCamera()->GetViewMatrix();
-		
-		if (scenes.at(current_scene_index)->GetDirectionalLight() != nullptr && scenes.at(current_scene_index)->GetDirectionalLight()->enabled)
-		{
-			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction, scenes.at(current_scene_index)->GetCurrentCamera()->position);
-			scenes.at(current_scene_index)->GetShadowMap()->SetDirectional();
-
-			for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
-			{
-				if (shadow_entity->HasComponent<ModelComponent>())
-				{
-					ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
-					if (model_component.model->casts_shadow)
-					{
-						shadow_entity->Draw(scenes.at(current_scene_index)->GetShadowMap()->shadow_map_shader, *scenes.at(current_scene_index));
-					}
-				}
-			}
-
-			scenes.at(current_scene_index)->GetShadowMap()->Reset(false);
-			glViewport(0, 0, project_viewport_size.x, project_viewport_size.y);
-		}
-		
-		bool shadow_rendered = false;
-		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
-		{
-			if (!shadow_rendered && entity->HasComponent<LightSourceComponent>())
-			{
-				LightSourceComponent& light_source_component = entity->GetComponent<LightSourceComponent>();
-				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
-				{
-					scenes.at(current_scene_index)->GetShadowMap()->Load(point_light->position);
-					scenes.at(current_scene_index)->GetShadowMap()->Set(point_light->position);
-
-					for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
-					{
-						if (shadow_entity->HasComponent<ModelComponent>())
-						{
-							ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
-							if (model_component.model->casts_shadow)
-							{
-								shadow_entity->Draw(scenes.at(current_scene_index)->GetShadowMap()->point_shadow_map_shader, *scenes.at(current_scene_index));
-							}
-						}
-					}
-
-					scenes.at(current_scene_index)->GetShadowMap()->Reset(true);
-					break;
-				}
-			}
-		}
-		
-		project_viewport_framebuffer->Bind();
-		
-		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		projection = scenes.at(current_scene_index)->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
-		view = scenes.at(current_scene_index)->GetCurrentCamera()->GetViewMatrix();
-
-		scenes.at(current_scene_index)->GetShadowMap()->updated_this_frame = false;
-		for (auto& [shader_id, shader] : scenes.at(current_scene_index)->GetShaders())
-			shader->updated_this_frame = false;
-		
-		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
-		{
-			entity->UpdateComponents();
-			DrawEntity(entity, *scenes.at(current_scene_index)->GetCurrentCamera());
-		}
-
-		projection = scenes.at(current_scene_index)->GetCurrentCamera()->GetProjectionMatrix(project_viewport_size.x, project_viewport_size.y);
-		view = scenes.at(current_scene_index)->GetCurrentCamera()->GetViewMatrix();
-		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection, *scenes.at(current_scene_index)->GetFog());
-
-		project_viewport_framebuffer->Unbind();
+		framebuffer.Unbind();
 		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
 	}
 
 	void Renderer::DrawEntity(std::shared_ptr<Entity> entity, Camera& camera)
 	{
-		Editor& editor = Project::GetEditor();
-		
 		if (entity->HasComponent<ModelComponent>())
 		{
 			ModelComponent& model_component = entity->GetComponent<ModelComponent>();
@@ -480,7 +395,7 @@ namespace Bonfire
 		return true;
 	}
 	
-	void Renderer::NextScene(int scene_index)
+	void Renderer::LoadScene(int scene_index)
 	{
 		scene_transition_in_progress = true;
 		
@@ -494,8 +409,7 @@ namespace Bonfire
 
 		if (Project::GetInstance().GetProjectRunState())
 		{
-			for (auto& layer : Project::GetInstance().GetLayers())
-				layer->OnDetach();
+			Project::GetScriptSystem().DetachCppScripts();
 		}
 		
 		current_scene_index = scene_index;
@@ -525,18 +439,8 @@ namespace Bonfire
 		
 		if (Project::GetInstance().GetProjectRunState())
 		{
-			for (auto& layer : Project::GetInstance().GetLayers())
-				layer->OnAttach();
+			Project::GetScriptSystem().AttachCppScripts();
 		}
-		
-		/*for (auto& [entity_id, entity] : Project::GetRenderer().GetScene().GetEntities())
-		{
-			if (entity->HasComponent<PhysicsComponent>())
-			{
-				PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
-				physics_component.physics_body->SetEnabled(true);
-			}
-		}*/
 		
 		scenes.at(current_scene_index)->loaded = true;
 		scene_transition_in_progress = false;

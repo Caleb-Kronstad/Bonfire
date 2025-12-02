@@ -39,7 +39,7 @@ namespace Bonfire
         std::unordered_map<uint32_t, std::shared_ptr<CameraComponent>>& GetCameraComponents() { return camera_components; }
         std::unique_ptr<DirectionalLight>& GetDirectionalLight() { return directional_light; }
         std::unique_ptr<ShadowMap>& GetShadowMap() { return shadow_map; }
-        std::shared_ptr<Camera>& GetCurrentCamera() { return cameras.at(current_camera_id); }
+        Camera& GetCurrentCamera() const { return *cameras.at(current_camera_id); }
         std::unordered_map<uint32_t, std::shared_ptr<Camera>>& GetCameras() { return cameras; }
         std::unique_ptr<Skybox>& GetSkybox() { return skybox; }
         std::unique_ptr<Fog>& GetFog() { return fog; }

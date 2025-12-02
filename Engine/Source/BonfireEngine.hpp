@@ -2,7 +2,10 @@
 
 // Utility
 #include "Core/Utility.hpp"
-#include "Editor/Debug.hpp"
+#include "Core/Debug.hpp"
+#include "Core/Command.hpp"
+#include "Core/Commands.hpp"
+#include "Core/ConsoleCapture.hpp"
 
 // Input
 #include "Input/Input.hpp"
@@ -49,9 +52,3 @@
 #include "Scripting/LuaScript.hpp"
 #include "Scripting/LuaBindings.hpp"
 #include "Scripting/ScriptSystem.hpp"
-
-// Editor
-#include "Editor/Command.hpp"
-#include "Editor/Commands.hpp"
-#include "Editor/ConsoleCapture.hpp"
-#include "Editor/Editor.hpp"

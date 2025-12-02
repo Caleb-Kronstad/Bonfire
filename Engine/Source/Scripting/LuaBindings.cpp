@@ -129,7 +129,7 @@ namespace Bonfire
         lua_register(lua_state, "NextScene", [](lua_State* L) -> int
         {
             unsigned int scene_index = luaL_checkinteger(L, 1);
-            Project::GetRenderer().NextScene(scene_index);
+            Project::GetRenderer().LoadScene(scene_index);
             return 0;
         });
     }

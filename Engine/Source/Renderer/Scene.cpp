@@ -4,6 +4,7 @@
 #include "Core/Utility.hpp"
 #include "Core/Project.hpp"
 #include "Physics/PhysicsSystem.hpp"
+#include "Renderer/SkeletalModel.hpp"
 
 namespace Bonfire
 {
@@ -882,8 +883,6 @@ namespace Bonfire
                 shadow_map_shader = shader;
             else if (shader->name == "Point Shadow Map")
                 point_shadow_map_shader = shader;
-            else if (shader->name == "Lit Instanced")
-                Project::GetRenderer().GetInstancedShader() = shader;
         }
         shadow_map = std::make_unique<ShadowMap>(point_shadow_map_shader, shadow_map_shader, shadow_activated_shaders, "Data/Editor/Defaults/Textures/default-diffuse.png");
 
