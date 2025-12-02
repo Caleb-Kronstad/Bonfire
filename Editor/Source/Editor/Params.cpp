@@ -76,21 +76,24 @@ void Editor::DisplayModelParams()
     ImGui::BeginChild("ModelDetails", ImVec2(0, -30), true);
     if (selected_model_param_id != 0 && param_database.model_params.contains(selected_model_param_id))
     {
-        auto& model_data = param_database.model_params[selected_model_param_id];
-        ImGui::Text("ID: %u", selected_model_param_id);
-        ImGui::Text("Path: %s", model_data.path.c_str());
-        ImGui::SetNextItemWidth(200.0f);
-        ImGui::InputText("Name", &model_data.name);
+        ModelParamData& model_data = param_database.model_params.at(selected_model_param_id);
+        
+        ImGui::Indent(8.0f);
+        ImGui::SetNextItemWidth(ImGui::CalcTextSize(model_data.name.c_str()).x + input_text_padding);
+        ImGui::InputText("##Name", &model_data.name); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(selected_model_param_id).c_str());
+        ImGui::Text(model_data.path.c_str());
         ImGui::Checkbox("Animated", &model_data.is_animated);
 
+        ImGui::Spacing();
         if (scene.GetModels().contains(selected_model_param_id))
         {
             std::shared_ptr<Model> preview_model = scene.GetModels().at(selected_model_param_id);
-            std::shared_ptr<Material> default_material = default_textures.at(0) ? scene.GetMaterials().begin()->second : nullptr;
-
+            std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
+            std::shared_ptr<Shader> preview_shader = scene.GetShaders().at(1001); // lit
+            
             if (preview_model && default_material)
             {
-                renderer.RenderModelPreview(preview_model, default_material, *model_preview_framebuffer, model_preview_rotation);
+                renderer.RenderModelPreview(preview_model, default_material, preview_shader, *model_preview_framebuffer, model_preview_rotation);
                 ImGui::Spacing();
                 
                 ImVec2 preview_pos = ImGui::GetCursorScreenPos();
@@ -137,6 +140,24 @@ void Editor::DisplayModelParams()
                 }
             }
         }
+        ImGui::Checkbox("Rotate", &model_preview_auto_rotate_enabled);
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Delete"))
+        {
+            if (selected_model_param_id != 1000 && selected_model_param_id != 1001)
+            {
+                renderer.GetParamDatabase().model_params.erase(selected_model_param_id);
+                selected_model_param_id = 1000;
+            }
+            else
+                Log::Error("Cannot delete editor defaults");
+        }
+        
+        ImGui::Unindent(8.0f);
     }
     ImGui::EndChild();
 
@@ -146,7 +167,7 @@ void Editor::DisplayModelParams()
     std::filesystem::path models_dir = exe_dir / "Data/Resources/Models";
     std::string model_file = std::string(MAX_PATH, '\0');
 
-    if (ImGui::Button("+"))
+    if (ImGui::Button("Add New"))
     {
         OPENFILENAMEA ofn;
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
@@ -247,6 +268,16 @@ void Editor::DisplayModelParams()
             scene.GetModels().insert_or_assign(next_id, new_model);
             param_database.model_params.insert_or_assign(next_id, ModelParamData(model_name, default_model_path, new_model->IsAnimated()));
             selected_model_param_id = next_id;
+
+            for (auto& [id, entity] : scene.GetEntities())
+            {
+                if (entity->HasComponent<ModelComponent>())
+                {
+                    ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+                    if (model_component.model->param_id == selected_model_param_id)
+                        model_component.model->param_id = 1000;
+                }
+            }
         }
         else
             Log::Info("File operation cancelled");
@@ -276,14 +307,15 @@ void Editor::DisplayTextureParams()
         auto& texture_data = param_database.texture_params[selected_texture_param_id];
         const char* texture_type_names[] = { "Diffuse", "Specular", "Normal", "Height", "Emission" };
         
-        ImGui::Text("ID: %u", selected_texture_param_id);
-        ImGui::Text("Path: %s", texture_data.path.c_str());
-        ImGui::SetNextItemWidth(200.0f);
-        ImGui::InputText("Name", &texture_data.name);
+        ImGui::Indent(8.0f);
+        ImGui::SetNextItemWidth(ImGui::CalcTextSize(texture_data.name.c_str()).x + input_text_padding);
+        ImGui::InputText("##Name", &texture_data.name); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(selected_texture_param_id).c_str());
+        ImGui::Text(texture_data.path.c_str());
         
         ImGui::Checkbox("Flip", &texture_data.flip);
-        
+
         int current_index = static_cast<int>(texture_data.type);
+        ImGui::SetNextItemWidth(200.0f);
         if (ImGui::BeginCombo("Type", texture_type_names[current_index]))
         {
             for (int n = 0; n < IM_ARRAYSIZE(texture_type_names); n++)
@@ -305,6 +337,55 @@ void Editor::DisplayTextureParams()
             GLuint texture_gl_id = scene.GetTextures().at(selected_texture_param_id)->gl_id;
             ImGui::Image((void*)texture_gl_id, ImVec2(100, 100));
         }
+        
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Delete"))
+        {
+            if (selected_texture_param_id > 1004)
+            {
+                TextureType deleted_type = param_database.texture_params.at(selected_texture_param_id).type;
+                uint32_t deleted_texture_id = selected_texture_param_id;
+
+                renderer.GetParamDatabase().texture_params.erase(selected_texture_param_id);
+                uint32_t reset_id = 1000 + static_cast<uint32_t>(deleted_type);
+                selected_texture_param_id = reset_id;
+
+                for (auto& [mat_id, mat_data] : param_database.material_params)
+                {
+                    if (mat_data.diffuse_id == deleted_texture_id)
+                        mat_data.diffuse_id = 1000;
+                    if (mat_data.specular_id == deleted_texture_id)
+                        mat_data.specular_id = 1001;
+                    if (mat_data.normal_id == deleted_texture_id)
+                        mat_data.normal_id = 1002;
+                    if (mat_data.height_id == deleted_texture_id)
+                        mat_data.height_id = 1003;
+                    if (mat_data.emission_id == deleted_texture_id)
+                        mat_data.emission_id = 1004;
+
+                    if (scene.GetMaterials().contains(mat_id))
+                    {
+                        auto& material = scene.GetMaterials()[mat_id];
+                        for (auto& texture : material->textures)
+                        {
+                            if (texture->param_id == deleted_texture_id)
+                            {
+                                uint32_t default_id = 1000 + static_cast<uint32_t>(texture->type);
+                                if (scene.GetTextures().contains(default_id))
+                                    texture = scene.GetTextures()[default_id];
+                            }
+                        }
+                    }
+                }
+            }
+            else
+                Log::Error("Cannot delete editor defaults");
+        }
+        
+        ImGui::Unindent(8.0f);
     }
     ImGui::EndChild();
 
@@ -314,7 +395,7 @@ void Editor::DisplayTextureParams()
     std::filesystem::path textures_dir = exe_dir / "Data/Resources/Textures";
     std::string texture_file = std::string(MAX_PATH, '\0');
     
-    if (ImGui::Button("+"))
+    if (ImGui::Button("Add New"))
     {
         OPENFILENAMEA ofn;
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
@@ -344,7 +425,7 @@ void Editor::DisplayTextureParams()
 
             Log::Info("File selected at " + default_diffuse_path);
         
-            uint32_t next_id = 200001;
+            uint32_t next_id = 1000;
             if (!scene.GetTextures().empty())
             {
                 auto max_it = std::max_element(
@@ -382,7 +463,9 @@ void Editor::DisplayMaterialParams()
     for (auto& [material_id, material_data] : scene.GetMaterials())
     {
         if (ImGui::Selectable(material_data->name.c_str(), selected_material_param_id == material_id))
+        {
             selected_material_param_id = material_id;
+        }
     }
     ImGui::EndChild();
 
@@ -392,20 +475,79 @@ void Editor::DisplayMaterialParams()
     if (selected_material_param_id != 0 && scene.GetMaterials().contains(selected_material_param_id))
     {
         auto& material_data = scene.GetMaterials()[selected_material_param_id];
-        
-        ImGui::Text("ID: %u", selected_material_param_id);
-        ImGui::SetNextItemWidth(200.0f);
-        ImGui::InputText("Name", &material_data->name);
+
+        ImGui::Indent(8.0f);
+        ImGui::SetNextItemWidth(ImGui::CalcTextSize(material_data->name.c_str()).x + input_text_padding);
+        ImGui::InputText("##Name", &material_data->name); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(selected_material_param_id).c_str());
+        ImGui::PushItemWidth(200.0f);
         ImGui::SliderFloat("Shininess", &material_data->shininess, 1.0f, 512.0f, "%.f");
         ImGui::SliderFloat2("Tiling", (float*)&material_data->texture_tiling, 1.0f, 100.0f, "%.f");
-        ImGui::SliderFloat2("Offset", (float*)&material_data->texture_offset, 0.1f, 10.0f, "%.2f");
+        ImGui::SliderFloat2("Offset", (float*)&material_data->texture_offset, 0.0f, 10.0f, "%.2f");
+        ImGui::PopItemWidth();
 
         ImGui::Spacing();
-        ImGui::Text("Textures");
+        if (scene.GetMaterials().contains(selected_material_param_id))
+        {
+            std::shared_ptr<Model> preview_model = scene.GetModels().at(1001); // sphere
+            std::shared_ptr<Material> preview_material = scene.GetMaterials().at(selected_material_param_id);
+            std::shared_ptr<Shader> preview_shader = scene.GetShaders().at(1001); // lit
+            
+            if (preview_model)
+            {
+                renderer.RenderModelPreview(preview_model, preview_material, preview_shader, *model_preview_framebuffer, model_preview_rotation);
+                ImGui::Spacing();
+                
+                ImVec2 preview_pos = ImGui::GetCursorScreenPos();
+                ImGui::Image((void*)(intptr_t)model_preview_framebuffer->GetColorAttachment(), ImVec2(300, 300), ImVec2(0, 1), ImVec2(1, 0));
+                
+                if (ImGui::IsItemHovered())
+                {
+                    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                    {
+                        model_preview_is_dragging = true;
+                        model_preview_auto_rotate = false;
+                        ImVec2 mouse_pos = ImGui::GetMousePos();
+                        model_preview_last_mouse_pos = glm::vec2(mouse_pos.x, mouse_pos.y);
+                    }
+                }
+
+                if (model_preview_is_dragging)
+                {
+                    if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+                    {
+                        ImVec2 current_mouse_pos = ImGui::GetMousePos();
+                        glm::vec2 mouse_delta = glm::vec2(current_mouse_pos.x, current_mouse_pos.y) - model_preview_last_mouse_pos;
+                        
+                        model_preview_rotation.y += mouse_delta.x * 0.5f;
+                        model_preview_rotation.x += mouse_delta.y * 0.5f;
+                        
+                        if (model_preview_rotation.x >= 360.0f)
+                            model_preview_rotation.x -= 360.0f;
+                        if (model_preview_rotation.x < 0.0f)
+                            model_preview_rotation.x += 360.0f;
+                        
+                        if (model_preview_rotation.y >= 360.0f)
+                            model_preview_rotation.y -= 360.0f;
+                        if (model_preview_rotation.y < 0.0f)
+                            model_preview_rotation.y += 360.0f;
+                        
+                        model_preview_last_mouse_pos = glm::vec2(current_mouse_pos.x, current_mouse_pos.y);
+                    }
+                    else
+                    {
+                        model_preview_is_dragging = false;
+                        model_preview_auto_rotate = true;
+                    }
+                }
+            }
+        }
+        ImGui::Checkbox("Rotate", &model_preview_auto_rotate_enabled);
+        
+        ImGui::Spacing();
         for (auto& texture : material_data->textures)
         {
             ImGui::PushID(&texture);
-            ImGui::Text("%s (ID: %u)", texture->name.c_str(), texture->param_id);
+            ImGui::Text(texture->name.c_str()); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(texture->param_id).c_str());
             
             if (ImGui::ImageButton((void*)texture->gl_id, ImVec2(100, 100)))
             {
@@ -431,10 +573,38 @@ void Editor::DisplayMaterialParams()
             }
             ImGui::PopID();
         }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        
+        if (ImGui::Button("Delete"))
+        {
+            if (selected_material_param_id != 1000)
+            {
+                renderer.GetParamDatabase().material_params.erase(selected_material_param_id);
+                renderer.GetScene().GetMaterials().erase(selected_material_param_id);
+                selected_material_param_id = 1000;
+            
+                for (auto& [id, entity] : scene.GetEntities())
+                {
+                    if (entity->HasComponent<ModelComponent>())
+                    {
+                        ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+                        if (model_component.material->param_id == selected_material_param_id)
+                            model_component.material->param_id = 1000;
+                    }
+                }
+            }
+            else
+                Log::Error("Cannot delete editor defaults");
+        }
+        
+        ImGui::Unindent(8.0f);
     }
     ImGui::EndChild();
 
-    if (ImGui::Button("+"))
+    if (ImGui::Button("Add New"))
     {
         uint32_t next_id = 1000;
         if (!scene.GetMaterials().empty())
@@ -481,7 +651,9 @@ void Editor::DisplayShaderParams()
     for (auto& [shader_id, shader_data] : param_database.shader_params)
     {
         if (ImGui::Selectable(shader_data.name.c_str(), selected_shader_param_id == shader_id))
+        {
             selected_shader_param_id = shader_id;
+        }
     }
     ImGui::EndChild();
 
@@ -491,13 +663,73 @@ void Editor::DisplayShaderParams()
     if (selected_shader_param_id != 0 && param_database.shader_params.contains(selected_shader_param_id))
     {
         auto& shader_data = param_database.shader_params[selected_shader_param_id];
-        
-        ImGui::Text("ID: %u", selected_shader_param_id);
-        ImGui::SetNextItemWidth(200.0f);
-        ImGui::InputText("Name", &shader_data.name);
+
+        ImGui::Indent(8.0f);
+        ImGui::SetNextItemWidth(ImGui::CalcTextSize(shader_data.name.c_str()).x + input_text_padding);
+        ImGui::InputText("##Name", &shader_data.name); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(selected_shader_param_id).c_str());
         ImGui::Text("Vertex Shader: %s", shader_data.vert_path.c_str());
         ImGui::Text("Fragment Shader: %s", shader_data.frag_path.c_str());
         ImGui::Text("Geometry Shader: %s", shader_data.geom_path.c_str());
+
+        ImGui::Spacing();
+        if (scene.GetShaders().contains(selected_shader_param_id))
+        {
+            std::shared_ptr<Model> preview_model = scene.GetModels().at(1001); // sphere
+            std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
+            std::shared_ptr<Shader> preview_shader = scene.GetShaders().at(selected_shader_param_id);
+            
+            if (preview_model)
+            {
+                renderer.RenderModelPreview(preview_model, default_material, preview_shader, *model_preview_framebuffer, model_preview_rotation);
+                ImGui::Spacing();
+                
+                ImVec2 preview_pos = ImGui::GetCursorScreenPos();
+                ImGui::Image((void*)(intptr_t)model_preview_framebuffer->GetColorAttachment(), ImVec2(300, 300), ImVec2(0, 1), ImVec2(1, 0));
+                
+                if (ImGui::IsItemHovered())
+                {
+                    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                    {
+                        model_preview_is_dragging = true;
+                        model_preview_auto_rotate = false;
+                        ImVec2 mouse_pos = ImGui::GetMousePos();
+                        model_preview_last_mouse_pos = glm::vec2(mouse_pos.x, mouse_pos.y);
+                    }
+                }
+
+                if (model_preview_is_dragging)
+                {
+                    if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+                    {
+                        ImVec2 current_mouse_pos = ImGui::GetMousePos();
+                        glm::vec2 mouse_delta = glm::vec2(current_mouse_pos.x, current_mouse_pos.y) - model_preview_last_mouse_pos;
+                        
+                        model_preview_rotation.y += mouse_delta.x * 0.5f;
+                        model_preview_rotation.x += mouse_delta.y * 0.5f;
+                        
+                        if (model_preview_rotation.x >= 360.0f)
+                            model_preview_rotation.x -= 360.0f;
+                        if (model_preview_rotation.x < 0.0f)
+                            model_preview_rotation.x += 360.0f;
+                        
+                        if (model_preview_rotation.y >= 360.0f)
+                            model_preview_rotation.y -= 360.0f;
+                        if (model_preview_rotation.y < 0.0f)
+                            model_preview_rotation.y += 360.0f;
+                        
+                        model_preview_last_mouse_pos = glm::vec2(current_mouse_pos.x, current_mouse_pos.y);
+                    }
+                    else
+                    {
+                        model_preview_is_dragging = false;
+                        model_preview_auto_rotate = true;
+                    }
+                }
+            }
+        }
+        ImGui::Checkbox("Rotate", &model_preview_auto_rotate_enabled);
+
+        ImGui::Unindent(8.0f);
     }
     ImGui::EndChild();
 }
@@ -524,10 +756,39 @@ void Editor::DisplayAudioParams()
     {
         auto& audio_data = param_database.audio_params[selected_audio_param_id];
         
-        ImGui::Text("ID: %u", selected_audio_param_id);
-        ImGui::SetNextItemWidth(200.0f);
-        ImGui::InputText("Name", &audio_data.name);
-        ImGui::Text("Path: %s", audio_data.path.c_str());
+        ImGui::Indent(8.0f);
+        ImGui::SetNextItemWidth(ImGui::CalcTextSize(audio_data.name.c_str()).x + input_text_padding);
+        ImGui::InputText("##Name", &audio_data.name); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(selected_audio_param_id).c_str());
+        ImGui::Text(audio_data.path.c_str());
+        
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Delete"))
+        {
+            if (selected_audio_param_id != 1000)
+            {
+                renderer.GetParamDatabase().audio_params.erase(selected_audio_param_id);
+                AudioSystem& audio_system = Project::GetAudioSystem();
+                audio_system.RemoveAudio(audio_system.GetAudio(selected_audio_param_id));
+                selected_audio_param_id = 1000;
+        
+                for (auto& [id, entity] : scene.GetEntities())
+                {
+                    if (entity->HasComponent<ModelComponent>())
+                    {
+                        ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+                        if (model_component.material->param_id == selected_material_param_id)
+                            model_component.material->param_id = 1000;
+                    }
+                }
+            }
+            else
+                Log::Error("Cannot delete editor defaults");
+        }
+        
+        ImGui::Unindent(8.0f);
     }
     ImGui::EndChild();
 

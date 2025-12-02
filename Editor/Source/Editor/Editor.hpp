@@ -112,8 +112,11 @@ private:
     std::unique_ptr<Framebuffer> editor_viewport_framebuffer;
     glm::vec2 editor_viewport_size = { 1280, 720 };
     
+    float input_text_padding = 35.0f;
+    
     std::unique_ptr<Framebuffer> model_preview_framebuffer;
     glm::vec3 model_preview_rotation = glm::vec3(0.0f);
+    bool model_preview_auto_rotate_enabled = true;
     bool model_preview_auto_rotate = true;
     bool model_preview_is_dragging = false;
     glm::vec2 model_preview_last_mouse_pos = glm::vec2(0.0f);
@@ -134,11 +137,11 @@ private:
     ShaderParamData* selected_shader_param = nullptr;
     AudioParamData* selected_audio_param = nullptr;
 
-    uint32_t selected_model_param_id = 0;
-    uint32_t selected_texture_param_id = 0;
-    uint32_t selected_material_param_id = 0;
-    uint32_t selected_shader_param_id = 0;
-    uint32_t selected_audio_param_id = 0;
+    uint32_t selected_model_param_id = 1000;
+    uint32_t selected_texture_param_id = 1000;
+    uint32_t selected_material_param_id = 1000;
+    uint32_t selected_shader_param_id = 1000;
+    uint32_t selected_audio_param_id = 1000;
     
     ComponentType component_to_remove = ComponentType::UNKNOWN;
 

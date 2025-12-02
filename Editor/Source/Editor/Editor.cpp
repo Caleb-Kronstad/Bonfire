@@ -107,7 +107,7 @@ void Editor::OnUpdate(const float& delta_time)
     		engine_camera->position += engine_camera->GetRightVector() * velocity;
     }
 	
-	if (model_preview_auto_rotate)
+	if (model_preview_auto_rotate_enabled && model_preview_auto_rotate)
 	{
 		model_preview_rotation.y += delta_time * 30.0f;
 		if (model_preview_rotation.y >= 360.0f)

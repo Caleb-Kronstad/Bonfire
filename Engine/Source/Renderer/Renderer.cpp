@@ -192,7 +192,7 @@ namespace Bonfire
 		}
 	}
 
-	void Renderer::RenderModelPreview(std::shared_ptr<Model> model, std::shared_ptr<Material> material, Framebuffer& framebuffer, glm::vec3 rotation_angle)
+	void Renderer::RenderModelPreview(std::shared_ptr<Model> model, std::shared_ptr<Material> material, std::shared_ptr<Shader> shader, Framebuffer& framebuffer, glm::vec3 rotation_angle)
 	{
 	    if (!model || !material) return;
 
@@ -212,43 +212,33 @@ namespace Bonfire
 	    glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	    glm::mat4 projection = preview_camera.GetProjectionMatrix(300, 300);
-	    glm::mat4 view = preview_camera.GetViewMatrix();
+	    glm::mat4 p = preview_camera.GetProjectionMatrix(300, 300);
+	    glm::mat4 v = preview_camera.GetViewMatrix();
 
-	    std::shared_ptr<Shader> shader = nullptr;
-	    for (auto& [shader_id, scene_shader] : GetScene().GetShaders())
-	    {
-	        if (scene_shader->name == "Lit")
-	        {
-	            shader = scene_shader;
-	            break;
-	        }
-	    }
+		shader->Use();
+		shader->SetMat4("projection", p);
+		shader->SetMat4("view", v);
+        shader->SetVec3("view_pos", preview_camera.position);
+        if (shader->name == "Lit")
+        {
+        	shader->SetBool("is_animated", false);
+        	shader->SetBool("is_emissive", false);
 
-	    if (shader)
-	    {
-	        shader->Use();
-	        shader->SetMat4("projection", projection);
-	        shader->SetMat4("view", view);
-	        shader->SetVec3("view_pos", preview_camera.position);
-	        shader->SetBool("is_animated", false);
-	        shader->SetBool("is_emissive", false);
+        	GetScene().GetFog()->ApplyToShader(*shader);
+        	GetScene().UpdateLightSources(*shader);
+        }
 
-	        GetScene().GetFog()->ApplyToShader(*shader);
-	        GetScene().UpdateLightSources(*shader);
+		glm::mat4 model_matrix = glm::mat4(1.0f);
+		model_matrix = glm::translate(model_matrix, center);
+		model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.z), glm::vec3(0.0f, 0.0f, 1.0f));
+		model_matrix = glm::translate(model_matrix, -center);
 
-	        glm::mat4 model_matrix = glm::mat4(1.0f);
-	        model_matrix = glm::translate(model_matrix, center);
-	        model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	        model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	        model_matrix = glm::rotate(model_matrix, glm::radians(rotation_angle.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	        model_matrix = glm::translate(model_matrix, -center);
+		shader->SetMat4("model", model_matrix);
+		model->Draw(*shader, material);
 
-	        shader->SetMat4("model", model_matrix);
-	        model->Draw(*shader, material);
-	    }
-
-	    GetScene().GetSkybox()->Draw(view, projection, *GetScene().GetFog());
+	    GetScene().GetSkybox()->Draw(v, p, *GetScene().GetFog());
 
 	    framebuffer.Unbind();
 	}

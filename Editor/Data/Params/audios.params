@@ -1,6 +1,6 @@
 {
-    "1001": {
-        "name": "CathedralKF",
-        "path": "Data/Resources/Audio/CathedralKF.mp3"
+    "1000": {
+        "name": "Default",
+        "path": "Data/Editor/Defaults/Audios/Default.mp3"
     }
 }
