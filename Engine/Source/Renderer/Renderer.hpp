@@ -26,7 +26,6 @@ namespace Bonfire
 		void OnAttach() override;
 		void OnDetach() override;
 		void OnUpdate(const float& delta_time) override;
-		void OnInterfaceUpdate() override;
 
 		bool AddScene(std::unique_ptr<Scene> scene);
 		bool RemoveScene(std::unique_ptr<Scene> scene);
@@ -34,7 +33,7 @@ namespace Bonfire
 		Scene& GetScene() const { return *scenes.at(current_scene_index); }
 		const std::vector<std::unique_ptr<Scene>>& GetScenes() { return scenes; }
 
-		void RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2& viewport_size);
+		void RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2 viewport_size);
 		void DrawColliders(const glm::mat4& projection, const glm::mat4& view);
 		void DrawEntity(std::shared_ptr<Entity> entity, Camera& camera);
 

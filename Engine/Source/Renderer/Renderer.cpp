@@ -43,7 +43,7 @@ namespace Bonfire
 
 		if (project.GetProjectRunState())
 		{
-			for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
+			for (auto& [entity_id, entity] : GetScene().GetEntities())
 			{
 				if (entity->HasComponent<AnimationComponent>())
 				{
@@ -64,46 +64,19 @@ namespace Bonfire
 			}
 		}
 
-		Project::GetAudioSystem().UpdateListener(GetScene().GetCurrentCamera().position, GetScene().GetCurrentCamera().GetFrontVector(), GetScene().GetCurrentCamera().GetUpVector());
 		if (project.GetProjectRunState())
-			Project::GetScriptSystem().UpdateScripts(*scenes.at(current_scene_index), delta_time);
-
-		RenderViewport(delta_time, GetScene().GetCurrentCamera(), *project_viewport_framebuffer, project_viewport_size);
-	}
-
-	void Renderer::OnInterfaceUpdate()
-	{
-		if (!Project::GetInstance().GetProjectRunState()) return;
-		
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->WorkPos);
-		ImGui::SetNextWindowSize(viewport->WorkSize);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-		project_viewport_visible = ImGui::Begin("Project Name Here", nullptr, window_flags);
-		project_viewport_focused = ImGui::IsWindowFocused();
-		project_viewport_hovered = ImGui::IsWindowHovered();
-		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
-	
-		if (!FloatEquals(viewport_panel_size.x, GetProjectViewportSize().x) || !FloatEquals(viewport_panel_size.y, GetProjectViewportSize().y))
 		{
-			if (viewport_panel_size.x > 0 && viewport_panel_size.y > 0)
-			{
-				GetProjectViewportSize() = {viewport_panel_size.x, viewport_panel_size.y};
-				GetProjectViewportFramebuffer().Resize(GetProjectViewportSize().x, GetProjectViewportSize().y);
-			}
+			Project::GetAudioSystem().UpdateListener(GetScene().GetCurrentCamera().position, GetScene().GetCurrentCamera().GetFrontVector(), GetScene().GetCurrentCamera().GetUpVector());
+			Project::GetScriptSystem().UpdateScripts(*scenes.at(current_scene_index), delta_time);
 		}
-	
-		ImGui::Image((void*)(intptr_t)GetProjectViewportFramebuffer().GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
-		
-		ImGui::End();
+
+		if (project.GetEditorRunState())
+			RenderViewport(delta_time, GetScene().GetCurrentCamera(), *project_viewport_framebuffer, project_viewport_size);
+		else
+			RenderViewport(delta_time, GetScene().GetCurrentCamera(), *project_viewport_framebuffer, glm::vec2(project_window.GetWidth(), project_window.GetHeight()));
 	}
 
-	void Renderer::RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2& viewport_size)
+	void Renderer::RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2 viewport_size)
 	{
 		Project& project = Project::GetInstance();
 		Window& project_window = project.GetWindow();
@@ -136,83 +109,87 @@ namespace Bonfire
 		projection = camera.GetProjectionMatrix(viewport_size.x, viewport_size.y);
 		view = camera.GetViewMatrix();
 		
-		if (scenes.at(current_scene_index)->GetDirectionalLight() != nullptr && scenes.at(current_scene_index)->GetDirectionalLight()->enabled)
+		if (GetScene().GetDirectionalLight() != nullptr && GetScene().GetDirectionalLight()->enabled)
 		{
-			scenes.at(current_scene_index)->GetShadowMap()->LoadDirectional(scenes.at(current_scene_index)->GetDirectionalLight()->direction, camera.position);
-			scenes.at(current_scene_index)->GetShadowMap()->SetDirectional();
+			GetScene().GetShadowMap()->LoadDirectional(GetScene().GetDirectionalLight()->direction, camera.position);
+			GetScene().GetShadowMap()->SetDirectional();
 
-			for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
+			for (auto& [shadow_entity_id, shadow_entity] : GetScene().GetEntities())
 			{
 				if (shadow_entity->HasComponent<ModelComponent>())
 				{
 					ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 					if (model_component.model->casts_shadow)
 					{
-						shadow_entity->Draw(scenes.at(current_scene_index)->GetShadowMap()->shadow_map_shader, *scenes.at(current_scene_index));
+						shadow_entity->Draw(GetScene().GetShadowMap()->shadow_map_shader, *scenes.at(current_scene_index));
 					}
 				}
 			}
 
-			scenes.at(current_scene_index)->GetShadowMap()->Reset(false);
+			GetScene().GetShadowMap()->Reset(false);
 			glViewport(0, 0, viewport_size.x, viewport_size.y);
 		}
 		
 		bool shadow_rendered = false;
-		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
+		for (auto& [entity_id, entity] : GetScene().GetEntities())
 		{
 			if (!shadow_rendered && entity->HasComponent<LightSourceComponent>())
 			{
 				LightSourceComponent& light_source_component = entity->GetComponent<LightSourceComponent>();
 				if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
 				{
-					scenes.at(current_scene_index)->GetShadowMap()->Load(point_light->position);
-					scenes.at(current_scene_index)->GetShadowMap()->Set(point_light->position);
+					GetScene().GetShadowMap()->Load(point_light->position);
+					GetScene().GetShadowMap()->Set(point_light->position);
 
-					for (auto& [shadow_entity_id, shadow_entity] : scenes.at(current_scene_index)->GetEntities())
+					for (auto& [shadow_entity_id, shadow_entity] : GetScene().GetEntities())
 					{
 						if (shadow_entity->HasComponent<ModelComponent>())
 						{
 							ModelComponent& model_component = shadow_entity->GetComponent<ModelComponent>();
 							if (model_component.model->casts_shadow)
 							{
-								shadow_entity->Draw(scenes.at(current_scene_index)->GetShadowMap()->point_shadow_map_shader, *scenes.at(current_scene_index));
+								shadow_entity->Draw(GetScene().GetShadowMap()->point_shadow_map_shader, *scenes.at(current_scene_index));
 							}
 						}
 					}
 
-					scenes.at(current_scene_index)->GetShadowMap()->Reset(true);
+					GetScene().GetShadowMap()->Reset(true);
 					break;
 				}
 			}
 		}
+
+		if (project.GetEditorRunState())
+			framebuffer.Bind();
 		
-		framebuffer.Bind();
-		
+		glViewport(0, 0, viewport_size.x, viewport_size.y);
 		glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		projection = camera.GetProjectionMatrix(viewport_size.x, viewport_size.y);
 		view = camera.GetViewMatrix();
 
-		scenes.at(current_scene_index)->GetShadowMap()->updated_this_frame = false;
-		for (auto& [shader_id, shader] : scenes.at(current_scene_index)->GetShaders())
+		GetScene().GetShadowMap()->updated_this_frame = false;
+		for (auto& [shader_id, shader] : GetScene().GetShaders())
 			shader->updated_this_frame = false;
 		
-		for (auto& [entity_id, entity] : scenes.at(current_scene_index)->GetEntities())
+		for (auto& [entity_id, entity] : GetScene().GetEntities())
 		{
 			entity->UpdateComponents();
 			DrawEntity(entity, camera);
 		}
 
-		if (debug_type != DebugType::DEFAULT)
-			DrawColliders(projection, view);
+		DrawColliders(projection, view);
 
 		projection = camera.GetProjectionMatrix(viewport_size.x, viewport_size.y);
 		view = camera.GetViewMatrix();
-		scenes.at(current_scene_index)->GetSkybox()->Draw(view, projection, *scenes.at(current_scene_index)->GetFog());
+		GetScene().GetSkybox()->Draw(view, projection, *GetScene().GetFog());
 
-		framebuffer.Unbind();
-		glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
+		if (project.GetEditorRunState())
+		{
+			framebuffer.Unbind();
+			glViewport(0, 0, project_window.GetWidth(), project_window.GetHeight());
+		}
 	}
 
 	void Renderer::DrawEntity(std::shared_ptr<Entity> entity, Camera& camera)
@@ -230,12 +207,12 @@ namespace Bonfire
 					shader->SetMat4("projection", projection);
 					shader->SetMat4("view", view);
 					shader->SetVec3("view_pos", camera.position);
-					shader->SetFloat("far_plane", scenes.at(current_scene_index)->GetShadowMap()->far_plane);
-					shader->SetMat4("light_space_matrix", scenes.at(current_scene_index)->GetShadowMap()->light_space_matrix);
-					scenes.at(current_scene_index)->UpdateLightSources(*shader);
-					scenes.at(current_scene_index)->GetShadowMap()->Draw();
+					shader->SetFloat("far_plane", GetScene().GetShadowMap()->far_plane);
+					shader->SetMat4("light_space_matrix", GetScene().GetShadowMap()->light_space_matrix);
+					GetScene().UpdateLightSources(*shader);
+					GetScene().GetShadowMap()->Draw();
 
-					scenes.at(current_scene_index)->GetFog()->ApplyToShader(*shader);
+					GetScene().GetFog()->ApplyToShader(*shader);
 
 					shader->updated_this_frame = true;
 				}
@@ -301,7 +278,7 @@ namespace Bonfire
 		if (!draw_colliders) return;
 
 		std::shared_ptr<Shader> debug_shader = nullptr;
-		for (auto& [id, shader] : scenes.at(current_scene_index)->GetShaders())
+		for (auto& [id, shader] : GetScene().GetShaders())
 		{
 			if (shader->name == "Debug")
 			{
@@ -328,7 +305,7 @@ namespace Bonfire
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
-		for (auto& [id, entity] : scenes.at(current_scene_index)->GetEntities())
+		for (auto& [id, entity] : GetScene().GetEntities())
 		{
 			if (!entity->HasComponent<PhysicsComponent>()) continue;
 
@@ -405,7 +382,7 @@ namespace Bonfire
 		if (scene_index >= scenes.size())
 			scene_index = scenes.size() - 1;
 		
-		scenes.at(current_scene_index)->loaded = false;
+		GetScene().loaded = false;
 
 		if (Project::GetInstance().GetProjectRunState())
 		{
@@ -413,7 +390,7 @@ namespace Bonfire
 		}
 		
 		current_scene_index = scene_index;
-		scenes.at(current_scene_index)->LoadScene(*param_database);
+		GetScene().LoadScene(*param_database);
 
 		for (auto& [entity_id, entity] : Project::GetRenderer().GetScene().GetEntities())
 		{
@@ -442,7 +419,7 @@ namespace Bonfire
 			Project::GetScriptSystem().AttachCppScripts();
 		}
 		
-		scenes.at(current_scene_index)->loaded = true;
+		GetScene().loaded = true;
 		scene_transition_in_progress = false;
 	}
 }

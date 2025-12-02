@@ -112,8 +112,8 @@ private:
     std::unique_ptr<Framebuffer> editor_viewport_framebuffer;
     glm::vec2 editor_viewport_size = { 1280, 720 };
 
-    bool preview_animations = true;
-    bool preview_audios = true;
+    bool preview_animations = false;
+    bool preview_audios = false;
     
     std::shared_ptr<Entity> selected_entity = nullptr;
     std::shared_ptr<Entity> selected_entity_to_remove_components = nullptr;
@@ -127,6 +127,12 @@ private:
     TextureParamData* selected_texture_param = nullptr;
     ShaderParamData* selected_shader_param = nullptr;
     AudioParamData* selected_audio_param = nullptr;
+
+    uint32_t selected_model_param_id = 0;
+    uint32_t selected_texture_param_id = 0;
+    uint32_t selected_material_param_id = 0;
+    uint32_t selected_shader_param_id = 0;
+    uint32_t selected_audio_param_id = 0;
     
     ComponentType component_to_remove = ComponentType::UNKNOWN;
 

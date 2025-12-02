@@ -238,7 +238,7 @@ void Editor::DisplayPhysicsComponent()
     		std::shared_ptr<PhysicsBody> new_physics_body;
 
     		if (new_shape_type == PhysicsShapeType::BOX)
-    			new_physics_body = physics_system.CreateBoxBody(position, rotation, dimensions, new_body_type);
+    			new_physics_body = physics_system.CreateBoxBody(position, rotation, selected_entity->scale, new_body_type);
     		else if (new_shape_type == PhysicsShapeType::SPHERE)
     			new_physics_body = physics_system.CreateSphereBody(position, dimensions.x, new_body_type);
     		else if (new_shape_type == PhysicsShapeType::CAPSULE)

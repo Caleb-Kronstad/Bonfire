@@ -94,7 +94,6 @@ namespace Bonfire
 
 			// Update Interface
 			BeginImGuiFrame();
-			static_renderer->OnInterfaceUpdate();
 			for (const auto& layer : layers)
 				layer->OnInterfaceUpdate();
 			static_script_system->OnInterfaceUpdate();
@@ -273,7 +272,11 @@ namespace Bonfire
 		if (!project_config.fullscreen)
 		{
 			glfwMaximizeWindow(window->GetNativeWindow());
-			glViewport(window->GetXOffset(), window->GetYOffset(), user_monitor_width, user_monitor_height);
+			int actual_width, actual_height;
+			glfwGetFramebufferSize(window->GetNativeWindow(), &actual_width, &actual_height);
+			window->GetWidth() = actual_width;
+			window->GetHeight() = actual_height;
+			glViewport(window->GetXOffset(), window->GetYOffset(), actual_width, actual_height);
 		}
 		else
 		{

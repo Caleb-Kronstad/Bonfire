@@ -501,8 +501,7 @@ void Editor::DrawToolbar()
     	{
     		Log::Info("Running...");
     		serialized_scene_data = scene.SerializeToString(param_database);
-    		for (const auto& layer : project.GetLayers())
-    			layer->OnAttach();
+    		Project::GetScriptSystem().AttachCppScripts();
     		project.SetProjectRunState(true);
     		selected_entity = nullptr;
     		Project::GetScriptSystem().StartScripts(scene);
@@ -535,8 +534,7 @@ void Editor::DrawToolbar()
     		}
     		
     		Project::GetScriptSystem().DestroyScripts(scene);
-    		for (const auto& layer : project.GetLayers())
-    			layer->OnDetach();
+    		Project::GetScriptSystem().DetachCppScripts();
     		scene.DeserializeFromString(serialized_scene_data, param_database);
 
 			for (auto& [entity_id, entity] : scene.GetEntities())
