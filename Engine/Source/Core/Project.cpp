@@ -120,7 +120,6 @@ namespace Bonfire
 		delete static_audio_system;
 		delete static_physics_system;
 		delete static_renderer;
-		delete static_project_instance;
 	}
 
 	bool Project::LoadProjectConfig(const std::string& config_path)

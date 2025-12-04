@@ -53,28 +53,6 @@ void Editor::DrawParamEditor()
     ImGui::End();
 }
 
-void Editor::DrawParamConsole()
-{
-    ImGui::PushFont(editor_font);
-    ImGui::Begin("Console##Param", nullptr);
-    DrawActiveTitleLine(highlight_primary, background_tertiary);
-    ImGui::Indent(8.0f);
-    ImGui::Spacing();
-	
-    std::vector<std::string> lines = console_capture->GetLines();
-    for (const std::string& line : lines)
-    {
-        auto [color, text] = ParseAnsiLine(line);
-        ImGui::PushTextWrapPos(0.0f);
-        ImGui::TextColored(color, "%s", text.c_str());
-        ImGui::PopTextWrapPos();
-    }
-	
-    ImGui::PopFont();
-    ImGui::Unindent(8.0f);
-    ImGui::End();
-}
-
 void Editor::DisplayModelParams()
 {
     Renderer& renderer = Project::GetRenderer();

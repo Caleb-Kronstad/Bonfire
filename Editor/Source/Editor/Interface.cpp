@@ -32,14 +32,14 @@ void Editor::OnInterfaceUpdate()
 			DrawProjectViewport(0);
 			DrawToolbar();
 			DrawDebugInfo();
-			DrawConsole();
+			DrawConsole("Console");
 			DrawProjectSettings();
 			DrawHierarchy();
 			DrawDetails();
 			break;
 		case 1:
 			DrawParamEditor();
-			DrawParamConsole();
+			DrawConsole("Console##Param");
 			break;
 		default:
 			break;
@@ -56,6 +56,31 @@ void Editor::UpdateEditorInterfaceStyle()
 	highlight_primary = RgbaToImVec4(116, 77, 169);
 	highlight_secondary = RgbaToImVec4(141, 124, 192);
 	SetInterfaceStyle();
+}
+
+void Editor::DrawConsole(const char* window_name)
+{
+	ImGui::PushFont(editor_font);
+	ImGui::Begin(window_name, nullptr);
+	DrawActiveTitleLine(highlight_primary, background_tertiary);
+	ImGui::Indent(8.0f);
+	ImGui::Spacing();
+
+	if (ImGui::Button("Clear"))
+		console_capture->Clear();
+	
+	std::vector<std::string> lines = console_capture->GetLines();
+	for (const std::string& line : lines)
+	{
+		auto [color, text] = ParseAnsiLine(line);
+		ImGui::PushTextWrapPos(0.0f);
+		ImGui::TextColored(color, "%s", text.c_str());
+		ImGui::PopTextWrapPos();
+	}
+	
+	ImGui::PopFont();
+	ImGui::Unindent(8.0f);
+	ImGui::End();
 }
 
 void Editor::SetInterfaceStyle()
@@ -465,7 +490,6 @@ void Editor::DrawToolbar()
     		project.SetProjectRunState(true);
     		selected_entity = nullptr;
     		serialized_scene_data = scene.SerializeToString(param_database);
-    		serialized_scene_data.clear();
     		ImGui::SetWindowFocus("Project Name Here");
     	}
     	// stop playing
@@ -589,28 +613,6 @@ void Editor::DrawProjectSettings()
 	
     ImGui::PopFont();
 	ImGui::PopTextWrapPos();
-    ImGui::Unindent(8.0f);
-    ImGui::End();
-}
-
-void Editor::DrawConsole()
-{
-	ImGui::PushFont(editor_font);
-    ImGui::Begin("Console", nullptr);
-    DrawActiveTitleLine(highlight_primary, background_tertiary);
-    ImGui::Indent(8.0f);
-    ImGui::Spacing();
-	
-    std::vector<std::string> lines = console_capture->GetLines();
-    for (const std::string& line : lines)
-    {
-    	auto [color, text] = ParseAnsiLine(line);
-    	ImGui::PushTextWrapPos(0.0f);
-    	ImGui::TextColored(color, "%s", text.c_str());
-    	ImGui::PopTextWrapPos();
-    }
-	
-    ImGui::PopFont();
     ImGui::Unindent(8.0f);
     ImGui::End();
 }

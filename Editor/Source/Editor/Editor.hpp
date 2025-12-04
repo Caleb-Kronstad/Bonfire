@@ -85,12 +85,11 @@ private:
     void DrawDebugInfo();
     void DrawToolbar();
     void DrawProjectSettings();
-    void DrawConsole();
+    void DrawConsole(const char* window_name);
     void DrawHierarchy();
     void DrawDetails();
     
     void DrawParamEditor();
-    void DrawParamConsole();
 
     void DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness = 3.0f);
     void DrawEntityTree(std::shared_ptr<Entity> entity);
