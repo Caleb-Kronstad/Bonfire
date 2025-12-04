@@ -1,6 +1,8 @@
 ﻿#include "bonfire_pch.hpp"
 #include "AudioSystem.hpp"
 
+#include "Core/Project.hpp"
+
 namespace Bonfire
 {
     AudioSystem::AudioSystem()
@@ -38,7 +40,9 @@ namespace Bonfire
 
     void AudioSystem::OnUpdate(const float& deltaTime)
     {
-        
+        Scene& scene = Project::GetRenderer().GetScene();
+        UpdateAudios();
+        UpdateListener(scene.GetCurrentCamera().position, scene.GetCurrentCamera().GetFrontVector(), scene.GetCurrentCamera().GetUpVector());
     }
 
     bool AudioSystem::AddAudio(std::shared_ptr<Audio> audio)
@@ -73,6 +77,16 @@ namespace Bonfire
 
         Log::Warning("Audio with id " + std::to_string(id) + " does not exist");
         return nullptr;
+    }
+
+    void AudioSystem::UpdateAudios()
+    {
+        Scene& scene = Project::GetRenderer().GetScene();
+        for (auto& [id, entity] : scene.GetEntities())
+        {
+            if (entity->HasComponent<AudioComponent>())
+                entity->GetComponent<AudioComponent>().audio->Set3DPosition(entity->position);
+        }
     }
 
     void AudioSystem::UpdateListener(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& up)

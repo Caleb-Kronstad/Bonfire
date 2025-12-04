@@ -21,6 +21,7 @@ namespace Bonfire
         const std::unordered_map<uint32_t, std::shared_ptr<Audio>>& GetAudios() { return audios; }
 
         void UpdateListener(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& up);
+        void UpdateAudios();
         void SetMasterVolume(float volume);
         float GetMasterVolume();
         ma_engine* GetEngine() { return &engine; }

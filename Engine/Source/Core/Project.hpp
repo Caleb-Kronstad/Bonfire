@@ -96,6 +96,8 @@ namespace Bonfire
 		void BeginImGuiFrame();
 		void EndImGuiFrame();
 
+		void DrawLoadingWindow();
+
 		bool LoadProjectConfig(const std::string& config_path);
 
 	private:

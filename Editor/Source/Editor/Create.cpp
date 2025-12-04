@@ -1,6 +1,6 @@
 ﻿#include "Editor.hpp"
 
-void Editor::CreateEntity(std::shared_ptr<Entity> parent)
+bool Editor::CreateEntity(std::shared_ptr<Entity> parent)
 {
 	Project& project = Project::GetInstance();
 	Window& project_window = project.GetWindow();
@@ -24,9 +24,11 @@ void Editor::CreateEntity(std::shared_ptr<Entity> parent)
 		scene.GetEntities().at(parent->id)->AddChild(new_entity->id);
 	}
 	scene.GetEntities().insert_or_assign(next_id, new_entity);
+
+	return true;
 }
 
-void Editor::CreateModelComponent(std::shared_ptr<Entity> entity)
+bool Editor::CreateModelComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 	
@@ -50,11 +52,13 @@ void Editor::CreateModelComponent(std::shared_ptr<Entity> entity)
 
 		scene.GetModelComponents().insert_or_assign(next_id, new_component);
 		entity->AddComponent(ComponentType::MODEL, new_component);
+		return true;
 	}
-	else
-		Log::Warning("No models available");
+	Log::Warning("No models available");
+	return false;
 }
-void Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
+
+bool Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 	
@@ -93,8 +97,11 @@ void Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
 	scene.GetLightSourceComponents().insert_or_assign(next_id, new_component);
 	scene.GetPointLights().insert_or_assign(next_light_id, new_light);
 	entity->AddComponent(ComponentType::LIGHT, new_component);
+	
+	return true;
 }
-void Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
+
+bool Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
@@ -146,8 +153,11 @@ void Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 	std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body, default_can_move_axis, default_can_rotate_axis);
 	scene.GetPhysicsComponents().insert_or_assign(next_id, physics_component);
 	entity->AddComponent(ComponentType::PHYSICS, physics_component);
+	
+	return true;
 }
-void Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
+
+bool Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 	
@@ -155,7 +165,7 @@ void Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
     {
     	Log::Warning("Entity must have model to add animator");
 		ImGui::CloseCurrentPopup();
-		return;
+		return false;
     }
 	
 	ModelComponent& model_component = entity->GetComponent<ModelComponent>();
@@ -163,7 +173,7 @@ void Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
 	{
 		Log::Warning("Model must be animated (skeletal) to add animator");
 		ImGui::CloseCurrentPopup();
-		return;
+		return false;
 	}
 	
     std::shared_ptr<SkeletalModel> skeletal_model = std::static_pointer_cast<SkeletalModel>(model_component.model);
@@ -172,41 +182,43 @@ void Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
     {
 	    Log::Warning("Skeletal model has no animations loaded");
 	    ImGui::CloseCurrentPopup();
+		return false;
     }
-    else
+	
+    uint32_t next_id = 100001;
+    if (!scene.GetAnimationComponents().empty())
     {
-	    uint32_t next_id = 100001;
-	    if (!scene.GetAnimationComponents().empty())
-	    {
-	    	auto max_it = std::max_element(
-				scene.GetAnimationComponents().begin(),
-				scene.GetAnimationComponents().end(),
-				[](const auto& a, const auto& b) { return a.first < b.first; }
-			);
-	    	next_id = max_it->first + 1;
-	    }
-
-	    std::shared_ptr<Animator> animator = std::make_shared<Animator>(skeletal_model->GetSkeleton());
-
-	    for (const auto& animation : skeletal_model->GetAnimations())
-	    {
-	    	animator->AddAnimation(animation);
-	    }
-
-	    std::shared_ptr<AnimationComponent> anim_comp = std::make_shared<AnimationComponent>(next_id, true, animator);
-
-	    scene.GetAnimationComponents().insert_or_assign(next_id, anim_comp);
-	    entity->AddComponent(ComponentType::ANIMATION, anim_comp);
-
-	    Log::Info("Added Animation Component with " + std::to_string(skeletal_model->GetAnimations().size()) + " animation(s)");
-
-	    for (const auto& anim : skeletal_model->GetAnimations())
-	    {
-	    	Log::Info("  - " + anim->GetName());
-	    }
+	    auto max_it = std::max_element(
+			scene.GetAnimationComponents().begin(),
+			scene.GetAnimationComponents().end(),
+			[](const auto& a, const auto& b) { return a.first < b.first; }
+		);
+	    next_id = max_it->first + 1;
     }
+
+    std::shared_ptr<Animator> animator = std::make_shared<Animator>(skeletal_model->GetSkeleton());
+
+    for (const auto& animation : skeletal_model->GetAnimations())
+    {
+	    animator->AddAnimation(animation);
+    }
+
+    std::shared_ptr<AnimationComponent> anim_comp = std::make_shared<AnimationComponent>(next_id, true, animator);
+
+    scene.GetAnimationComponents().insert_or_assign(next_id, anim_comp);
+    entity->AddComponent(ComponentType::ANIMATION, anim_comp);
+
+    Log::Info("Added Animation Component with " + std::to_string(skeletal_model->GetAnimations().size()) + " animation(s)");
+
+    for (const auto& anim : skeletal_model->GetAnimations())
+    {
+	    Log::Info("  - " + anim->GetName());
+    }
+	
+	return true;
 }
-void Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
+
+bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 	AudioSystem& audio_system = Project::GetAudioSystem();
@@ -224,15 +236,19 @@ void Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 
 	if (audio_system.GetAudios().empty())
 	{
-		Log::Warning("No audios found in Audio Params");
-		return;
+		Log::Warning("Failed to find audio in Audio Params");
+		return false;
 	}
+	
 	std::shared_ptr<Audio> audio = audio_system.GetAudios().begin()->second;
 	std::shared_ptr<AudioComponent> audio_component = std::make_shared<AudioComponent>(next_id, true, audio);
 	scene.GetAudioComponents().insert_or_assign(next_id, audio_component);
 	entity->AddComponent(ComponentType::AUDIO, audio_component);
+	
+	return true;
 }
-void Editor::CreateScriptComponent(std::shared_ptr<Entity> entity)
+
+bool Editor::CreateScriptComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 	ScriptSystem& script_system = Project::GetScriptSystem();
@@ -251,15 +267,18 @@ void Editor::CreateScriptComponent(std::shared_ptr<Entity> entity)
 	if (script_system.GetLuaScripts().empty())
 	{
 		Log::Warning("No scripts found in Script Params");
-		return;
+		return false;
 	}
 
 	std::shared_ptr<LuaScript> script = script_system.GetLuaScripts().begin()->second;
 	std::shared_ptr<ScriptComponent> script_component = std::make_shared<ScriptComponent>(next_id, true, script);
 	scene.GetScriptComponents().insert_or_assign(next_id, script_component);
 	entity->AddComponent(ComponentType::SCRIPT, script_component);
+	
+	return true;
 }
-void Editor::CreateCameraComponent(std::shared_ptr<Entity> entity)
+
+bool Editor::CreateCameraComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 
@@ -299,4 +318,309 @@ void Editor::CreateCameraComponent(std::shared_ptr<Entity> entity)
 	entity->AddComponent(ComponentType::CAMERA, new_camera_component);
 	if (is_first_camera)
 		scene.SetCurrentCamera(next_camera_id);
+	
+	return true;
+}
+
+bool Editor::CreateMaterialParam()
+{
+	Renderer& renderer = Project::GetRenderer();
+	Scene& scene = renderer.GetScene();
+	ParamDatabase& param_database = renderer.GetParamDatabase();
+	
+	uint32_t next_id = 1000;
+	if (!scene.GetMaterials().empty())
+	{
+		auto max_it = std::max_element(
+			scene.GetMaterials().begin(),
+			scene.GetMaterials().end(),
+			[](const auto& a, const auto& b) { return a.first < b.first; }
+			);
+		next_id = max_it->first + 1;
+	}
+
+	std::shared_ptr<Material> new_material = std::make_shared<Material>("New Material");
+	new_material->param_id = next_id;
+	new_material->AddTexture(default_textures.at(0));
+	new_material->AddTexture(default_textures.at(1));
+	new_material->AddTexture(default_textures.at(2));
+	new_material->AddTexture(default_textures.at(3));
+	new_material->AddTexture(default_textures.at(4));
+	new_material->shininess = 64.0f;
+	new_material->texture_tiling = glm::vec2(1.0f, 1.0f);
+	new_material->texture_offset = glm::vec2(0.0f, 0.0f);
+
+	scene.GetMaterials().insert_or_assign(next_id, new_material);
+	param_database.material_params.insert_or_assign(
+		next_id,
+		MaterialParamData(new_material->name,
+		new_material->GetTexture(TextureType::DIFFUSE)->param_id, new_material->GetTexture(TextureType::SPECULAR)->param_id, new_material->GetTexture(TextureType::NORMAL)->param_id,
+		new_material->GetTexture(TextureType::HEIGHT)->param_id, new_material->GetTexture(TextureType::EMISSION)->param_id,
+		new_material->shininess, new_material->texture_tiling, new_material->texture_offset)
+		);
+	selected_material_param_id = next_id;
+
+	return true;
+}
+
+bool Editor::CreateModelParam()
+{
+	Renderer& renderer = Project::GetRenderer();
+	Scene& scene = renderer.GetScene();
+	ParamDatabase& param_database = renderer.GetParamDatabase();
+	
+	char exe_path[MAX_PATH];
+    GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+    std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
+    std::filesystem::path models_dir = exe_dir / "Data/Resources/Models";
+    std::string model_file = std::string(MAX_PATH, '\0');
+
+    OPENFILENAMEA ofn;
+    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    ofn.lStructSize = sizeof(OPENFILENAME);
+    ofn.lpstrFile = (LPSTR)model_file.c_str();
+    ofn.nMaxFile = model_file.size();
+    ofn.lpstrInitialDir = models_dir.string().c_str();
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    ofn.lpstrFilter = "Model Files\0*.obj;*.fbx;*.dae;*.gltf;*.glb\0Obj Files\0*.obj\0FBX Files\0*.fbx\0DAE Files\0*.dae\0glTF Files\0*.gltf;*.glb\0All Files\0*.*\0";
+    ofn.lpstrTitle = "Select model file";
+
+    if (GetOpenFileNameA(&ofn))
+    {
+        model_file.resize(model_file.find('\0'));
+
+        std::filesystem::path absolute_path = model_file;
+        std::string abs_str = absolute_path.string();
+
+        size_t data_pos = abs_str.find("Data");
+        if (data_pos != std::string::npos)
+        {
+            default_model_path = abs_str.substr(data_pos);
+            std::replace(default_model_path.begin(), default_model_path.end(), '\\', '/');
+        }
+        else
+            default_model_path = model_file;
+
+        Log::Info("File selected at " + default_model_path);
+    
+        uint32_t next_id = 1000;
+        if (!scene.GetModels().empty())
+        {
+            auto max_it = std::max_element(
+                scene.GetModels().begin(),
+                scene.GetModels().end(),
+                [](const auto& a, const auto& b) { return a.first < b.first; }
+                );
+            next_id = max_it->first + 1;
+        }
+
+        std::filesystem::path path_obj(default_model_path);
+        std::string model_name = path_obj.stem().string();
+
+        bool has_animations = false;
+        int animation_count = 0;
+
+        std::filesystem::path absolute_model_path = std::filesystem::absolute(default_model_path);
+        std::string abs_path_str = absolute_model_path.string();
+
+        Assimp::Importer temp_importer;
+        const aiScene* temp_scene = temp_importer.ReadFile(abs_path_str, aiProcess_ValidateDataStructure | 0);
+
+        if (!temp_scene)
+        {
+            Log::Warning("Assimp pre-scan failed: " + std::string(temp_importer.GetErrorString()));
+            Log::Info("Will attempt to load as regular model");
+        }
+        else if (temp_scene->HasAnimations() && temp_scene->mNumAnimations > 0)
+        {
+            has_animations = true;
+            animation_count = temp_scene->mNumAnimations;
+            Log::Info("Found " + std::to_string(animation_count) + " animation(s)");
+
+            for (unsigned int i = 0; i < temp_scene->mNumAnimations; i++)
+            {
+                aiAnimation* anim = temp_scene->mAnimations[i];
+                std::string anim_name = anim->mName.C_Str();
+                if (anim_name.empty())
+                    anim_name = "Animation_" + std::to_string(i);
+                Log::Info("  - " + anim_name + " (" + std::to_string(anim->mDuration) + " ticks, " +
+                          std::to_string(anim->mTicksPerSecond) + " tps)");
+            }
+        }
+        else
+            Log::Info("No animations found in file");
+
+        std::shared_ptr<Model> new_model;
+        if (has_animations)
+        {
+            Log::Info("Creating SkeletalModel");
+            new_model = std::make_shared<SkeletalModel>(default_model_path);
+            SkeletalModel* skel_model = static_cast<SkeletalModel*>(new_model.get());
+            if (skel_model->GetAnimations().empty())
+                Log::Warning("SkeletalModel created but no animations loaded!");
+            else
+                Log::Info("Successfully loaded " + std::to_string(skel_model->GetAnimations().size()) + " animations");
+        }
+        else
+        {
+            Log::Info("Creating regular Model");
+            new_model = std::make_shared<Model>(default_model_path);
+            new_model->Load();
+        }
+
+        new_model->param_id = next_id;
+        new_model->name = model_name;
+        
+        scene.GetModels().insert_or_assign(next_id, new_model);
+        param_database.model_params.insert_or_assign(next_id, ModelParamData(model_name, default_model_path, new_model->IsAnimated()));
+        selected_model_param_id = next_id;
+
+        for (auto& [id, entity] : scene.GetEntities())
+        {
+            if (entity->HasComponent<ModelComponent>())
+            {
+                ModelComponent& model_component = entity->GetComponent<ModelComponent>();
+                if (model_component.model->param_id == selected_model_param_id)
+                    model_component.model->param_id = 1000;
+            }
+        }
+    	
+		return true;
+    }
+	
+	Log::Info("File operation cancelled");
+	ImGui::CloseCurrentPopup();
+	return false;
+}
+
+bool Editor::CreateTextureParam()
+{
+	Renderer& renderer = Project::GetRenderer();
+	Scene& scene = renderer.GetScene();
+	ParamDatabase& param_database = renderer.GetParamDatabase();
+	
+	char exe_path[MAX_PATH];
+    GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+    std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
+    std::filesystem::path textures_dir = exe_dir / "Data/Resources/Textures";
+    std::string texture_file = std::string(MAX_PATH, '\0');
+    
+    OPENFILENAMEA ofn;
+    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    ofn.lStructSize = sizeof(OPENFILENAME);
+    ofn.lpstrFile = (LPSTR)texture_file.c_str();
+    ofn.nMaxFile = texture_file.size();
+    ofn.lpstrInitialDir = textures_dir.string().c_str();
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    ofn.lpstrFilter = "Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.tif;*.tiff;*.dds;*.hdr\0PNG Files\0*.png\0JPEG Files\0*.jpg;*.jpeg\0BMP Files\0*.bmp\0TGA Files\0*.tga\0All Files\0*.*\0";
+    ofn.lpstrTitle = "Select texture file";
+
+    if (GetOpenFileNameA(&ofn))
+    {
+        texture_file.resize(texture_file.find('\0'));
+
+        std::filesystem::path absolute_path = texture_file;
+        std::string abs_str = absolute_path.string();
+
+        size_t data_pos = abs_str.find("Data");
+        if (data_pos != std::string::npos)
+        {
+            default_diffuse_path = abs_str.substr(data_pos);
+            std::replace(default_diffuse_path.begin(), default_diffuse_path.end(), '\\', '/');
+        }
+        else
+            default_diffuse_path = texture_file;
+
+        Log::Info("File selected at " + default_diffuse_path);
+    
+        uint32_t next_id = 1000;
+        if (!scene.GetTextures().empty())
+        {
+            auto max_it = std::max_element(
+                scene.GetTextures().begin(),
+                scene.GetTextures().end(),
+                [](const auto& a, const auto& b) { return a.first < b.first; }
+                );
+            next_id = max_it->first + 1;
+        }
+
+        std::filesystem::path path_obj(default_diffuse_path);
+        std::string texture_name = path_obj.stem().string();
+    
+        std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(default_diffuse_path, TextureType::DIFFUSE, false);
+        new_texture->param_id = next_id;
+        new_texture->name = texture_name;
+        new_texture->Load();
+        scene.GetTextures().insert_or_assign(next_id, new_texture);
+        param_database.texture_params[next_id] = TextureParamData(texture_name, TextureType::DIFFUSE, false, default_diffuse_path);
+        selected_texture_param_id = next_id;
+    	return true;
+    }
+    
+    Log::Info("File operation cancelled");
+    return false;
+}
+
+bool Editor::CreateAudioParam()
+{
+	Renderer& renderer = Project::GetRenderer();
+	Scene& scene = renderer.GetScene();
+	ParamDatabase& param_database = renderer.GetParamDatabase();
+
+    char exe_path[MAX_PATH];
+    GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+    std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
+    std::filesystem::path audio_dir = exe_dir / "Data/Resources/Audio";
+    std::string audio_file = std::string(MAX_PATH, '\0');
+
+    OPENFILENAMEA ofn;
+    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    ofn.lStructSize = sizeof(OPENFILENAME);
+    ofn.lpstrFile = (LPSTR)audio_file.c_str();
+    ofn.nMaxFile = audio_file.size();
+    ofn.lpstrInitialDir = audio_dir.string().c_str();
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    ofn.lpstrFilter = "Audio Files\0*.wav;*.mp3;*.ogg;*.flac\0WAV Files\0*.wav\0MP3 Files\0*.mp3\0OGG Files\0*.ogg\0FLAC Files\0*.flac\0All Files\0*.*\0";
+    ofn.lpstrTitle = "Select audio file";
+
+    if (GetOpenFileNameA(&ofn))
+    {
+        audio_file.resize(audio_file.find('\0'));
+        std::filesystem::path absolute_path = audio_file;
+        std::string abs_str = absolute_path.string();
+        std::string relative_audio_path;
+        size_t data_pos = abs_str.find("Data");
+        if (data_pos != std::string::npos)
+        {
+            relative_audio_path = abs_str.substr(data_pos);
+            std::replace(relative_audio_path.begin(), relative_audio_path.end(), '\\', '/');
+        }
+        else
+            relative_audio_path = audio_file;
+
+        Log::Info("Audio file selected at " + relative_audio_path);
+        uint32_t next_id = 1000;
+        AudioSystem& audio_system = Project::GetAudioSystem();
+        if (!audio_system.GetAudios().empty())
+        {
+            auto max_it = std::max_element(
+                audio_system.GetAudios().begin(),
+                audio_system.GetAudios().end(),
+                [](const auto& a, const auto& b) { return a.first < b.first; }
+            );
+            next_id = max_it->first + 1;
+        }
+
+        std::filesystem::path path_obj(relative_audio_path);
+        std::string audio_name = path_obj.stem().string();
+
+        std::shared_ptr<Audio> new_audio = std::make_shared<Audio>(next_id, audio_name, relative_audio_path);
+        audio_system.AddAudio(new_audio);
+        param_database.audio_params.insert_or_assign(next_id, AudioParamData(audio_name, relative_audio_path));
+        selected_audio_param_id = next_id;
+        Log::Info("Loaded audio " + audio_name);
+    	return true;
+    }
+    Log::Info("Audio file operation cancelled");
+    return false;
 }

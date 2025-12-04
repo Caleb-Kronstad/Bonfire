@@ -39,30 +39,11 @@ void Editor::OnInterfaceUpdate()
 			break;
 		case 1:
 			DrawParamEditor();
+			DrawParamConsole();
 			break;
 		default:
 			break;
 		}
-	}
-	else
-	{
-		if (!project.GetProjectRunState())
-		{
-			ImGui::Begin("Play", nullptr, window_flags);
-			if (ImGui::Button("PLAY", ImVec2(50.0f, 25.0f)))
-			{
-				Log::Info("Running...");
-				for (const auto& layer : project.GetLayers())
-					layer->OnAttach();
-				Project::GetScriptSystem().StartScripts(scene);
-				project.SetProjectRunState(true);
-				ImGui::SetWindowFocus("Project Name Here");
-			}
-			ImGui::End();
-		}
-		else
-			DrawProjectViewport(window_flags);
-		ImGui::PopStyleVar(2);
 	}
 }
 
@@ -196,11 +177,17 @@ void Editor::DrawMenuBar()
 	    {
             if (ImGui::MenuItem("Save"))
             {
-	            renderer.GetScene().SaveScene(renderer.GetParamDatabase());
+            	if (!project.GetProjectRunState())
+					renderer.GetScene().SaveScene(renderer.GetParamDatabase());
+            	else
+            		Log::Warning("Project must not be running in order to save scene");
             }
-	    	if (ImGui::MenuItem("Load"))
+	    	if (ImGui::MenuItem("Reload"))
 	    	{
-	    		renderer.LoadScene(renderer.GetCurrentSceneIndex());
+	    		if (!project.GetProjectRunState())
+	    			renderer.LoadScene(renderer.GetCurrentSceneIndex());
+	    		else
+	    			Log::Warning("Project must not be running in order to reload scene");
 	    	}
             ImGui::EndMenu();
 	    }
@@ -426,31 +413,6 @@ void Editor::DrawDebugInfo()
     ImGui::Text(frame_time.c_str());
     ImGui::Text(frame_rate.c_str());
 
-	if (ImGui::Checkbox("Preview Animations", &preview_animations))
-	{
-		if (!preview_animations)
-		{
-			for (auto& [component_id, component] : scene.GetAnimationComponents())
-				component->animator->Stop();
-		}
-	}
-	if (ImGui::Checkbox("Preview Audios", &preview_audios))
-	{
-		if (!preview_audios)
-		{
-			for (auto& [component_id, component] : scene.GetAudioComponents())
-				component->audio->Stop();
-		}
-		else
-		{
-			for (auto& [component_id, component] : scene.GetAudioComponents())
-			{
-				if (component->audio->GetPlayOnAwake() && !component->audio->IsPlaying())
-					component->audio->Play();
-			}
-		}
-	}
-
 	ImGui::Checkbox("Draw Colliders", &renderer.GetDrawColliders());
 	ImGui::Checkbox("Draw Mesh Colliders", &renderer.GetDrawMeshColliders()); ImGui::SameLine(); ImGui::TextColored(ImColor(1.0, 1.0, 0.0, 1), "May have performance impact");
 	ImGui::SliderFloat("Collider Line Width", &renderer.GetDrawCollidersLineWidth(), 0.1f, 10.0f, "%.1f");
@@ -500,57 +462,20 @@ void Editor::DrawToolbar()
     	if (!project.GetProjectRunState())
     	{
     		Log::Info("Running...");
-    		serialized_scene_data = scene.SerializeToString(param_database);
-    		Project::GetScriptSystem().AttachCppScripts();
     		project.SetProjectRunState(true);
     		selected_entity = nullptr;
-    		Project::GetScriptSystem().StartScripts(scene);
+    		serialized_scene_data = scene.SerializeToString(param_database);
+    		serialized_scene_data.clear();
     		ImGui::SetWindowFocus("Project Name Here");
     	}
     	// stop playing
     	else if (project.GetProjectRunState())
     	{
     		Log::Info("Stopping...");
-    		project.SetProjectRunState(false);
-    		
-    		for (auto& [entity_id, entity] : scene.GetEntities())
-    		{
-    			if (entity->HasComponent<AnimationComponent>() && !preview_animations)
-    			{
-    				AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
-    				if (animation_component.animator)
-    					animation_component.animator->Stop();
-    			}
-    			if (entity->HasComponent<AudioComponent>() && !preview_audios)
-    			{
-    				AudioComponent& audio_component = entity->GetComponent<AudioComponent>();
-    				if (audio_component.audio && audio_component.enabled)
-    				{
-    					audio_component.audio->Set3DPosition(entity->position);
-    					if (audio_component.audio->GetPlayOnAwake() && !audio_component.audio->IsPlaying())
-    						audio_component.audio->Stop();
-    				}
-    			}
-    		}
-    		
-    		Project::GetScriptSystem().DestroyScripts(scene);
-    		Project::GetScriptSystem().DetachCppScripts();
-    		scene.DeserializeFromString(serialized_scene_data, param_database);
-
-			for (auto& [entity_id, entity] : scene.GetEntities())
-			{
-				if (entity->HasComponent<ModelComponent>() && entity->HasComponent<PhysicsComponent>())
-				{
-					ModelComponent& model_component = entity->GetComponent<ModelComponent>();
-					PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
-					if (physics_component.physics_body->GetShapeData().type == PhysicsShapeType::MESH)
-					{
-						physics_component.physics_body->SetScale(entity->scale, model_component.model);
-					}
-				}
-			}
-    		
     		selected_entity = nullptr;
+    		renderer.LoadScene(renderer.GetCurrentSceneIndex(), serialized_scene_data);
+    		project.SetProjectRunState(false);
+    		serialized_scene_data.clear();
     		ImGui::SetWindowFocus("Viewport");
     	}
     }
@@ -670,12 +595,6 @@ void Editor::DrawProjectSettings()
 
 void Editor::DrawConsole()
 {
-	Project& project = Project::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
-	
-	Scene& scene = renderer.GetScene();
-    
 	ImGui::PushFont(editor_font);
     ImGui::Begin("Console", nullptr);
     DrawActiveTitleLine(highlight_primary, background_tertiary);
@@ -1334,14 +1253,11 @@ void Editor::BuildProject()
                 config_file >> config_json;
                 config_file.close();
 
-                config_json["enable-editor"] = false;
-
                 std::ofstream config_out(config_path);
                 if (config_out.is_open())
                 {
-                    config_out << std::setw(4) << config_json << std::endl;
+                    config_out << std::setw(4) << config_json << "\n";
                     config_out.close();
-                    Log::Info("[EditorInterface] Disabled editor in build config");
                 }
                 else
                 {

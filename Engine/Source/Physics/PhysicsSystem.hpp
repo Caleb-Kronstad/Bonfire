@@ -91,9 +91,6 @@ namespace Bonfire
         void OnDetach() override;
         void OnUpdate(const float& delta_time) override;
 
-        bool AreBodiesColliding(JPH::BodyID body1, JPH::BodyID body2);
-        void SyncPhysicsToEntities();
-
         void RegisterBodyEntity(JPH::BodyID body_id, std::shared_ptr<Entity> entity);
         void UnregisterBodyEntity(JPH::BodyID body_id);
         std::shared_ptr<Entity> GetEntityFromBodyId(JPH::BodyID body_id);
@@ -142,6 +139,7 @@ namespace Bonfire
             float restitution = 0.0f
             );
 
+        bool AreBodiesColliding(JPH::BodyID body1, JPH::BodyID body2);
         void DestroyBody(std::shared_ptr<PhysicsBody> physics_object);
         void SetGravity(const glm::vec3& gravity);
 
@@ -150,6 +148,7 @@ namespace Bonfire
         const JPH::BodyInterface& GetBodyInterface() const { return jolt_physics_system->GetBodyInterface(); }
         const JPH::BodyLockInterface& GetBodyLockInterface() const { return jolt_physics_system->GetBodyLockInterface(); }
         const JPH::NarrowPhaseQuery& GetNarrowPhaseQuery() const { return jolt_physics_system->GetNarrowPhaseQuery(); }
+        
         JPH::Ref<JPH::GroupFilterTable> Filter(const std::string& filter_name, uint32_t num_subgroups = 2);
 
     private:

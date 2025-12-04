@@ -42,33 +42,7 @@ namespace Bonfire
 		GLFWwindow* glfw_window = project_window.GetNativeWindow();
 
 		if (project.GetProjectRunState())
-		{
-			for (auto& [entity_id, entity] : GetScene().GetEntities())
-			{
-				if (entity->HasComponent<AnimationComponent>())
-				{
-					AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
-					if (animation_component.animator)
-						animation_component.animator->Update(delta_time);
-				}
-				if (entity->HasComponent<AudioComponent>())
-				{
-					AudioComponent& audio_component = entity->GetComponent<AudioComponent>();
-					if (audio_component.audio && audio_component.enabled)
-					{
-						audio_component.audio->Set3DPosition(entity->position);
-						if (audio_component.audio->GetPlayOnAwake() && !audio_component.audio->IsPlaying())
-							audio_component.audio->Play();
-					}
-				}
-			}
-		}
-
-		if (project.GetProjectRunState())
-		{
-			Project::GetAudioSystem().UpdateListener(GetScene().GetCurrentCamera().position, GetScene().GetCurrentCamera().GetFrontVector(), GetScene().GetCurrentCamera().GetUpVector());
-			Project::GetScriptSystem().UpdateScripts(*scenes.at(current_scene_index), delta_time);
-		}
+			UpdateAnimations(delta_time);
 
 		if (project.GetEditorRunState())
 			RenderViewport(delta_time, GetScene().GetCurrentCamera(), *project_viewport_framebuffer, project_viewport_size);
@@ -410,6 +384,19 @@ namespace Bonfire
 		glDeleteBuffers(1, &vertex_buffer);
 	}
 
+	void Renderer::UpdateAnimations(const float& delta_time)
+	{
+		for (auto& [entity_id, entity] : GetScene().GetEntities())
+		{
+			if (entity->HasComponent<AnimationComponent>())
+			{
+				AnimationComponent& animation_component = entity->GetComponent<AnimationComponent>();
+				if (animation_component.animator)
+					animation_component.animator->Update(delta_time);
+			}
+		}
+	}
+
 	bool Renderer::AddScene(std::unique_ptr<Scene> scene)
 	{
 		scenes.push_back(std::move(scene));
@@ -423,36 +410,49 @@ namespace Bonfire
 		return true;
 	}
 	
-	void Renderer::LoadScene(int scene_index)
+	void Renderer::LoadScene(int scene_index, const std::string& json_data)
 	{
+		Project& project = Project::GetInstance();
+		
 		scene_transition_in_progress = true;
-		
-		if (scene_index < 0)
-			scene_index = 0;
 
-		if (scene_index >= scenes.size())
-			scene_index = scenes.size() - 1;
-		
+		scene_index = (std::max)(0, scene_index);
+		scene_index = !scenes.empty() ? (std::min)(scene_index, static_cast<int>(scenes.size()) - 1) : 0;
 		GetScene().loaded = false;
 
-		if (Project::GetInstance().GetProjectRunState())
+		if (project.GetProjectRunState())
 		{
+			for (auto& [id, animation_component] : GetScene().GetAnimationComponents())
+			{
+				if (animation_component->animator)
+					animation_component->animator->Stop();
+			}
+			for (auto& [id, audio_component] : GetScene().GetAudioComponents())
+			{
+				if (audio_component->audio)
+					audio_component->audio->Stop();
+			}
+			for (auto& [id, physics_component] : GetScene().GetPhysicsComponents())
+			{
+				if (physics_component->physics_body)
+					physics_component->physics_body->SetEnabled(false);
+			}
+    		
 			Project::GetScriptSystem().DetachCppScripts();
+			Project::GetScriptSystem().DestroyScripts(GetScene());
 		}
 		
 		current_scene_index = scene_index;
-		GetScene().LoadScene(*param_database);
-
-		for (auto& [entity_id, entity] : Project::GetRenderer().GetScene().GetEntities())
+		GetScene().loaded = false;
+		json_data.empty() ? GetScene().LoadScene(*param_database) : GetScene().DeserializeFromString(json_data, GetParamDatabase());
+		
+		for (auto& [id, physics_component] : GetScene().GetPhysicsComponents())
 		{
-			if (entity->HasComponent<PhysicsComponent>())
-			{
-				PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
-				physics_component.physics_body->SetEnabled(false);
-			}
+			if (physics_component->physics_body)
+				physics_component->physics_body->SetEnabled(false);
 		}
 		
-		for (auto& [entity_id, entity] : Project::GetRenderer().GetScene().GetEntities())
+		for (auto& [entity_id, entity] : GetScene().GetEntities())
 		{
 			if (entity->HasComponent<ModelComponent>() && entity->HasComponent<PhysicsComponent>())
 			{
@@ -464,9 +464,21 @@ namespace Bonfire
 				}
 			}
 		}
-		
-		if (Project::GetInstance().GetProjectRunState())
+
+		if (project.GetProjectRunState())
 		{
+			for (auto& [id, audio_component] : GetScene().GetAudioComponents())
+			{
+				if (audio_component->audio && audio_component->audio->GetPlayOnAwake())
+					audio_component->audio->Play();
+			}
+			for (auto& [id, physics_component] : GetScene().GetPhysicsComponents())
+			{
+				if (physics_component->physics_body)
+					physics_component->physics_body->SetEnabled(true);
+			}
+			
+			Project::GetScriptSystem().StartScripts(GetScene());
 			Project::GetScriptSystem().AttachCppScripts();
 		}
 		

@@ -32,6 +32,11 @@ void Editor::OnAttach()
 
 	ImGuiIO& io = ImGui::GetIO();
     editor_font = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+	unsigned char* pixels;
+	int width, height;
+	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+	ImGui_ImplOpenGL3_DestroyFontsTexture();
+	ImGui_ImplOpenGL3_CreateFontsTexture();
     
     default_model_path = "Data/Editor/Defaults/Models/Cube.obj";
     default_diffuse_path = "Data/Editor/Defaults/Textures/default-diffuse.png";

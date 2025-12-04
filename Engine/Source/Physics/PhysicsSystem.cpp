@@ -141,25 +141,8 @@ namespace Bonfire
 
     void PhysicsSystem::OnUpdate(const float& delta_time)
     {
-        const int collision_steps = 1;
+        constexpr int collision_steps = 1;
         jolt_physics_system->Update(delta_time, collision_steps, temp_allocator.get(), job_system.get());
-        //SyncPhysicsToEntities();
-    }
-
-    void PhysicsSystem::SyncPhysicsToEntities()
-    {
-        /*Scene& scene = Project::GetRenderer().GetScene();
-
-        for (auto& [entity_id, entity] : scene.GetEntities())
-        {
-            if (entity->HasComponent<PhysicsComponent>())
-            {
-                PhysicsComponent& physics_component = entity->GetComponent<PhysicsComponent>();
-                std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
-                entity->position = physics_body->GetPosition();
-                entity->rotation = glm::degrees(glm::eulerAngles(physics_body->GetRotation()));
-            }
-        }*/
     }
 
     std::shared_ptr<PhysicsBody> PhysicsSystem::CreateBoxBody(

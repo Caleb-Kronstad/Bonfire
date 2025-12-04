@@ -18,29 +18,30 @@ public:
     void OnInterfaceUpdate() override;
     void OnInput(Input& input) override;
 
-    void UpdateEditorInterfaceStyle();
-
     Entity& GetSelectedEntity() { return *selected_entity; }
     Camera& GetEngineCamera() { return *engine_camera; }
-
-    bool PreviewAnimations() const { return preview_animations; }
-    bool PreviewAudios() const { return preview_audios; }
+    
     bool EditorViewportVisible() const { return editor_viewport_visible; }
-
+    void UpdateEditorInterfaceStyle();
     bool LoadEditorConfig();
     bool SaveEditorConfig();
 
 private:
     void SetInterfaceStyle();
 
-    void CreateEntity(std::shared_ptr<Entity> parent = nullptr);
-    void CreateModelComponent(std::shared_ptr<Entity> entity);
-    void CreateLightSourceComponent(std::shared_ptr<Entity> entity);
-    void CreatePhysicsComponent(std::shared_ptr<Entity> entity);
-    void CreateAnimationComponent(std::shared_ptr<Entity> entity);
-    void CreateAudioComponent(std::shared_ptr<Entity> entity);
-    void CreateScriptComponent(std::shared_ptr<Entity> entity);
-    void CreateCameraComponent(std::shared_ptr<Entity> entity);
+    bool CreateEntity(std::shared_ptr<Entity> parent = nullptr);
+    bool CreateModelComponent(std::shared_ptr<Entity> entity);
+    bool CreateLightSourceComponent(std::shared_ptr<Entity> entity);
+    bool CreatePhysicsComponent(std::shared_ptr<Entity> entity);
+    bool CreateAnimationComponent(std::shared_ptr<Entity> entity);
+    bool CreateAudioComponent(std::shared_ptr<Entity> entity);
+    bool CreateScriptComponent(std::shared_ptr<Entity> entity);
+    bool CreateCameraComponent(std::shared_ptr<Entity> entity);
+
+    bool CreateModelParam();
+    bool CreateTextureParam();
+    bool CreateMaterialParam();
+    bool CreateAudioParam();
 
     void RemoveItems();
     void RemoveEntity(std::shared_ptr<Entity> entity);
@@ -87,7 +88,9 @@ private:
     void DrawConsole();
     void DrawHierarchy();
     void DrawDetails();
+    
     void DrawParamEditor();
+    void DrawParamConsole();
 
     void DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness = 3.0f);
     void DrawEntityTree(std::shared_ptr<Entity> entity);
@@ -120,9 +123,6 @@ private:
     bool model_preview_auto_rotate = true;
     bool model_preview_is_dragging = false;
     glm::vec2 model_preview_last_mouse_pos = glm::vec2(0.0f);
-
-    bool preview_animations = false;
-    bool preview_audios = false;
     
     std::shared_ptr<Entity> selected_entity = nullptr;
     std::shared_ptr<Entity> selected_entity_to_remove_components = nullptr;

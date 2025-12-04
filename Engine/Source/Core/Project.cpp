@@ -57,6 +57,9 @@ namespace Bonfire
 		glfwSetScrollCallback(window->GetNativeWindow(), ScrollCallbackDispatch);
 		glfwSetFramebufferSizeCallback(window->GetNativeWindow(), FramebufferSizeCallbackDispatch);
 
+		InitImGui();
+		DrawLoadingWindow();
+
 		static_audio_system->OnAttach();
 		static_physics_system->OnAttach();
 		
@@ -72,7 +75,6 @@ namespace Bonfire
 		static_renderer->GetParamDatabase().LoadParams();
 		static_renderer->LoadScene(0);
 
-		InitImGui();
 		for (std::shared_ptr<Layer>& layer : layers)
 			layer->OnAttach();
 		
@@ -327,4 +329,36 @@ namespace Bonfire
 			glfwMakeContextCurrent(backup_current_context);
 		}
 	}
+
+	void Project::DrawLoadingWindow()
+	{
+		BeginImGuiFrame();
+
+		float padding = 20.0f;
+		ImVec2 window_size(window->GetWidth() + padding, window->GetHeight() + padding);
+		ImGui::SetNextWindowPos(ImVec2(-padding/2.0f, -padding/2.0f));
+		ImGui::SetNextWindowSize(window_size);
+		ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+		const char* text = "Bonfire Engine";
+		ImVec2 text_size = ImGui::CalcTextSize(text);
+		ImGui::SetCursorPos(ImVec2((window_size.x - text_size.x) * 0.5f, (window_size.y - text_size.y) * 0.5f - padding));
+		ImGui::Text("%s", text);
+		
+		text = "Loading...";
+		text_size = ImGui::CalcTextSize(text);
+		ImGui::SetCursorPos(ImVec2((window_size.x - text_size.x) * 0.5f, (window_size.y - text_size.y) * 0.5f));
+		ImGui::Text("%s", text);
+		
+		text = "Bonfire Software";
+		text_size = ImGui::CalcTextSize(text);
+		ImGui::SetCursorPos(ImVec2((window_size.x - text_size.x) * 0.5f, window->GetHeight() - padding));
+		ImGui::Text("%s", text);
+
+		ImGui::End();
+
+		EndImGuiFrame();
+		glfwSwapBuffers(window->GetNativeWindow());
+	}
+
 }

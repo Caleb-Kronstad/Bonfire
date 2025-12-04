@@ -29,9 +29,11 @@ namespace Bonfire
 
 		bool AddScene(std::unique_ptr<Scene> scene);
 		bool RemoveScene(std::unique_ptr<Scene> scene);
-		void LoadScene(int scene_index);
+		void LoadScene(int scene_index, const std::string& json_data = "");
 		Scene& GetScene() const { return *scenes.at(current_scene_index); }
 		const std::vector<std::unique_ptr<Scene>>& GetScenes() { return scenes; }
+
+		void UpdateAnimations(const float& delta_time);
 
 		void RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2 viewport_size);
 		void RenderModelPreview(std::shared_ptr<Model> model, std::shared_ptr<Material> material, std::shared_ptr<Shader> shader, Framebuffer& framebuffer, glm::vec3 rotation_angle);
