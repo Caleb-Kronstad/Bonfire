@@ -10,7 +10,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
     std::function<uint32_t(std::shared_ptr<Entity>)> DuplicateRecursive;
 	DuplicateRecursive = [&](std::shared_ptr<Entity> ent) -> uint32_t
 	{
-		uint32_t next_entity_id = 1000001;
+		uint32_t next_entity_id = FIRST_ID;
 		if (!scene.GetEntities().empty())
 		{
 			auto max_it = std::max_element(
@@ -30,7 +30,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 		{
 			auto& original_component = ent->GetComponent<ModelComponent>();
 
-			uint32_t next_comp_id = 100001;
+			uint32_t next_comp_id = FIRST_ID;
 			if (!scene.GetModelComponents().empty())
 			{
 			  auto max_comp = std::max_element(
@@ -58,7 +58,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
             auto& original_component = ent->GetComponent<LightSourceComponent>();
 
             // Generate new component ID
-            uint32_t next_comp_id = 100001;
+            uint32_t next_comp_id = FIRST_ID;
             if (!scene.GetLightSourceComponents().empty())
             {
                     auto max_comp = std::max_element(
@@ -69,7 +69,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
                     next_comp_id = max_comp->first + 1;
             }
 
-            uint32_t next_light_id = 1000;
+            uint32_t next_light_id = FIRST_ID;
 
             std::shared_ptr<LightSource> new_light_source;
 
@@ -134,7 +134,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 	        PhysicsSystem& physics_system = Project::GetPhysicsSystem();
 	        auto& original_component = ent->GetComponent<PhysicsComponent>();
 
-	        uint32_t next_comp_id = 100001;
+	        uint32_t next_comp_id = FIRST_ID;
 	        if (!scene.GetPhysicsComponents().empty())
 	        {
 	            auto max_comp = std::max_element(
@@ -145,10 +145,10 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 	            next_comp_id = max_comp->first + 1;
 	        }
 
-	        uint32_t next_physics_id = 1000;
+	        uint32_t next_physics_id = FIRST_ID;
 	        if (!scene.GetPhysicsComponents().empty())
 	        {
-	            uint32_t max_physics_id = 1000;
+	            uint32_t max_physics_id = FIRST_ID;
 	            for (const auto& [id, comp] : scene.GetPhysicsComponents())
 	            {
 	                if (comp->physics_body && comp->physics_body->id > max_physics_id)
@@ -218,7 +218,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 		{
 			AnimationComponent& original_component = ent->GetComponent<AnimationComponent>();
 
-			uint32_t next_comp_id = 100001;
+			uint32_t next_comp_id = FIRST_ID;
 			if (!scene.GetAnimationComponents().empty())
 			{
 				auto max_comp = std::max_element(
@@ -241,7 +241,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 		if (ent->HasComponent<AudioComponent>())
 		{
 			AudioComponent& original_component = ent->GetComponent<AudioComponent>();
-			uint32_t next_comp_id = 100001;
+			uint32_t next_comp_id = FIRST_ID;
 			if (!scene.GetAudioComponents().empty())
 			{
 				auto max_comp = std::max_element(
@@ -256,7 +256,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 			if (original_component.audio)
 			{
 				AudioSystem& audio_system = Project::GetAudioSystem();
-				uint32_t next_audio_id = 100001;
+				uint32_t next_audio_id = FIRST_ID;
 				if (!audio_system.GetAudios().empty())
 				{
 					auto max_comp = std::max_element(
@@ -286,7 +286,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 		if (ent->HasComponent<ScriptComponent>())
 		{
 			ScriptComponent& original_component = ent->GetComponent<ScriptComponent>();
-			uint32_t next_comp_id = 100001;
+			uint32_t next_comp_id = FIRST_ID;
 			if (!scene.GetScriptComponents().empty())
 			{
 				auto max_comp = std::max_element(
@@ -310,7 +310,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 		if (ent->HasComponent<CameraComponent>())
 		{
 			CameraComponent& original_component = ent->GetComponent<CameraComponent>();
-			uint32_t next_comp_id = 100001;
+			uint32_t next_comp_id = FIRST_ID;
 			if (!scene.GetCameraComponents().empty())
 			{
 				auto max_comp = std::max_element(
@@ -320,7 +320,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 				);
 				next_comp_id = max_comp->first + 1;
 			}
-			uint32_t next_camera_id = 1000;
+			uint32_t next_camera_id = FIRST_ID;
 			if (!scene.GetCameraComponents().empty())
 			{
 				auto max_comp = std::max_element(

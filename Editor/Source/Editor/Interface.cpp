@@ -583,8 +583,9 @@ void Editor::DrawProjectSettings()
 	ImGui::Text("Engine Camera");
 	ImGui::SliderFloat("Speed", &engine_camera_speed, 1.0f, 500.0f, "%.f");
 	ImGui::SliderFloat("Sensitivity", &engine_camera_turn_sensitivity, 0.1f, 10.0f, "%.1f");
-	ImGui::DragFloat3("Position", (float*)&engine_camera->position, 1.0f, -500.0f, 500.0f, "%.3f");
     ImGui::PopItemWidth();
+	ImGui::SetNextItemWidth(300.0f);
+	ImGui::DragFloat3("Position", (float*)&engine_camera->position, 1.0f, -1000.0f, 1000.0f, "%.3f");
 
     ImGui::Separator();
     ImGui::PushItemWidth(300.0f);
@@ -708,21 +709,30 @@ void Editor::DrawDetails()
     	ImGui::Checkbox("##Enabled", &selected_entity->enabled);
     	ImGui::SameLine();
     	ImGui::SetNextItemWidth(200.0f);
-    	ImGui::InputText(" ", &selected_entity->name);
-    	ImGui::SameLine();
-    	ImGui::Text(std::to_string(selected_entity->id).c_str());
+    	ImGui::InputText(" ", &selected_entity->name); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(selected_entity->id).c_str());
 	
     	ImGui::Separator();
     	ImGui::Text("Transform");
     	ImGui::Spacing();
 	
     	ImGui::PushItemWidth(200.0f);
+    	
     	if (ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000.0f, 1000.0f, "%.3f"))
     		selected_entity->UpdateComponents();
-    	if (ImGui::DragFloat3("Scale ", (float*)&selected_entity->scale, drag_step, 0.01f, 1000.0f, "%.3f"))
-    		selected_entity->UpdateComponents();
+
+    	glm::vec3 current_scale = selected_entity->scale;
+    	if (ImGui::DragFloat3("Scale ", (float*)&current_scale, drag_step, 0.001f, 1000.0f, "%.3f"))
+    	{
+    		if (current_scale.x != 0.0f && current_scale.y != 0.0f && current_scale.z != 0.0f)
+    		{
+    			selected_entity->scale = current_scale;
+    			selected_entity->UpdateComponents();
+    		}
+    	}
+    	
     	if (ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0.0f, 360.0f, "%.3f"))
     		selected_entity->UpdateComponents();
+    	
     	ImGui::PopItemWidth();
 
     	DisplayCameraComponent();

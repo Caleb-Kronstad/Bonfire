@@ -49,11 +49,11 @@ void Editor::OnAttach()
     default_shader_geom_path = "Data/Editor/Defaults/Shaders/unlit.geom";
 
     auto& textures = scene.GetTextures();
-    default_textures.at(0) = textures.at(1000);
-    default_textures.at(1) = textures.at(1001);
-    default_textures.at(2) = textures.at(1002);
-    default_textures.at(3) = textures.at(1003);
-    default_textures.at(4) = textures.at(1004);
+    default_textures.at(0) = textures.at(FIRST_ID);
+    default_textures.at(1) = textures.at(FIRST_ID + 1);
+    default_textures.at(2) = textures.at(FIRST_ID + 2);
+    default_textures.at(3) = textures.at(FIRST_ID + 3);
+    default_textures.at(4) = textures.at(FIRST_ID + 4);
 
     play_icon = std::make_unique<Texture>("Data/Editor/Icons/play-icon.png", TextureType::DIFFUSE, false);
     move_icon = std::make_unique<Texture>("Data/Editor/Icons/move-icon.png", TextureType::DIFFUSE, false);

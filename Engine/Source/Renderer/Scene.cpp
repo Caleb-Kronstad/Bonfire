@@ -204,8 +204,8 @@ namespace Bonfire
         cameras.insert_or_assign(0, default_camera);
         current_camera_id = 0;
 
-        std::shared_ptr<CameraComponent> default_camera_component = std::make_shared<CameraComponent>(1000, true, default_camera);
-        camera_components.insert_or_assign(1000, default_camera_component);
+        std::shared_ptr<CameraComponent> default_camera_component = std::make_shared<CameraComponent>(FIRST_ID, true, default_camera);
+        camera_components.insert_or_assign(FIRST_ID, default_camera_component);
         
         directional_light = std::make_unique<DirectionalLight>();
         fog = std::make_unique<Fog>();

@@ -1,29 +1,29 @@
 {
-    "1000": {
+    "1000000000": {
         "flip": false,
         "name": "Default Diffuse",
         "path": "Data/Editor/Defaults/Textures/default-diffuse.png",
         "type": 0
     },
-    "1001": {
+    "1000000001": {
         "flip": false,
         "name": "Default Specular",
         "path": "Data/Editor/Defaults/Textures/default-specular.png",
         "type": 1
     },
-    "1002": {
+    "1000000002": {
         "flip": false,
         "name": "Default Normal",
         "path": "Data/Editor/Defaults/Textures/default-normal.png",
         "type": 2
     },
-    "1003": {
+    "1000000003": {
         "flip": false,
         "name": "Default Height",
         "path": "Data/Editor/Defaults/Textures/default-height.png",
         "type": 3
     },
-    "1004": {
+    "1000000004": {
         "flip": false,
         "name": "Default Emission",
         "path": "Data/Editor/Defaults/Textures/default-emission.png",

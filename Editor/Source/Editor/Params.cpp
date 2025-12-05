@@ -98,7 +98,7 @@ void Editor::DisplayModelParams()
         {
             std::shared_ptr<Model> preview_model = scene.GetModels().at(selected_model_param_id);
             std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
-            std::shared_ptr<Shader> preview_shader = scene.GetShaders().at(1001); // lit
+            std::shared_ptr<Shader> preview_shader = scene.GetShaders().at(FIRST_ID + 1); // lit
             
             if (preview_model && default_material)
             {
@@ -155,10 +155,10 @@ void Editor::DisplayModelParams()
 
         if (ImGui::Button("Delete"))
         {
-            if (selected_model_param_id != 1000 && selected_model_param_id != 1001)
+            if (selected_model_param_id != FIRST_ID && selected_model_param_id != FIRST_ID+1)
             {
                 renderer.GetParamDatabase().model_params.erase(selected_model_param_id);
-                selected_model_param_id = 1000;
+                selected_model_param_id = FIRST_ID;
             }
             else
                 Log::Error("Cannot delete editor defaults");
@@ -238,27 +238,27 @@ void Editor::DisplayTextureParams()
 
         if (ImGui::Button("Delete"))
         {
-            if (selected_texture_param_id > 1004)
+            if (selected_texture_param_id > FIRST_ID + 4)
             {
                 TextureType deleted_type = param_database.texture_params.at(selected_texture_param_id).type;
                 uint32_t deleted_texture_id = selected_texture_param_id;
 
                 renderer.GetParamDatabase().texture_params.erase(selected_texture_param_id);
-                uint32_t reset_id = 1000 + static_cast<uint32_t>(deleted_type);
+                uint32_t reset_id = FIRST_ID + static_cast<uint32_t>(deleted_type);
                 selected_texture_param_id = reset_id;
 
                 for (auto& [mat_id, mat_data] : param_database.material_params)
                 {
                     if (mat_data.diffuse_id == deleted_texture_id)
-                        mat_data.diffuse_id = 1000;
+                        mat_data.diffuse_id = FIRST_ID;
                     if (mat_data.specular_id == deleted_texture_id)
-                        mat_data.specular_id = 1001;
+                        mat_data.specular_id = FIRST_ID+1;
                     if (mat_data.normal_id == deleted_texture_id)
-                        mat_data.normal_id = 1002;
+                        mat_data.normal_id = FIRST_ID+2;
                     if (mat_data.height_id == deleted_texture_id)
-                        mat_data.height_id = 1003;
+                        mat_data.height_id = FIRST_ID+3;
                     if (mat_data.emission_id == deleted_texture_id)
-                        mat_data.emission_id = 1004;
+                        mat_data.emission_id = FIRST_ID+4;
 
                     if (scene.GetMaterials().contains(mat_id))
                     {
@@ -267,7 +267,7 @@ void Editor::DisplayTextureParams()
                         {
                             if (texture->param_id == deleted_texture_id)
                             {
-                                uint32_t default_id = 1000 + static_cast<uint32_t>(texture->type);
+                                uint32_t default_id = FIRST_ID + static_cast<uint32_t>(texture->type);
                                 if (scene.GetTextures().contains(default_id))
                                     texture = scene.GetTextures()[default_id];
                             }
@@ -328,9 +328,9 @@ void Editor::DisplayMaterialParams()
         ImGui::Spacing();
         if (scene.GetMaterials().contains(selected_material_param_id))
         {
-            std::shared_ptr<Model> preview_model = scene.GetModels().at(1001); // sphere
+            std::shared_ptr<Model> preview_model = scene.GetModels().at(FIRST_ID + 1); // sphere
             std::shared_ptr<Material> preview_material = scene.GetMaterials().at(selected_material_param_id);
-            std::shared_ptr<Shader> preview_shader = scene.GetShaders().at(1001); // lit
+            std::shared_ptr<Shader> preview_shader = scene.GetShaders().at(FIRST_ID + 1); // lit
             
             if (preview_model)
             {
@@ -420,11 +420,11 @@ void Editor::DisplayMaterialParams()
         
         if (ImGui::Button("Delete"))
         {
-            if (selected_material_param_id != 1000)
+            if (selected_material_param_id != FIRST_ID)
             {
                 renderer.GetParamDatabase().material_params.erase(selected_material_param_id);
                 renderer.GetScene().GetMaterials().erase(selected_material_param_id);
-                selected_material_param_id = 1000;
+                selected_material_param_id = FIRST_ID;
             
                 for (auto& [id, entity] : scene.GetEntities())
                 {
@@ -432,7 +432,7 @@ void Editor::DisplayMaterialParams()
                     {
                         ModelComponent& model_component = entity->GetComponent<ModelComponent>();
                         if (model_component.material->param_id == selected_material_param_id)
-                            model_component.material->param_id = 1000;
+                            model_component.material->param_id = FIRST_ID;
                     }
                 }
             }
@@ -478,7 +478,7 @@ void Editor::DisplayShaderParams()
         ImGui::Spacing();
         if (scene.GetShaders().contains(selected_shader_param_id))
         {
-            std::shared_ptr<Model> preview_model = scene.GetModels().at(1001); // sphere
+            std::shared_ptr<Model> preview_model = scene.GetModels().at(FIRST_ID + 1); // sphere
             std::shared_ptr<Material> default_material = scene.GetMaterials().begin()->second;
             std::shared_ptr<Shader> preview_shader = scene.GetShaders().at(selected_shader_param_id);
             
@@ -580,12 +580,12 @@ void Editor::DisplayAudioParams()
 
         if (ImGui::Button("Delete"))
         {
-            if (selected_audio_param_id != 1000)
+            if (selected_audio_param_id != FIRST_ID)
             {
                 renderer.GetParamDatabase().audio_params.erase(selected_audio_param_id);
                 AudioSystem& audio_system = Project::GetAudioSystem();
                 audio_system.RemoveAudio(audio_system.GetAudio(selected_audio_param_id));
-                selected_audio_param_id = 1000;
+                selected_audio_param_id = FIRST_ID;
         
                 for (auto& [id, entity] : scene.GetEntities())
                 {
@@ -593,7 +593,7 @@ void Editor::DisplayAudioParams()
                     {
                         ModelComponent& model_component = entity->GetComponent<ModelComponent>();
                         if (model_component.material->param_id == selected_material_param_id)
-                            model_component.material->param_id = 1000;
+                            model_component.material->param_id = FIRST_ID;
                     }
                 }
             }

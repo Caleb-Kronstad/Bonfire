@@ -1,1 +1,59 @@
-{"DATA-TYPE":{"type":"SCENE"},"components":{"cameras":{"100001":{"camera-id":1000,"enabled":true,"fov":60.0,"pitch":0.0,"position":[0.0,0.0,0.0],"up":[0.0,1.0,0.0],"yaw":-90.0}},"models":{"100001":{"enabled":true,"material-id":1000,"model-id":1000,"shader-id":1001}},"physics":{"100002":{"body-type":0,"can-move-axis":[true,true,true],"can-rotate-axis":[true,true,true],"dimensions":[25.0,1.0,25.0],"enabled":true,"physics-enabled":true,"physics-id":100002,"physics-name":"Physics Object","shape-type":0}}},"directional_light":{"color":[255.0,255.0,255.0],"direction":[191.0,-148.0,-35.0],"id":1000001,"name":"Directional Light"},"entities":[{"components":{"camera_component":100001},"enabled":true,"id":1000001,"name":"Camera","parent":0,"position":[0.0,0.0,0.0],"rotation":[0.0,0.0,0.0],"scale":[1.0,1.0,1.0]},{"components":{"model_component":100001,"physics_component":100002},"enabled":true,"id":1000002,"name":"Entity","parent":0,"position":[0.0,0.0,0.0],"rotation":[0.0,-0.0,0.0],"scale":[25.0,1.0,25.0]}],"fog":{"color":[0.5,0.5,0.5],"density":0.009999999776482582,"enabled":false,"end":100.0,"start":10.0,"type":0},"skybox":{"path":"Data/Editor/Defaults/Textures/Skyboxes/S11"}}
+{
+    "DATA-TYPE": {
+        "type": "SCENE"
+    },
+    "components": {
+        "cameras": {
+            "1000000000": {
+                "camera-id": 1000000000,
+                "enabled": true,
+                "fov": 60.0,
+                "pitch": 0.0,
+                "position": [0.0, 0.0, 0.0],
+                "up": [0.0, 1.0, 0.0],
+                "yaw": -90.0
+            }
+        }
+    },
+    "directional_light": {
+        "color": [255.0, 255.0, 255.0],
+        "direction": [0.0, -1.0, 0.0],
+        "id": 1000000000,
+        "name": "Directional Light"
+    },
+    "entities": [
+        {
+            "components": {
+                "camera_component": 1000000000
+            },
+            "enabled": true,
+            "id": 1000000000,
+            "name": "Camera",
+            "parent": 0,
+            "position": [0.0, 0.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+        },
+        {
+            "components": null,
+            "enabled": true,
+            "id": 1000000001,
+            "name": "Entity",
+            "parent": 0,
+            "position": [0.0, 0.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+        }
+    ],
+    "fog": {
+        "color": [0.5, 0.5, 0.5],
+        "density": 0.01,
+        "enabled": false,
+        "end": 100.0,
+        "start": 10.0,
+        "type": 0
+    },
+    "skybox": {
+        "path": "Data/Editor/Defaults/Textures/Skyboxes/S11"
+    }
+}

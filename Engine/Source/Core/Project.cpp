@@ -74,7 +74,7 @@ namespace Bonfire
 		}
 		static_renderer->GetParamDatabase().LoadParams();
 		static_renderer->LoadScene(0);
-
+		
 		for (std::shared_ptr<Layer>& layer : layers)
 			layer->OnAttach();
 		

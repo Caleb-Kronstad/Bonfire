@@ -14,6 +14,8 @@
 
 namespace Bonfire
 {
+    inline constexpr uint32_t FIRST_ID = 1000000000;
+    
 	struct ProjectConfig
 	{
 		std::string project_name = "Bonfire Engine";

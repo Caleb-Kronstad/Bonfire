@@ -4,8 +4,8 @@
     },
     "components": {
         "cameras": {
-            "100001": {
-                "camera-id": 1000,
+            "1000000000": {
+                "camera-id": 1000000000,
                 "enabled": true,
                 "fov": 60.0,
                 "pitch": 0.0,
@@ -18,16 +18,16 @@
     "directional_light": {
         "color": [255.0, 255.0, 255.0],
         "direction": [0.0, -1.0, 0.0],
-        "id": 1000001,
+        "id": 1000000000,
         "name": "Directional Light"
     },
     "entities": [
         {
             "components": {
-                "camera_component": 100001
+                "camera_component": 1000000000
             },
             "enabled": true,
-            "id": 1000001,
+            "id": 1000000000,
             "name": "Camera",
             "parent": 0,
             "position": [0.0, 0.0, 0.0],
@@ -37,7 +37,7 @@
         {
             "components": null,
             "enabled": true,
-            "id": 1000002,
+            "id": 1000000001,
             "name": "Entity",
             "parent": 0,
             "position": [0.0, 0.0, 0.0],

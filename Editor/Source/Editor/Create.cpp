@@ -7,7 +7,7 @@ bool Editor::CreateEntity(std::shared_ptr<Entity> parent)
 	Renderer& renderer = project.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
-	uint32_t next_id = 1000001;
+	uint32_t next_id = FIRST_ID;
 	if (!scene.GetEntities().empty())
 	{
 		auto max_it = std::max_element(
@@ -32,7 +32,7 @@ bool Editor::CreateModelComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 	
-	uint32_t next_id = 100001;
+	uint32_t next_id = FIRST_ID;
 	if (!scene.GetModelComponents().empty())
 	{
 		auto max_it = std::max_element(
@@ -62,7 +62,7 @@ bool Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 	
-	uint32_t next_id = 100001;
+	uint32_t next_id = FIRST_ID;
 	if (!scene.GetLightSourceComponents().empty())
 	{
 		auto max_it = std::max_element(
@@ -73,7 +73,7 @@ bool Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
 		next_id = max_it->first + 1;
 	}
 
-	uint32_t next_light_id = 1000;
+	uint32_t next_light_id = FIRST_ID;
 	if (!scene.GetPointLights().empty())
 	{
 		auto max_it = std::max_element(
@@ -106,7 +106,7 @@ bool Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 	Scene& scene = Project::GetRenderer().GetScene();
 	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
 	
-	uint32_t next_id = 100001;
+	uint32_t next_id = FIRST_ID;
 	if (!scene.GetPhysicsComponents().empty())
 	{
 		auto max_it = std::max_element(
@@ -117,7 +117,7 @@ bool Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 		next_id = max_it->first + 1;
 	}
     				
-	uint32_t next_po_id = 1000;
+	uint32_t next_po_id = FIRST_ID;
 	if (!scene.GetPhysicsComponents().empty())
 	{
 		auto max_it = std::max_element(
@@ -185,7 +185,7 @@ bool Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
 		return false;
     }
 	
-    uint32_t next_id = 100001;
+    uint32_t next_id = FIRST_ID;
     if (!scene.GetAnimationComponents().empty())
     {
 	    auto max_it = std::max_element(
@@ -223,7 +223,18 @@ bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 	Scene& scene = Project::GetRenderer().GetScene();
 	AudioSystem& audio_system = Project::GetAudioSystem();
 	
-	uint32_t next_id = 100001;
+	uint32_t next_id = FIRST_ID;
+	if (!scene.GetAudioComponents().empty())
+	{
+		auto max_it = std::max_element(
+			scene.GetAudioComponents().begin(),
+			scene.GetAudioComponents().end(),
+			[](const auto& a, const auto& b) { return a.first < b.first; }
+		);
+		next_id = max_it->first + 1;
+	}
+	
+	uint32_t next_audio_id = FIRST_ID;
 	if (!scene.GetAudioComponents().empty())
 	{
 		auto max_it = std::max_element(
@@ -236,11 +247,14 @@ bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 
 	if (audio_system.GetAudios().empty())
 	{
-		Log::Warning("Failed to find audio in Audio Params");
+		Log::Warning("Failed to find default audio in Audio Params");
 		return false;
 	}
-	
-	std::shared_ptr<Audio> audio = audio_system.GetAudios().begin()->second;
+
+	std::string new_audio_path = audio_system.GetAudios().begin()->second->path;
+	std::shared_ptr<Audio> audio = std::make_shared<Audio>(next_audio_id, "New Audio", new_audio_path);
+	audio->Set3DPosition(entity->position);
+	Project::GetAudioSystem().AddAudio(audio);
 	std::shared_ptr<AudioComponent> audio_component = std::make_shared<AudioComponent>(next_id, true, audio);
 	scene.GetAudioComponents().insert_or_assign(next_id, audio_component);
 	entity->AddComponent(ComponentType::AUDIO, audio_component);
@@ -253,7 +267,7 @@ bool Editor::CreateScriptComponent(std::shared_ptr<Entity> entity)
 	Scene& scene = Project::GetRenderer().GetScene();
 	ScriptSystem& script_system = Project::GetScriptSystem();
 
-	uint32_t next_id = 100001;
+	uint32_t next_id = FIRST_ID;
 	if (!scene.GetScriptComponents().empty())
 	{
 		auto max_it = std::max_element(
@@ -282,7 +296,7 @@ bool Editor::CreateCameraComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Project::GetRenderer().GetScene();
 
-	uint32_t next_id = 100001;
+	uint32_t next_id = FIRST_ID;
 	if (!scene.GetCameraComponents().empty())
 	{
 		auto max_it = std::max_element(
@@ -300,7 +314,7 @@ bool Editor::CreateCameraComponent(std::shared_ptr<Entity> entity)
 		is_first_camera = true;
 	}
 	
-	uint32_t next_camera_id = 1000;
+	uint32_t next_camera_id = FIRST_ID;
 	if (!scene.GetCameras().empty())
 	{
 		auto max_it = std::max_element(
@@ -328,7 +342,7 @@ bool Editor::CreateMaterialParam()
 	Scene& scene = renderer.GetScene();
 	ParamDatabase& param_database = renderer.GetParamDatabase();
 	
-	uint32_t next_id = 1000;
+	uint32_t next_id = FIRST_ID;
 	if (!scene.GetMaterials().empty())
 	{
 		auto max_it = std::max_element(
@@ -403,7 +417,7 @@ bool Editor::CreateModelParam()
 
         Log::Info("File selected at " + default_model_path);
     
-        uint32_t next_id = 1000;
+        uint32_t next_id = FIRST_ID;
         if (!scene.GetModels().empty())
         {
             auto max_it = std::max_element(
@@ -481,7 +495,7 @@ bool Editor::CreateModelParam()
             {
                 ModelComponent& model_component = entity->GetComponent<ModelComponent>();
                 if (model_component.model->param_id == selected_model_param_id)
-                    model_component.model->param_id = 1000;
+                    model_component.model->param_id = FIRST_ID;
             }
         }
     	
@@ -533,7 +547,7 @@ bool Editor::CreateTextureParam()
 
         Log::Info("File selected at " + default_diffuse_path);
     
-        uint32_t next_id = 1000;
+        uint32_t next_id = FIRST_ID;
         if (!scene.GetTextures().empty())
         {
             auto max_it = std::max_element(
@@ -599,7 +613,7 @@ bool Editor::CreateAudioParam()
             relative_audio_path = audio_file;
 
         Log::Info("Audio file selected at " + relative_audio_path);
-        uint32_t next_id = 1000;
+        uint32_t next_id = FIRST_ID;
         AudioSystem& audio_system = Project::GetAudioSystem();
         if (!audio_system.GetAudios().empty())
         {

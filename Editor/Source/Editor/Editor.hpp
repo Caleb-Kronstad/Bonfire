@@ -136,11 +136,11 @@ private:
     ShaderParamData* selected_shader_param = nullptr;
     AudioParamData* selected_audio_param = nullptr;
 
-    uint32_t selected_model_param_id = 1000;
-    uint32_t selected_texture_param_id = 1000;
-    uint32_t selected_material_param_id = 1000;
-    uint32_t selected_shader_param_id = 1000;
-    uint32_t selected_audio_param_id = 1000;
+    uint32_t selected_model_param_id = FIRST_ID;
+    uint32_t selected_texture_param_id = FIRST_ID;
+    uint32_t selected_material_param_id = FIRST_ID;
+    uint32_t selected_shader_param_id = FIRST_ID;
+    uint32_t selected_audio_param_id = FIRST_ID;
     
     ComponentType component_to_remove = ComponentType::UNKNOWN;
 
