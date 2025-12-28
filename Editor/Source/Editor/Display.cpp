@@ -319,7 +319,7 @@ void Editor::DisplayPhysicsComponent()
 	                physics_component.physics_body->SetScale(selected_entity->scale);
 	            }*/
 		        physics_component.physics_body->GetShapeData().dimensions = selected_entity->scale;
-		        physics_component.physics_body->SetScale(selected_entity->scale);
+			    selected_entity->GetComponent<PhysicsComponent>().physics_body->SetScale(selected_entity->scale);
 	        }
 	        else if (shape_data.type == PhysicsShapeType::SPHERE)
 	        {
