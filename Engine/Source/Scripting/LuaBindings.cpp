@@ -4,7 +4,7 @@
 #include "Renderer/Entity.hpp"
 #include "Input/InputCodes.hpp"
 
-#include "Core/Project.hpp"
+#include "Core/Engine.hpp"
 
 namespace Bonfire
 {
@@ -122,14 +122,14 @@ namespace Bonfire
     {
         lua_register(lua_state, "LoadScene", [](lua_State* L) -> int {
           const char* scene_path = luaL_checkstring(L, 1);
-          Project::GetRenderer().GetScene().LoadScene(Project::GetRenderer().GetParamDatabase());
+          Engine::GetRenderer().GetScene().LoadScene(Engine::GetRenderer().GetParamDatabase());
           return 0;
         });
 
         lua_register(lua_state, "NextScene", [](lua_State* L) -> int
         {
             unsigned int scene_index = luaL_checkinteger(L, 1);
-            Project::GetRenderer().LoadScene(scene_index);
+            Engine::GetRenderer().LoadScene(scene_index);
             return 0;
         });
     }
@@ -137,17 +137,17 @@ namespace Bonfire
     void LuaBindings::RegisterProjectBindings(lua_State* lua_state)
     {
         lua_register(lua_state, "QuitProject", [](lua_State* L) -> int {
-            Project::GetInstance().SetProjectRunState(false);
+            Engine::GetInstance().SetEngineRunState(false);
             return 0;
         });
 
         lua_register(lua_state, "GetProjectName", [](lua_State* L) -> int {
-            lua_pushstring(L, Project::GetInstance().GetProjectConfig().project_name.c_str());
+            lua_pushstring(L, Engine::GetInstance().GetProjectConfig().project_name.c_str());
             return 1;
         });
 
         lua_register(lua_state, "GetDeltaTime", [](lua_State* L) -> int {
-            lua_pushnumber(L, Project::GetInstance().GetDeltaTime());
+            lua_pushnumber(L, Engine::GetInstance().GetDeltaTime());
             return 1;
         });
     }
@@ -590,7 +590,7 @@ namespace Bonfire
     {
         int key = luaL_checkinteger(lua_state, 1);
     
-        Project& project = Project::GetInstance();
+        Engine& project = Engine::GetInstance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -603,7 +603,7 @@ namespace Bonfire
     {
         int button = luaL_checkinteger(lua_state, 1);
     
-        Project& project = Project::GetInstance();
+        Engine& project = Engine::GetInstance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -614,7 +614,7 @@ namespace Bonfire
     
     static int lua_input_get_mouse_position(lua_State* lua_state)
     {
-        Project& project = Project::GetInstance();
+        Engine& project = Engine::GetInstance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -628,7 +628,7 @@ namespace Bonfire
     
     static int lua_input_get_mouse_x(lua_State* lua_state)
     {
-        Project& project = Project::GetInstance();
+        Engine& project = Engine::GetInstance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -641,7 +641,7 @@ namespace Bonfire
     
     static int lua_input_get_mouse_y(lua_State* lua_state)
     {
-       Project& project = Project::GetInstance();
+       Engine& project = Engine::GetInstance();
        Window& window = project.GetWindow();
        GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -656,7 +656,7 @@ namespace Bonfire
     {
         int mode = luaL_checkinteger(lua_state, 1);
   
-        Project& project = Project::GetInstance();
+        Engine& project = Engine::GetInstance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
   

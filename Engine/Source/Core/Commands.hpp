@@ -3,14 +3,14 @@
 #include "Command.hpp"
 #include "Renderer/Entity.hpp"
 #include "Renderer/Scene.hpp"
-#include "Physics/PhysicsSystem.hpp"
+#include "Physics/PhysicsManager.hpp"
 
 namespace Bonfire
 {
     class SetTransformCommand : public Command
     {
     public:
-        SetTransformCommand(Scene* scene, PhysicsSystem* physics_system, uint32_t entity_id,
+        SetTransformCommand(Scene* scene, PhysicsManager* physics_system, uint32_t entity_id,
             const glm::vec3& old_position, const glm::vec3& old_rotation, const glm::vec3& old_scale,
               const glm::vec3& new_position, const glm::vec3& new_rotation, const glm::vec3& new_scale)
         : scene(scene), physics_system(physics_system), entity_id(entity_id),
@@ -36,7 +36,7 @@ namespace Bonfire
 
     private:
         Scene* scene;
-        PhysicsSystem* physics_system;
+        PhysicsManager* physics_system;
         uint32_t entity_id;
         glm::vec3 old_position, old_rotation, old_scale;
         glm::vec3 new_position, new_rotation, new_scale;

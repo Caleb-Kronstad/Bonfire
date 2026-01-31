@@ -3,7 +3,7 @@
 
 #include "LuaScript.hpp"
 #include "LuaBindings.hpp"
-#include "Core/Project.hpp"
+#include "Core/Engine.hpp"
 #include "Renderer/Scene.hpp"
 
 namespace Bonfire
@@ -29,7 +29,7 @@ namespace Bonfire
 
     void ScriptSystem::OnUpdate(const float& delta_time)
     {
-        Scene& scene = Project::GetRenderer().GetScene();
+        Scene& scene = Engine::GetRenderer().GetScene();
         
         for (std::shared_ptr<Layer>& cpp_script : cpp_scripts)
             cpp_script->OnUpdate(delta_time);

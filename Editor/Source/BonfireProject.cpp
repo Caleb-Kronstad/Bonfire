@@ -1,11 +1,11 @@
 ﻿#include "Editor/Editor.hpp"
 
-class BonfireProject : public Project
+class BonfireProject : public Engine
 {
 public:
-    BonfireProject() : Project("Bonfire")
+    BonfireProject() : Engine("Bonfire")
     {
-        GetInstance().SetProjectRunState(false);
+        GetInstance().SetEngineRunState(false);
         GetInstance().SetEditorRunState(true);
         PushLayer(std::make_shared<Editor>("Data/editorconfig.bonfire"));
     }

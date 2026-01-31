@@ -2,7 +2,7 @@
 
 void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 {
-	Project& project = Project::GetInstance();
+	Engine& project = Engine::GetInstance();
 	Window& project_window = project.GetWindow();
 	Renderer& renderer = project.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -131,7 +131,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
         }
 		if (ent->HasComponent<PhysicsComponent>())
 	    {
-	        PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+	        PhysicsManager& physics_system = Engine::GetPhysicsSystem();
 	        auto& original_component = ent->GetComponent<PhysicsComponent>();
 
 	        uint32_t next_comp_id = FIRST_ID;
@@ -255,7 +255,7 @@ void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 			std::shared_ptr<Audio> new_audio = nullptr;
 			if (original_component.audio)
 			{
-				AudioSystem& audio_system = Project::GetAudioSystem();
+				AudioSystem& audio_system = Engine::GetAudioSystem();
 				uint32_t next_audio_id = FIRST_ID;
 				if (!audio_system.GetAudios().empty())
 				{

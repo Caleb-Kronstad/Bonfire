@@ -1,7 +1,7 @@
 ﻿#include "bonfire_pch.hpp"
-#include "PhysicsSystem.hpp"
+#include "PhysicsManager.hpp"
 
-#include "Core/Project.hpp"
+#include "Core/Engine.hpp"
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 #include "Jolt/Physics/Collision/Shape/ScaledShape.h"
 
@@ -61,18 +61,20 @@ namespace Bonfire
         }
     }
 
-    PhysicsSystem::PhysicsSystem()
-        : Layer("PhysicsSystem")
+    PhysicsManager::PhysicsManager()
+        : Layer("PhysicsManager")
     {
     }
 
-    PhysicsSystem::~PhysicsSystem()
+    PhysicsManager::~PhysicsManager()
     {
     }
 
-    void PhysicsSystem::OnAttach()
+    void PhysicsManager::OnAttach()
     {
         Log::Info("Initializing Jolt Physics...");
+        
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
 
         JPH::RegisterDefaultAllocator();
 
@@ -115,13 +117,17 @@ namespace Bonfire
         contact_listener = std::make_unique<ContactListener>();
         jolt_physics_system->SetContactListener(contact_listener.get());
         jolt_physics_system->SetGravity(JPH::Vec3(0.0f, -9.81f, 0.0f));
+        
+        lock.unlock();
 
         Log::Info("Jolt Physics initialized successfully");
     }
 
-    void PhysicsSystem::OnDetach()
+    void PhysicsManager::OnDetach()
     {
         Log::Info("Shutting down Jolt Physics...");
+        
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
 
         jolt_physics_system.reset();
         object_layer_pair_filter.reset();
@@ -135,17 +141,19 @@ namespace Bonfire
 
         job_system.reset();
         temp_allocator.reset();
+        
+        lock.unlock();
 
         Log::Info("Jolt Physics shut down successfully");
     }
 
-    void PhysicsSystem::OnUpdate(const float& delta_time)
+    void PhysicsManager::OnUpdate(const float& delta_time)
     {
         constexpr int collision_steps = 1;
         jolt_physics_system->Update(delta_time, collision_steps, temp_allocator.get(), job_system.get());
     }
 
-    std::shared_ptr<PhysicsBody> PhysicsSystem::CreateBoxBody(
+    std::shared_ptr<PhysicsBody> PhysicsManager::CreateBoxBody(
         const glm::vec3& position,
         const glm::quat& rotation,
         const glm::vec3& half_extents,
@@ -154,6 +162,8 @@ namespace Bonfire
         float friction,
         float restitution)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
+        
         JPH::BoxShapeSettings shape_settings(JPH::Vec3(half_extents.x, half_extents.y, half_extents.z));
         JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
         JPH::ShapeRefC shape = shape_result.Get();
@@ -198,10 +208,11 @@ namespace Bonfire
         shape_data.type = PhysicsShapeType::BOX;
         shape_data.dimensions = half_extents;
 
+        lock.unlock();
         return std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
     }
 
-    std::shared_ptr<PhysicsBody> PhysicsSystem::CreateSphereBody(
+    std::shared_ptr<PhysicsBody> PhysicsManager::CreateSphereBody(
         const glm::vec3& position,
         float radius,
         PhysicsBodyType body_type,
@@ -209,6 +220,8 @@ namespace Bonfire
         float friction,
         float restitution)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
+        
         JPH::SphereShapeSettings shape_settings(radius);
         JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
         JPH::ShapeRefC shape = shape_result.Get();
@@ -252,10 +265,11 @@ namespace Bonfire
         shape_data.type = PhysicsShapeType::SPHERE;
         shape_data.dimensions = glm::vec3(radius, 0.0f, 0.0f);
 
+        lock.unlock();
         return std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
     }
 
-    std::shared_ptr<PhysicsBody> PhysicsSystem::CreateCapsuleBody(
+    std::shared_ptr<PhysicsBody> PhysicsManager::CreateCapsuleBody(
         const glm::vec3& position,
         const glm::quat& rotation,
         float radius,
@@ -265,6 +279,8 @@ namespace Bonfire
         float friction,
         float restitution)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
+        
         JPH::CapsuleShapeSettings shape_settings(half_height, radius);
         JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
         JPH::ShapeRefC shape = shape_result.Get();
@@ -309,10 +325,11 @@ namespace Bonfire
         shape_data.type = PhysicsShapeType::CAPSULE;
         shape_data.dimensions = glm::vec3(radius, half_height, 0.0f);
 
+        lock.unlock();
         return std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
     }
 
-    std::shared_ptr<PhysicsBody> PhysicsSystem::CreateMeshBody(
+    std::shared_ptr<PhysicsBody> PhysicsManager::CreateMeshBody(
         const glm::vec3& position,
         const glm::quat& rotation,
         std::shared_ptr<Model> model,
@@ -322,6 +339,8 @@ namespace Bonfire
         float friction,
         float restitution)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
+        
         if (!model)
         {
             Log::Error("Cannot create mesh collider: no model provided");
@@ -415,32 +434,42 @@ namespace Bonfire
         std::shared_ptr<PhysicsBody> physics_body = std::make_shared<PhysicsBody>(body->GetID(), body_type, shape_data);
         physics_body->mesh_id = model_id;
 
+        lock.unlock();
         return physics_body;
     }
 
-    void PhysicsSystem::RegisterBodyEntity(JPH::BodyID body_id, std::shared_ptr<Entity> entity)
+    void PhysicsManager::RegisterBodyEntity(JPH::BodyID body_id, std::shared_ptr<Entity> entity)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
         body_to_entity_map.insert_or_assign(body_id, entity);
+        lock.unlock();
     }
-    void PhysicsSystem::UnregisterBodyEntity(JPH::BodyID body_id)
+    void PhysicsManager::UnregisterBodyEntity(JPH::BodyID body_id)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
         body_to_entity_map.erase(body_id);
+        lock.unlock();
     }
-    std::shared_ptr<Entity> PhysicsSystem::GetEntityFromBodyId(JPH::BodyID body_id)
+    std::shared_ptr<Entity> PhysicsManager::GetEntityFromBodyId(JPH::BodyID body_id)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
         auto it = body_to_entity_map.find(body_id);
         if (it != body_to_entity_map.end())
         {
+            lock.unlock();
             return it->second;
         }
+        lock.unlock();
         return nullptr;
     }
     
-    JPH::Ref<JPH::GroupFilterTable> PhysicsSystem::Filter(const std::string& filter_name, uint32_t num_subgroups)
+    JPH::Ref<JPH::GroupFilterTable> PhysicsManager::Filter(const std::string& filter_name, uint32_t num_subgroups)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
         if (collision_filters.contains(filter_name)) return collision_filters.at(filter_name);
         JPH::Ref<JPH::GroupFilterTable> filter = new JPH::GroupFilterTable(num_subgroups);
         collision_filters.insert_or_assign(filter_name, filter);
+        lock.unlock();
         return filter;
     }
 
@@ -454,26 +483,28 @@ namespace Bonfire
         return (static_cast<uint64_t>(id1) << 32) | id2;
     }
 
-    void PhysicsSystem::OnCollisionEnter(JPH::BodyID body1, JPH::BodyID body2)
+    void PhysicsManager::OnCollisionEnter(JPH::BodyID body1, JPH::BodyID body2)
     {
         uint64_t pair_key = MakeCollisionPairKey(body1, body2);
         active_collision_pairs.insert(pair_key);
     }
 
-    void PhysicsSystem::OnCollisionConstant(JPH::BodyID body1, JPH::BodyID body2)
+    void PhysicsManager::OnCollisionConstant(JPH::BodyID body1, JPH::BodyID body2)
     {
         
     }
 
-    void PhysicsSystem::OnCollisionExit(JPH::BodyID body1, JPH::BodyID body2)
+    void PhysicsManager::OnCollisionExit(JPH::BodyID body1, JPH::BodyID body2)
     {
         uint64_t pair_key = MakeCollisionPairKey(body1, body2);
         active_collision_pairs.erase(pair_key);
     }
 
-    bool PhysicsSystem::AreBodiesColliding(JPH::BodyID body1, JPH::BodyID body2)
+    bool PhysicsManager::AreBodiesColliding(JPH::BodyID body1, JPH::BodyID body2)
     {
+        std::unique_lock<std::mutex> lock = Engine::GetThreadManager().LockPhysicsMutex();
         uint64_t pair_key = MakeCollisionPairKey(body1, body2);
+        lock.unlock();
         return active_collision_pairs.contains(pair_key);
     }
 
@@ -485,7 +516,7 @@ namespace Bonfire
     {
         JPH::BodyID body1_id = inBody1.GetID();
         JPH::BodyID body2_id = inBody2.GetID();
-        Project::GetPhysicsSystem().OnCollisionEnter(body1_id, body2_id);
+        Engine::GetPhysicsSystem().OnCollisionEnter(body1_id, body2_id);
     }
 
     void ContactListener::OnContactPersisted(
@@ -496,7 +527,7 @@ namespace Bonfire
     {
         JPH::BodyID body1_id = inBody1.GetID();
         JPH::BodyID body2_id = inBody2.GetID();
-        Project::GetPhysicsSystem().OnCollisionConstant(body1_id, body2_id);
+        Engine::GetPhysicsSystem().OnCollisionConstant(body1_id, body2_id);
     }
 
     void ContactListener::OnContactRemoved(
@@ -504,8 +535,6 @@ namespace Bonfire
     {
         JPH::BodyID body1_id = inSubShapePair.GetBody1ID();
         JPH::BodyID body2_id = inSubShapePair.GetBody2ID();
-        Project::GetPhysicsSystem().OnCollisionExit(body1_id, body2_id);
+        Engine::GetPhysicsSystem().OnCollisionExit(body1_id, body2_id);
     }
-
-
 }

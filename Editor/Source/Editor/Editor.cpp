@@ -12,7 +12,7 @@ Editor::~Editor()
 
 void Editor::OnAttach()
 {
-    Project& project = Project::GetInstance();
+    Engine& project = Engine::GetInstance();
     Window& project_window = project.GetWindow();
     Renderer& renderer = project.GetRenderer();
     Scene& scene = renderer.GetScene();
@@ -87,16 +87,16 @@ void Editor::OnAttach()
 }
 void Editor::OnDetach()
 {
-    ImGui_ImplOpenGL3_Shutdown();
+    /*ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    ImGui::DestroyContext();*/
 }
 
 void Editor::OnUpdate(const float& delta_time)
 {
-    Project& project = Project::GetInstance();
+    Engine& project = Engine::GetInstance();
     Window& project_window = project.GetWindow();
-    Renderer& renderer = Project::GetRenderer();
+    Renderer& renderer = Engine::GetRenderer();
     GLFWwindow* glfw_window = project_window.GetNativeWindow();
     
     if (editor_viewport_focused && engine_camera_can_move && !renderer.GetProjectViewportFocused())
@@ -119,15 +119,15 @@ void Editor::OnUpdate(const float& delta_time)
 			model_preview_rotation.y -= 360.0f;
 	}
 
-	if (EditorViewportVisible())
-		renderer.RenderViewport(delta_time, *engine_camera, *editor_viewport_framebuffer, editor_viewport_size);
+	//if (EditorViewportVisible())
+	//	renderer.RenderViewport(delta_time, *engine_camera, *editor_viewport_framebuffer, editor_viewport_size);
 
     RemoveItems();
 }
 
 void Editor::OnInput(Input& input)
 {
-    Project& project = Project::GetInstance();
+    Engine& project = Engine::GetInstance();
     Window& project_window = project.GetWindow();
     Renderer& renderer = project.GetRenderer();
     Scene& scene = renderer.GetScene();
@@ -162,22 +162,25 @@ void Editor::OnInput(Input& input)
 			if (key_input.GetKeyCode() == InputCode::F5)
 			{
 				// play
-				if (!project.GetProjectRunState())
+				if (!project.GetEngineRunState())
 				{
 					Log::Info("Running...");
 					serialized_scene_data = scene.SerializeToString(renderer.GetParamDatabase());
-					project.SetProjectRunState(true);
+					project.SetEngineRunState(true);
 					selected_entity = nullptr;
-					Project::GetScriptSystem().StartScripts(scene);
+					Engine::GetScriptSystem().StartScripts(scene);
 					ImGui::SetWindowFocus("Project Name Here");
 				}
 				// stop playing
-				else if (project.GetProjectRunState())
+				else if (project.GetEngineRunState())
 				{
 					Log::Info("Stopping...");
-					project.SetProjectRunState(false);
-					Project::GetScriptSystem().DestroyScripts(scene);
-					scene.DeserializeFromString(serialized_scene_data, renderer.GetParamDatabase());
+					project.SetEngineRunState(false);
+					Engine::GetScriptSystem().DestroyScripts(scene);
+					{
+						auto physics_lock = Engine::GetThreadManager().LockPhysicsMutex();
+						scene.DeserializeFromString(serialized_scene_data, renderer.GetParamDatabase());
+					}
 					selected_entity = nullptr;
 					ImGui::SetWindowFocus("Viewport");
 				}

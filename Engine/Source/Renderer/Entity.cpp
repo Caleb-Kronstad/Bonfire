@@ -4,7 +4,7 @@
 #include "Shader.hpp"
 #include "Scene.hpp"
 #include "Animation/Animator.hpp"
-#include "Core/Project.hpp"
+#include "Core/Engine.hpp"
 
 namespace Bonfire
 {
@@ -45,7 +45,7 @@ namespace Bonfire
 			PhysicsComponent& physics_component = GetComponent<PhysicsComponent>();
 			std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
 
-			if (Project::GetInstance().GetProjectRunState())
+			if (Engine::GetInstance().GetEngineRunState())
 			{
 				position = physics_body->GetPosition();
 				rotation = glm::degrees(glm::eulerAngles(physics_body->GetRotation()));

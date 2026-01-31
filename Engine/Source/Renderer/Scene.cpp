@@ -2,8 +2,8 @@
 #include "Scene.hpp"
 
 #include "Core/Utility.hpp"
-#include "Core/Project.hpp"
-#include "Physics/PhysicsSystem.hpp"
+#include "Core/Engine.hpp"
+#include "Physics/PhysicsManager.hpp"
 #include "Renderer/SkeletalModel.hpp"
 
 namespace Bonfire
@@ -181,11 +181,11 @@ namespace Bonfire
         for (auto& [audio_id, audio_data] : param_database.audio_params)
         {
             std::shared_ptr<Audio> audio = std::make_shared<Audio>(audio_id, audio_data.name, audio_data.path);
-            Project::GetAudioSystem().AddAudio(audio);
+            Engine::GetAudioSystem().AddAudio(audio);
         }
         for (auto& [script_id, script_data] : param_database.script_params)
         {
-            Project::GetScriptSystem().LoadScript(script_id, script_data.name, script_data.path);
+            Engine::GetScriptSystem().LoadScript(script_id, script_data.name, script_data.path);
         }
         //  LOAD OTHER PARAM TYPES
 
@@ -638,7 +638,7 @@ namespace Bonfire
             {
                 for (const auto& [physics_component_id, physics_data] : components["physics"].items())
                 {
-                    PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+                    PhysicsManager& physics_system = Engine::GetPhysicsSystem();
 
                     uint32_t id = std::stoul(physics_component_id);
                     bool enabled = physics_data["enabled"].get<bool>();
@@ -729,7 +729,7 @@ namespace Bonfire
                     bool play_on_awake = audio_data["play-on-awake"].get<bool>();
                     uint32_t audio_id = audio_data["audio-id"].get<uint32_t>();
 
-                    std::shared_ptr<Audio> audio = Project::GetAudioSystem().GetAudio(audio_id);
+                    std::shared_ptr<Audio> audio = Engine::GetAudioSystem().GetAudio(audio_id);
 
                     if (audio)
                     {
@@ -751,7 +751,7 @@ namespace Bonfire
                     bool enabled = script_data["enabled"].get<bool>();
                     uint32_t script_id = script_data["script-id"].get<uint32_t>();
 
-                    std::shared_ptr<LuaScript> script = Project::GetScriptSystem().GetScript(script_id);
+                    std::shared_ptr<LuaScript> script = Engine::GetScriptSystem().GetScript(script_id);
                     if (script)
                     {
                         std::shared_ptr<ScriptComponent> script_component = std::make_shared<ScriptComponent>(id, enabled, script);

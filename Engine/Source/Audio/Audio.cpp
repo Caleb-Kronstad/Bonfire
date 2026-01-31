@@ -2,14 +2,14 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "Audio.hpp"
 
-#include "Core/Project.hpp"
+#include "Core/Engine.hpp"
 
 namespace Bonfire
 {
     Audio::Audio(uint32_t id, const std::string& name, const std::string& file_path)
         : id(id), name(name), path(file_path)
     {
-        engine = Project::GetAudioSystem().GetEngine();
+        engine = Engine::GetAudioSystem().GetEngine();
         
         if (engine == nullptr)
         {

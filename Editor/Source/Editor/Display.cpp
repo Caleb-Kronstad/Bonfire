@@ -2,7 +2,7 @@
 
 void Editor::DisplayModelComponent()
 {
-    Scene& scene = Project::GetRenderer().GetScene();
+    Scene& scene = Engine::GetRenderer().GetScene();
     
     if (selected_entity->HasComponent<ModelComponent>())
     {
@@ -79,7 +79,7 @@ void Editor::DisplayModelComponent()
 
 void Editor::DisplayLightSourceComponent()
 {
-    Scene& scene = Project::GetRenderer().GetScene();
+    Scene& scene = Engine::GetRenderer().GetScene();
 
     if (selected_entity->HasComponent<LightSourceComponent>())
     {
@@ -194,8 +194,8 @@ void Editor::DisplayLightSourceComponent()
 
 void Editor::DisplayPhysicsComponent()
 {
-    PhysicsSystem& physics_system = Project::GetPhysicsSystem();
-    Scene& scene = Project::GetRenderer().GetScene();
+    PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+    Scene& scene = Engine::GetRenderer().GetScene();
     
     if (selected_entity->HasComponent<PhysicsComponent>())
     {
@@ -290,7 +290,7 @@ void Editor::DisplayPhysicsComponent()
 
 		    if (ImGui::Button("Apply Mesh Size"))
 		    {
-		    	glm::mat4 world_transform = selected_entity->GetWorldTransformMatrix(Project::GetRenderer().GetScene().GetEntities());
+		    	glm::mat4 world_transform = selected_entity->GetWorldTransformMatrix(Engine::GetRenderer().GetScene().GetEntities());
 		    	glm::vec3 world_position, world_rotation, world_scale;
 		    	DecomposeTransform(world_transform, world_position, world_rotation, world_scale);
 
@@ -361,7 +361,7 @@ void Editor::DisplayPhysicsComponent()
 
 void Editor::DisplayAnimationComponent()
 {
-    Scene& scene = Project::GetRenderer().GetScene();
+    Scene& scene = Engine::GetRenderer().GetScene();
     
     if (selected_entity->HasComponent<AnimationComponent>())
     {
@@ -442,7 +442,7 @@ void Editor::DisplayAnimationComponent()
 
 void Editor::DisplayAudioComponent()
 {
-    Scene& scene = Project::GetRenderer().GetScene();
+    Scene& scene = Engine::GetRenderer().GetScene();
     
     if (selected_entity->HasComponent<AudioComponent>())
     {
@@ -476,7 +476,7 @@ void Editor::DisplayAudioComponent()
     		ImGui::OpenPopup("ChangeAudioInAudioComponent");
     	ImGui::SameLine(); ImGui::Text("Audio");
 
-    	AudioSystem& audio_system = Project::GetAudioSystem();
+    	AudioSystem& audio_system = Engine::GetAudioSystem();
     	if (ImGui::BeginPopup("ChangeAudioInAudioComponent"))
     	{
     		for (auto& [id, scene_item] : audio_system.GetAudios())
@@ -499,7 +499,7 @@ void Editor::DisplayAudioComponent()
 
 void Editor::DisplayCameraComponent()
 {
-    Scene& scene = Project::GetRenderer().GetScene();
+    Scene& scene = Engine::GetRenderer().GetScene();
     
     if (selected_entity->HasComponent<CameraComponent>())
     {
@@ -524,7 +524,7 @@ void Editor::DisplayCameraComponent()
 
 void Editor::DisplayScriptComponent()
 {
-    Scene& scene = Project::GetRenderer().GetScene();
+    Scene& scene = Engine::GetRenderer().GetScene();
     if (selected_entity->HasComponent<ScriptComponent>())
     {
     	ScriptComponent& script_component = selected_entity->GetComponent<ScriptComponent>();
@@ -548,7 +548,7 @@ void Editor::DisplayScriptComponent()
 
     		if (ImGui::BeginPopup("ChangeScriptScriptComponent"))
     		{
-    			ScriptSystem& script_system = Project::GetScriptSystem();
+    			ScriptSystem& script_system = Engine::GetScriptSystem();
     			for (auto& [id, script] : script_system.GetLuaScripts())
     			{
     				ImGui::PushID(&id);

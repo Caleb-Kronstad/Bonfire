@@ -1,7 +1,7 @@
 ﻿#include "bonfire_pch.hpp"
 #include "AudioSystem.hpp"
 
-#include "Core/Project.hpp"
+#include "Core/Engine.hpp"
 
 namespace Bonfire
 {
@@ -40,7 +40,7 @@ namespace Bonfire
 
     void AudioSystem::OnUpdate(const float& deltaTime)
     {
-        Scene& scene = Project::GetRenderer().GetScene();
+        Scene& scene = Engine::GetRenderer().GetScene();
         UpdateAudios();
         UpdateListener(scene.GetCurrentCamera().position, scene.GetCurrentCamera().GetFrontVector(), scene.GetCurrentCamera().GetUpVector());
     }
@@ -81,7 +81,7 @@ namespace Bonfire
 
     void AudioSystem::UpdateAudios()
     {
-        Scene& scene = Project::GetRenderer().GetScene();
+        Scene& scene = Engine::GetRenderer().GetScene();
         for (auto& [id, entity] : scene.GetEntities())
         {
             if (entity->HasComponent<AudioComponent>())

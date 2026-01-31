@@ -3,7 +3,7 @@
 #include "Shader.hpp"
 #include "Components.hpp"
 #include "ParamDatabase.hpp"
-#include "Physics/PhysicsSystem.hpp"
+#include "Physics/PhysicsManager.hpp"
 #include "Camera.hpp"
 
 namespace Bonfire {

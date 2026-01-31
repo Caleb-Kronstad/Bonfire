@@ -47,7 +47,7 @@ namespace Bonfire
         virtual bool ShouldCollide(JPH::ObjectLayer object1, JPH::ObjectLayer object2) const override;
     };
 
-    class PhysicsSystem;
+    class PhysicsManager;
     
     class ContactListener : public JPH::ContactListener
     {
@@ -81,11 +81,11 @@ namespace Bonfire
     };
 
 
-    class PhysicsSystem : Layer
+    class PhysicsManager : Layer
     {
     public:
-        PhysicsSystem();
-        ~PhysicsSystem();
+        PhysicsManager();
+        ~PhysicsManager();
         
         void OnAttach() override;
         void OnDetach() override;

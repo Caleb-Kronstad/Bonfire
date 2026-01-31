@@ -2,7 +2,7 @@
 #include "Renderer.hpp"
 
 #include "Core/Utility.hpp"
-#include "Core/Project.hpp"
+#include "Core/Engine.hpp"
 #include "Core/Debug.hpp"
 
 namespace Bonfire
@@ -36,12 +36,10 @@ namespace Bonfire
 
 	void Renderer::OnUpdate(const float& delta_time)
 	{
-		Project& project = Project::GetInstance();
-		PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+		Engine& project = Engine::GetInstance();
 		Window& project_window = project.GetWindow();
-		GLFWwindow* glfw_window = project_window.GetNativeWindow();
 
-		if (project.GetProjectRunState())
+		if (project.GetEngineRunState())
 			UpdateAnimations(delta_time);
 
 		if (project.GetEditorRunState())
@@ -52,7 +50,7 @@ namespace Bonfire
 
 	void Renderer::RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2 viewport_size)
 	{
-		Project& project = Project::GetInstance();
+		Engine& project = Engine::GetInstance();
 		Window& project_window = project.GetWindow();
 
 		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)
@@ -330,50 +328,54 @@ namespace Bonfire
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
-		for (auto& [id, entity] : GetScene().GetEntities())
 		{
-			if (!entity->HasComponent<PhysicsComponent>()) continue;
+			auto physics_lock = Engine::GetThreadManager().LockPhysicsMutex();
 
-			PhysicsComponent& physics_comp = entity->GetComponent<PhysicsComponent>();
-			PhysicsShapeData shape_data = physics_comp.physics_body->GetShapeData();
-
-			glm::vec3 color;
-			switch (physics_comp.physics_body->GetBodyType())
+			for (auto& [id, entity] : GetScene().GetEntities())
 			{
-			case PhysicsBodyType::STATIC: color = RgbToGlmVec3(0, 255, 0); break;
-			case PhysicsBodyType::DYNAMIC: color = RgbToGlmVec3(0, 255, 0); break;
-			case PhysicsBodyType::KINEMATIC: color = RgbToGlmVec3(0, 255, 0); break;
-			}
-			debug_shader->SetVec4("color", glm::vec4(color, 1.0f));
+				if (!entity->HasComponent<PhysicsComponent>()) continue;
 
-			glm::vec3 pos = physics_comp.physics_body->GetPosition();
-			glm::quat rot = physics_comp.physics_body->GetRotation();
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), pos) * glm::toMat4(rot);
-			debug_shader->SetMat4("model", model);
-			
-			std::vector<glm::vec3> vertices;
-			switch (shape_data.type)
-			{
-			case PhysicsShapeType::BOX:
-				vertices = Debug::GetBoxVertices(shape_data.dimensions);
-				break;
-			case PhysicsShapeType::SPHERE:
-				vertices = Debug::GetSphereVertices(shape_data.dimensions.x);
-				break;
-			case PhysicsShapeType::CAPSULE:
-				vertices = Debug::GetCapsuleVertices(shape_data.dimensions.x, shape_data.dimensions.y);
-				break;
-			case PhysicsShapeType::MESH:
-				if (draw_mesh_colliders && entity->HasComponent<ModelComponent>())
-					vertices = Debug::GetMeshVertices(entity->GetComponent<ModelComponent>().model, entity->scale);
-				break;
-			}
+				PhysicsComponent& physics_comp = entity->GetComponent<PhysicsComponent>();
+				PhysicsShapeData shape_data = physics_comp.physics_body->GetShapeData();
 
-			if (!vertices.empty())
-			{
-				glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-				glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_DYNAMIC_DRAW);
-				glDrawArrays(GL_LINES, 0, vertices.size());
+				glm::vec3 color;
+				switch (physics_comp.physics_body->GetBodyType())
+				{
+				case PhysicsBodyType::STATIC: color = RgbToGlmVec3(0, 255, 0); break;
+				case PhysicsBodyType::DYNAMIC: color = RgbToGlmVec3(0, 255, 0); break;
+				case PhysicsBodyType::KINEMATIC: color = RgbToGlmVec3(0, 255, 0); break;
+				}
+				debug_shader->SetVec4("color", glm::vec4(color, 1.0f));
+
+				glm::vec3 pos = physics_comp.physics_body->GetPosition();
+				glm::quat rot = physics_comp.physics_body->GetRotation();
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), pos) * glm::toMat4(rot);
+				debug_shader->SetMat4("model", model);
+				
+				std::vector<glm::vec3> vertices;
+				switch (shape_data.type)
+				{
+				case PhysicsShapeType::BOX:
+					vertices = Debug::GetBoxVertices(shape_data.dimensions);
+					break;
+				case PhysicsShapeType::SPHERE:
+					vertices = Debug::GetSphereVertices(shape_data.dimensions.x);
+					break;
+				case PhysicsShapeType::CAPSULE:
+					vertices = Debug::GetCapsuleVertices(shape_data.dimensions.x, shape_data.dimensions.y);
+					break;
+				case PhysicsShapeType::MESH:
+					if (draw_mesh_colliders && entity->HasComponent<ModelComponent>())
+						vertices = Debug::GetMeshVertices(entity->GetComponent<ModelComponent>().model, entity->scale);
+					break;
+				}
+
+				if (!vertices.empty())
+				{
+					glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+					glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_DYNAMIC_DRAW);
+					glDrawArrays(GL_LINES, 0, vertices.size());
+				}
 			}
 		}
 
@@ -412,7 +414,7 @@ namespace Bonfire
 	
 	void Renderer::LoadScene(int scene_index, const std::string& json_data)
 	{
-		Project& project = Project::GetInstance();
+		Engine& project = Engine::GetInstance();
 		
 		scene_transition_in_progress = true;
 
@@ -420,7 +422,7 @@ namespace Bonfire
 		scene_index = !scenes.empty() ? (std::min)(scene_index, static_cast<int>(scenes.size()) - 1) : 0;
 		GetScene().loaded = false;
 
-		if (project.GetProjectRunState())
+		if (project.GetEngineRunState())
 		{
 			for (auto& [id, animation_component] : GetScene().GetAnimationComponents())
 			{
@@ -438,8 +440,8 @@ namespace Bonfire
 					physics_component->physics_body->SetEnabled(false);
 			}
     		
-			Project::GetScriptSystem().DetachCppScripts();
-			Project::GetScriptSystem().DestroyScripts(GetScene());
+			Engine::GetScriptSystem().DetachCppScripts();
+			Engine::GetScriptSystem().DestroyScripts(GetScene());
 		}
 		
 		current_scene_index = scene_index;
@@ -465,7 +467,7 @@ namespace Bonfire
 			}
 		}
 
-		if (project.GetProjectRunState())
+		if (project.GetEngineRunState())
 		{
 			for (auto& [id, audio_component] : GetScene().GetAudioComponents())
 			{
@@ -478,8 +480,8 @@ namespace Bonfire
 					physics_component->physics_body->SetEnabled(true);
 			}
 			
-			Project::GetScriptSystem().StartScripts(GetScene());
-			Project::GetScriptSystem().AttachCppScripts();
+			Engine::GetScriptSystem().StartScripts(GetScene());
+			Engine::GetScriptSystem().AttachCppScripts();
 		}
 		
 		GetScene().loaded = true;

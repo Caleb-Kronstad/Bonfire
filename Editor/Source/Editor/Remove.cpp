@@ -38,7 +38,7 @@ void Editor::RemoveItems()
 
 void Editor::RemoveEntity(std::shared_ptr<Entity> entity)
 {
-	Project& project = Project::GetInstance();
+	Engine& project = Engine::GetInstance();
 	Window& project_window = project.GetWindow();
 	Renderer& renderer = project.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -82,7 +82,7 @@ void Editor::RemoveEntity(std::shared_ptr<Entity> entity)
 
 void Editor::RemoveCameraComponent(std::shared_ptr<Entity> entity)
 {
-	Scene& scene = Project::GetRenderer().GetScene();
+	Scene& scene = Engine::GetRenderer().GetScene();
 	auto& camera_component = entity->GetComponent<CameraComponent>();
 	scene.GetCameras().erase(camera_component.camera->id);
 	scene.GetCameraComponents().erase(camera_component.id);
@@ -100,7 +100,7 @@ void Editor::RemoveCameraComponent(std::shared_ptr<Entity> entity)
 
 void Editor::RemoveModelComponent(std::shared_ptr<Entity> entity)
 {
-	Scene& scene = Project::GetRenderer().GetScene();
+	Scene& scene = Engine::GetRenderer().GetScene();
 	auto& model_component = entity->GetComponent<ModelComponent>();
 	scene.GetModelComponents().erase(model_component.id);
 	entity->RemoveComponent(ComponentType::MODEL);
@@ -108,7 +108,7 @@ void Editor::RemoveModelComponent(std::shared_ptr<Entity> entity)
 
 void Editor::RemoveLightSourceComponent(std::shared_ptr<Entity> entity)
 {
-	Scene& scene = Project::GetRenderer().GetScene();
+	Scene& scene = Engine::GetRenderer().GetScene();
 	auto& light_source_component = entity->GetComponent<LightSourceComponent>();
 	if (auto point_light = std::dynamic_pointer_cast<PointLight>(light_source_component.light_source))
 		scene.GetPointLights().erase(point_light->id);
@@ -120,8 +120,8 @@ void Editor::RemoveLightSourceComponent(std::shared_ptr<Entity> entity)
 
 void Editor::RemovePhysicsComponent(std::shared_ptr<Entity> entity)
 {
-	Scene& scene = Project::GetRenderer().GetScene();
-	PhysicsSystem& physics_system = Project::GetPhysicsSystem();
+	Scene& scene = Engine::GetRenderer().GetScene();
+	PhysicsManager& physics_system = Engine::GetPhysicsSystem();
 	JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
 	auto& physics_component = entity->GetComponent<PhysicsComponent>();
 	JPH::BodyID body_id = physics_component.physics_body->GetBodyID();
@@ -136,7 +136,7 @@ void Editor::RemovePhysicsComponent(std::shared_ptr<Entity> entity)
 
 void Editor::RemoveAnimationComponent(std::shared_ptr<Entity> entity)
 {
-	Scene& scene = Project::GetRenderer().GetScene();
+	Scene& scene = Engine::GetRenderer().GetScene();
 	auto& animation_component = entity->GetComponent<AnimationComponent>();
 	animation_component.animator->Stop();
 	scene.GetAnimationComponents().erase(animation_component.id);
@@ -145,7 +145,7 @@ void Editor::RemoveAnimationComponent(std::shared_ptr<Entity> entity)
 
 void Editor::RemoveAudioComponent(std::shared_ptr<Entity> entity)
 {
-	Scene& scene = Project::GetRenderer().GetScene();
+	Scene& scene = Engine::GetRenderer().GetScene();
 	entity->GetComponent<AudioComponent>().audio->Stop();
 	scene.GetAudioComponents().erase(entity->GetComponent<AudioComponent>().id);
 	entity->RemoveComponent(ComponentType::AUDIO);
@@ -153,7 +153,7 @@ void Editor::RemoveAudioComponent(std::shared_ptr<Entity> entity)
 
 void Editor::RemoveScriptComponent(std::shared_ptr<Entity> entity)
 {
-	Scene& scene = Project::GetRenderer().GetScene();
+	Scene& scene = Engine::GetRenderer().GetScene();
 	auto& script_component = entity->GetComponent<ScriptComponent>();
 	scene.GetScriptComponents().erase(script_component.id);
 	entity->RemoveComponent(ComponentType::SCRIPT);

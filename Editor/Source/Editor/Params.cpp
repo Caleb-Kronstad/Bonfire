@@ -55,7 +55,7 @@ void Editor::DrawParamEditor()
 
 void Editor::DisplayModelParams()
 {
-    Renderer& renderer = Project::GetRenderer();
+    Renderer& renderer = Engine::GetRenderer();
     Scene& scene = renderer.GetScene();
     ParamDatabase& param_database = renderer.GetParamDatabase();
 
@@ -171,7 +171,7 @@ void Editor::DisplayModelParams()
 
 void Editor::DisplayTextureParams()
 {
-    Renderer& renderer = Project::GetRenderer();
+    Renderer& renderer = Engine::GetRenderer();
     Scene& scene = renderer.GetScene();
     ParamDatabase& param_database = renderer.GetParamDatabase();
 
@@ -286,7 +286,7 @@ void Editor::DisplayTextureParams()
 
 void Editor::DisplayMaterialParams()
 {
-    Renderer& renderer = Project::GetRenderer();
+    Renderer& renderer = Engine::GetRenderer();
     Scene& scene = renderer.GetScene();
 
     ImGui::BeginChild("MaterialList", ImVec2(200, -30), true);
@@ -447,7 +447,7 @@ void Editor::DisplayMaterialParams()
 
 void Editor::DisplayShaderParams()
 {
-    Renderer& renderer = Project::GetRenderer();
+    Renderer& renderer = Engine::GetRenderer();
     Scene& scene = renderer.GetScene();
     ParamDatabase& param_database = renderer.GetParamDatabase();
 
@@ -540,7 +540,7 @@ void Editor::DisplayShaderParams()
 
 void Editor::DisplayAudioParams()
 {
-    Renderer& renderer = Project::GetRenderer();
+    Renderer& renderer = Engine::GetRenderer();
     Scene& scene = renderer.GetScene();
     ParamDatabase& param_database = renderer.GetParamDatabase();
 
@@ -583,7 +583,7 @@ void Editor::DisplayAudioParams()
             if (selected_audio_param_id != FIRST_ID)
             {
                 renderer.GetParamDatabase().audio_params.erase(selected_audio_param_id);
-                AudioSystem& audio_system = Project::GetAudioSystem();
+                AudioSystem& audio_system = Engine::GetAudioSystem();
                 audio_system.RemoveAudio(audio_system.GetAudio(selected_audio_param_id));
                 selected_audio_param_id = FIRST_ID;
         
