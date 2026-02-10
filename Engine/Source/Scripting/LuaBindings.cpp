@@ -137,7 +137,7 @@ namespace Bonfire
     void LuaBindings::RegisterProjectBindings(lua_State* lua_state)
     {
         lua_register(lua_state, "QuitProject", [](lua_State* L) -> int {
-            Engine::GetInstance().SetEngineRunState(false);
+            Engine::GetInstance().SetProjectRunState(false);
             return 0;
         });
 

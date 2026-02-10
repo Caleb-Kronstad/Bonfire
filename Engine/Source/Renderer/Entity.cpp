@@ -45,7 +45,7 @@ namespace Bonfire
 			PhysicsComponent& physics_component = GetComponent<PhysicsComponent>();
 			std::shared_ptr<PhysicsBody> physics_body = physics_component.physics_body;
 
-			if (Engine::GetInstance().GetEngineRunState())
+			if (Engine::GetInstance().GetProjectRunState())
 			{
 				position = physics_body->GetPosition();
 				rotation = glm::degrees(glm::eulerAngles(physics_body->GetRotation()));

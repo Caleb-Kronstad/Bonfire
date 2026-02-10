@@ -39,7 +39,7 @@ namespace Bonfire
 		Engine& project = Engine::GetInstance();
 		Window& project_window = project.GetWindow();
 
-		if (project.GetEngineRunState())
+		if (project.GetProjectRunState())
 			UpdateAnimations(delta_time);
 
 		if (project.GetEditorRunState())
@@ -422,7 +422,7 @@ namespace Bonfire
 		scene_index = !scenes.empty() ? (std::min)(scene_index, static_cast<int>(scenes.size()) - 1) : 0;
 		GetScene().loaded = false;
 
-		if (project.GetEngineRunState())
+		if (project.GetProjectRunState())
 		{
 			for (auto& [id, animation_component] : GetScene().GetAnimationComponents())
 			{
@@ -467,7 +467,7 @@ namespace Bonfire
 			}
 		}
 
-		if (project.GetEngineRunState())
+		if (project.GetProjectRunState())
 		{
 			for (auto& [id, audio_component] : GetScene().GetAudioComponents())
 			{

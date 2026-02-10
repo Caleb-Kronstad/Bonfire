@@ -12,9 +12,9 @@ Editor::~Editor()
 
 void Editor::OnAttach()
 {
-    Engine& project = Engine::GetInstance();
-    Window& project_window = project.GetWindow();
-    Renderer& renderer = project.GetRenderer();
+    Engine& engine = Engine::GetInstance();
+    Window& project_window = engine.GetWindow();
+    Renderer& renderer = engine.GetRenderer();
     Scene& scene = renderer.GetScene();
     GLFWwindow* glfw_window = project_window.GetNativeWindow();
 	
@@ -94,8 +94,8 @@ void Editor::OnDetach()
 
 void Editor::OnUpdate(const float& delta_time)
 {
-    Engine& project = Engine::GetInstance();
-    Window& project_window = project.GetWindow();
+    Engine& engine = Engine::GetInstance();
+    Window& project_window = engine.GetWindow();
     Renderer& renderer = Engine::GetRenderer();
     GLFWwindow* glfw_window = project_window.GetNativeWindow();
     
@@ -127,9 +127,9 @@ void Editor::OnUpdate(const float& delta_time)
 
 void Editor::OnInput(Input& input)
 {
-    Engine& project = Engine::GetInstance();
-    Window& project_window = project.GetWindow();
-    Renderer& renderer = project.GetRenderer();
+    Engine& engine = Engine::GetInstance();
+    Window& project_window = engine.GetWindow();
+    Renderer& renderer = engine.GetRenderer();
     Scene& scene = renderer.GetScene();
     GLFWwindow* glfw_window = project_window.GetNativeWindow();
     
@@ -150,32 +150,32 @@ void Editor::OnInput(Input& input)
 			if (key_input.GetKeyCode() == InputCode::LeftControl)
 			{
 				engine_camera_can_move = false;
-				CTRL_DOWN = true;
+				ctrl_down = true;
 			}
 
 			if (key_input.GetKeyCode() == InputCode::D)
 			{
-				if (CTRL_DOWN && selected_entity != nullptr && editor_viewport_focused)
+				if (ctrl_down && selected_entity != nullptr && editor_viewport_focused)
 					DuplicateEntity(selected_entity);
 			}
 
 			if (key_input.GetKeyCode() == InputCode::F5)
 			{
 				// play
-				if (!project.GetEngineRunState())
+				if (!engine.GetProjectRunState())
 				{
 					Log::Info("Running...");
 					serialized_scene_data = scene.SerializeToString(renderer.GetParamDatabase());
-					project.SetEngineRunState(true);
+					engine.SetProjectRunState(true);
 					selected_entity = nullptr;
 					Engine::GetScriptSystem().StartScripts(scene);
 					ImGui::SetWindowFocus("Project Name Here");
 				}
 				// stop playing
-				else if (project.GetEngineRunState())
+				else if (engine.GetProjectRunState())
 				{
 					Log::Info("Stopping...");
-					project.SetEngineRunState(false);
+					engine.SetProjectRunState(false);
 					Engine::GetScriptSystem().DestroyScripts(scene);
 					{
 						auto physics_lock = Engine::GetThreadManager().LockPhysicsMutex();
@@ -196,13 +196,13 @@ void Editor::OnInput(Input& input)
 			if (key_input.GetKeyCode() == InputCode::LeftControl)
 			{
 				engine_camera_can_move = true;
-				CTRL_DOWN = false;
+				ctrl_down = false;
 			}
-			if (key_input.GetKeyCode() == InputCode::Z && CTRL_DOWN)
+			if (key_input.GetKeyCode() == InputCode::Z && ctrl_down)
 			{
 				if (command_history->CanUndo())
 					command_history->Undo();
-			}if (key_input.GetKeyCode() == InputCode::Y && CTRL_DOWN)
+			}if (key_input.GetKeyCode() == InputCode::Y && ctrl_down)
 			{
 				if (command_history->CanRedo())
 					command_history->Redo();

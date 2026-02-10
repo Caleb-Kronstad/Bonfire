@@ -2,9 +2,9 @@
 
 bool Editor::CreateEntity(std::shared_ptr<Entity> parent)
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	uint32_t next_id = FIRST_ID;

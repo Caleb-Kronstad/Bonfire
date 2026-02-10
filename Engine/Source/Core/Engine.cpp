@@ -1,8 +1,6 @@
 #include "bonfire_pch.hpp"
 #include "Engine.hpp"
 
-#include "Core/Utility.hpp"
-
 namespace Bonfire
 {
     Engine* Engine::static_engine_instance = nullptr;
@@ -12,7 +10,7 @@ namespace Bonfire
     ScriptSystem* Engine::static_script_system = nullptr;
     ThreadManager* Engine::static_thread_manager = nullptr;
 
-    Engine::Engine(std::string project_name)
+    Engine::Engine(const std::string& project_name)
     {
         static_engine_instance = this;
         static_renderer = new Renderer();
@@ -24,18 +22,14 @@ namespace Bonfire
         window = std::make_unique<Window>(WindowProperties(1280, 720, 0, 0, project_name));
     }
 
-    Engine::~Engine()
-    {
-    }
-
-    void Engine::PushLayer(std::shared_ptr<Layer> layer)
+    void Engine::PushLayer(const std::shared_ptr<Layer>& layer)
     {
         layers.emplace_back(layer);
     }
 
-    void Engine::PopLayer(std::shared_ptr<Layer> layer)
+    void Engine::PopLayer(const std::shared_ptr<Layer>& layer)
     {
-        auto it = std::find(layers.begin(), layers.end(), layer);
+        auto it = std::ranges::find(layers, layer);
         if (it != layers.end())
         {
             layer->OnDetach();
@@ -97,7 +91,7 @@ namespace Bonfire
 
             TickDeltaTime();
 
-            if (engine_running && static_renderer->GetScene().loaded)
+            if (project_running && static_renderer->GetScene().loaded)
             {
                 static_script_system->OnUpdate(delta_time);
                 static_audio_system->OnUpdate(delta_time);
@@ -111,7 +105,7 @@ namespace Bonfire
         }
 
         SetEditorRunState(false);
-        SetEngineRunState(false);
+        SetProjectRunState(false);
         static_thread_manager->Shutdown();
 
         glfwMakeContextCurrent(window->GetNativeWindow());
@@ -207,7 +201,7 @@ namespace Bonfire
         }
     }
 
-    void Engine::keycallback(GLFWwindow* glfw_window, int keycode, int scancode, int action, int mods)
+    void Engine::KeyCallback(GLFWwindow* glfw_window, int keycode, int scancode, int action, int mods)
     {
         if (action == GLFW_PRESS)
         {
@@ -227,7 +221,7 @@ namespace Bonfire
         }
     }
 
-    void Engine::mousebuttoncallback(GLFWwindow* glfw_window, int button, int action, int mods)
+    void Engine::MouseButtonCallback(GLFWwindow* glfw_window, int button, int action, int mods)
     {
         if (action == GLFW_PRESS)
         {
@@ -247,16 +241,16 @@ namespace Bonfire
         }
     }
 
-    void Engine::mousecallback(GLFWwindow* glfw_window, double xposin, double yposin)
+    void Engine::MouseCallback(GLFWwindow* glfw_window, double x_pos_in, double y_pos_in)
     {
-        MouseMovedInput input(xposin, yposin);
+        MouseMovedInput input(x_pos_in, y_pos_in);
 
         for (const auto& layer : layers)
             layer->OnInput(input);
         static_script_system->OnInput(input);
     }
 
-    void Engine::scrollcallback(GLFWwindow* glfw_window, double xoffset, double yoffset)
+    void Engine::ScrollCallback(GLFWwindow* glfw_window, double xoffset, double yoffset)
     {
         MouseScrolledInput input(xoffset, yoffset);
 
@@ -265,7 +259,7 @@ namespace Bonfire
         static_script_system->OnInput(input);
     }
 
-    void Engine::framebuffersizecallback(GLFWwindow* glfw_window, int width, int height)
+    void Engine::FramebufferSizeCallback(GLFWwindow* glfw_window, int width, int height)
     {
         window->GetWidth() = width;
         window->GetHeight() = height;

@@ -4,13 +4,11 @@
 
 using namespace Bonfire;
 
-inline bool CTRL_DOWN = false;
-
 class Editor : public Layer
 {
 public:
     Editor(const std::string& config_path);
-    ~Editor();
+    ~Editor() override;
         
     void OnAttach() override;
     void OnDetach() override;
@@ -189,4 +187,7 @@ private:
     ImVec4 background_tertiary;
     ImVec4 highlight_primary;
     ImVec4 highlight_secondary;
+		
+    // FOR TESTING
+    bool ctrl_down = false;
 };

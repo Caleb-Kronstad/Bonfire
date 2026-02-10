@@ -2,12 +2,12 @@
 
 void Editor::OnInterfaceUpdate()
 {
-	Engine& project = Engine::GetInstance();
+	Engine& engine = Engine::GetInstance();
 	Renderer& renderer = Engine::GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	if (EditorViewportVisible())
-		renderer.RenderViewport(project.GetDeltaTime(), *engine_camera, *editor_viewport_framebuffer, editor_viewport_size);
+		renderer.RenderViewport(engine.GetDeltaTime(), *engine_camera, *editor_viewport_framebuffer, editor_viewport_size);
 	
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -20,7 +20,7 @@ void Editor::OnInterfaceUpdate()
 	window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 	window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-	if (project.GetEditorRunState())
+	if (engine.GetEditorRunState())
 	{
 		window_flags |= ImGuiWindowFlags_MenuBar;
 		ImGui::Begin("DockSpace", nullptr, window_flags);
@@ -142,9 +142,9 @@ void Editor::SetInterfaceStyle()
 
 void Editor::DrawMenuBar()
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 
 	ImGui::PushFont(editor_font);
@@ -165,7 +165,7 @@ void Editor::DrawMenuBar()
             }
             
             ImGui::Separator();
-            if (ImGui::MenuItem("Exit", "Alt+F4")) { project.SetEditorRunState(false); }
+            if (ImGui::MenuItem("Exit", "Alt+F4")) { engine.SetEditorRunState(false); }
             ImGui::EndMenu();
         }
         
@@ -205,14 +205,14 @@ void Editor::DrawMenuBar()
 	    {
             if (ImGui::MenuItem("Save"))
             {
-            	if (!project.GetEngineRunState())
+            	if (!engine.GetProjectRunState())
 					renderer.GetScene().SaveScene(renderer.GetParamDatabase());
             	else
             		Log::Warning("Project must not be running in order to save scene");
             }
 	    	if (ImGui::MenuItem("Reload"))
 	    	{
-	    		if (!project.GetEngineRunState())
+	    		if (!engine.GetProjectRunState())
 	    			renderer.LoadScene(renderer.GetCurrentSceneIndex());
 	    		else
 	    			Log::Warning("Project must not be running in order to reload scene");
@@ -252,10 +252,10 @@ void Editor::DrawMenuBar()
 
 void Editor::DrawEditorViewport()
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	PhysicsManager& physics_system = project.GetPhysicsSystem();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	PhysicsManager& physics_system = engine.GetPhysicsSystem();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	ImGui::PushFont(editor_font);
@@ -391,15 +391,15 @@ void Editor::DrawEditorViewport()
 
 void Editor::DrawProjectViewport(ImGuiWindowFlags window_flags)
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 
 	ImGui::PushFont(editor_font);
 	
 	renderer.SetProjectViewportVisible(ImGui::Begin("Project Name Here", nullptr, window_flags));
-	if (project.GetEditorRunState())
+	if (engine.GetEditorRunState())
 		DrawActiveTitleLine(highlight_primary, background_tertiary);
     
 	renderer.SetProjectViewportFocused(ImGui::IsWindowFocused());
@@ -423,9 +423,9 @@ void Editor::DrawProjectViewport(ImGuiWindowFlags window_flags)
 
 void Editor::DrawDebugInfo()
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
     
 	ImGui::PushFont(editor_font);
@@ -434,9 +434,9 @@ void Editor::DrawDebugInfo()
     ImGui::Indent(8.0f);
     ImGui::Spacing();
     
-    std::string delta_time = "Delta Time: " + std::to_string(project.GetDeltaTime());
-    std::string frame_time = "Frame Time: " + std::to_string(project.GetDeltaTime() * 1000.0f);
-    std::string frame_rate = "Frame Rate: " + std::to_string(std::lround((1.0f / project.GetDeltaTime())));
+    std::string delta_time = "Delta Time: " + std::to_string(engine.GetDeltaTime());
+    std::string frame_time = "Frame Time: " + std::to_string(engine.GetDeltaTime() * 1000.0f);
+    std::string frame_rate = "Frame Rate: " + std::to_string(std::lround((1.0f / engine.GetDeltaTime())));
     ImGui::Text(delta_time.c_str());
     ImGui::Text(frame_time.c_str());
     ImGui::Text(frame_rate.c_str());
@@ -459,10 +459,10 @@ void Editor::DrawDebugInfo()
 
 void Editor::DrawToolbar()
 {
-	Engine& project = Engine::GetInstance();
+	Engine& engine = Engine::GetInstance();
     PhysicsManager& physics_system = Engine::GetPhysicsSystem();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	ParamDatabase& param_database = renderer.GetParamDatabase();
 	
@@ -481,27 +481,27 @@ void Editor::DrawToolbar()
     if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_T) == GLFW_PRESS)
     	gizmo_type = ImGuizmo::SCALE;
 
-    bool project_running = project.GetEngineRunState();
+    bool project_running = engine.GetProjectRunState();
     if (project_running)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
     if (ImGui::ImageButton((void*)play_icon->gl_id, ImVec2(20, 20)))
     {
     	// play
-    	if (!project.GetEngineRunState())
+    	if (!engine.GetProjectRunState())
     	{
     		Log::Info("Running...");
-    		project.SetEngineRunState(true);
+    		engine.SetProjectRunState(true);
     		selected_entity = nullptr;
     		serialized_scene_data = scene.SerializeToString(param_database);
     		ImGui::SetWindowFocus("Project Name Here");
     	}
     	// stop playing
-    	else if (project.GetEngineRunState())
+    	else if (engine.GetProjectRunState())
     	{
     		Log::Info("Stopping...");
     		selected_entity = nullptr;
     		renderer.LoadScene(renderer.GetCurrentSceneIndex(), serialized_scene_data);
-    		project.SetEngineRunState(false);
+    		engine.SetProjectRunState(false);
     		serialized_scene_data.clear();
     		ImGui::SetWindowFocus("Viewport");
     	}
@@ -542,9 +542,9 @@ void Editor::DrawToolbar()
 
 void Editor::DrawProjectSettings()
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	ImGui::PushFont(editor_font);
@@ -623,9 +623,9 @@ void Editor::DrawProjectSettings()
 
 void Editor::DrawHierarchy()
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	ImGui::PushFont(editor_font);
@@ -689,9 +689,9 @@ void Editor::DrawHierarchy()
 
 void Editor::DrawDetails()
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	ImGui::PushFont(editor_font);
@@ -999,9 +999,9 @@ void Editor::DrawDetails()
 
 void Editor::DrawEntityTree(std::shared_ptr<Entity> entity)
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
     ImGui::PushID(&entity->id);
@@ -1089,9 +1089,9 @@ void Editor::DrawEntityTree(std::shared_ptr<Entity> entity)
 
 void Editor::DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness)
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
     ImVec4 color = active_color;
@@ -1136,9 +1136,9 @@ void Editor::DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inact
 
 bool Editor::IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent)
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	if (potential_parent == nullptr)
@@ -1159,9 +1159,9 @@ bool Editor::IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared
 }
 void Editor::ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent)
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	glm::mat4 world_transform = entity->GetWorldTransformMatrix(scene.GetEntities());
@@ -1197,11 +1197,11 @@ void Editor::ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Enti
 
 void Editor::BuildProject()
 {
-	Engine& project = Engine::GetInstance();
+	Engine& engine = Engine::GetInstance();
 	
 	try
     {
-        std::string project_name = project.GetProjectConfig().project_name;
+        std::string project_name = engine.GetProjectConfig().project_name;
         if (project_name.empty())
         {
             project_name = "Bonfire Project";

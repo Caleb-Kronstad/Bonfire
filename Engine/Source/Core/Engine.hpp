@@ -2,16 +2,13 @@
 
 #include "ThreadManager.hpp"
 #include "Input/Input.hpp"
-#include "Input/InputCodes.hpp"
-#include "Input/InputTypes.hpp"
 
 #include "Core/Window.hpp"
 #include "Core/Layer.hpp"
 
-#include "Renderer/Renderer.hpp"
-#include "Physics/PhysicsManager.hpp"
 #include "Audio/AudioSystem.hpp"
 #include "Scripting/ScriptSystem.hpp"
+#include "Renderer/Renderer.hpp"
 
 namespace Bonfire
 {
@@ -20,25 +17,25 @@ namespace Bonfire
 	struct ProjectConfig
 	{
 		std::string project_name = "Bonfire Engine";
+		std::string project_manager_script_path;
 		int window_width = 1280;
 		int window_height = 720;
 		int shadow_resolution = 2048;
 		int antialiasing_level = 4;
 		bool fullscreen = true;
-		std::vector<std::string> scene_paths;
-		std::string project_manager_script_path;
 		bool vsync = true;
+		std::vector<std::string> scene_paths;
 	};
 	
 	class Engine
 	{
 	public:
-		Engine(std::string project_name = "New Project");
-		virtual ~Engine();
+		Engine(const std::string& project_name = "New Project");
+		virtual ~Engine() = default;
 
 		void Run();
-		void PushLayer(std::shared_ptr<Layer> layer);
-		void PopLayer(std::shared_ptr<Layer> layer);
+		void PushLayer(const std::shared_ptr<Layer>& layer);
+		void PopLayer(const std::shared_ptr<Layer>& layer);
 
 		// Getters
 		static Engine& GetInstance() { return *static_engine_instance; }
@@ -47,47 +44,47 @@ namespace Bonfire
 		static AudioSystem& GetAudioSystem() { return *static_audio_system; }
 		static ScriptSystem& GetScriptSystem() { return *static_script_system; }
 		static ThreadManager& GetThreadManager() { return *static_thread_manager; }
-		const bool& GetEngineRunState() const { return engine_running; }
-		const bool& GetEditorRunState() const { return editor_running; }
 		const std::string& GetProjectName() const { return project_config.project_name; }
 		const float& GetDeltaTime() const { return delta_time; }
 		Window& GetWindow() const { return *window; }
 		std::vector<std::shared_ptr<Layer>>& GetLayers() { return layers; }
-
-		void SetEngineRunState(bool state) { engine_running = state; }
+		
+		const bool& GetProjectRunState() const { return project_running; }
+		const bool& GetEditorRunState() const { return editor_running; }
+		void SetProjectRunState(bool state) { project_running = state; }
 		void SetEditorRunState(bool state) { editor_running = state; }
 
 		// Callback functions
-		void keycallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-		void mousebuttoncallback(GLFWwindow* window, int button, int action, int mods);
-		void mousecallback(GLFWwindow* window, double xposin, double yposin);
-		void scrollcallback(GLFWwindow* window, double xoffset, double yoffset);
-		void framebuffersizecallback(GLFWwindow* window, int width, int height);
+		void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+		void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+		void MouseCallback(GLFWwindow* window, double x_pos_in, double y_pos_in);
+		void ScrollCallback(GLFWwindow* window, double x_offset, double y_offset);
+		void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 
 		static void KeyCallbackDispatch(GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
 			if (static_engine_instance)
-				static_engine_instance->keycallback(window, key, scancode, action, mods);
+				static_engine_instance->KeyCallback(window, key, scancode, action, mods);
 		}
 		static void MouseButtonCallbackDispatch(GLFWwindow* window, int key, int action, int mods)
 		{
 			if (static_engine_instance)
-				static_engine_instance->mousebuttoncallback(window, key, action, mods);
+				static_engine_instance->MouseButtonCallback(window, key, action, mods);
 		}
 		static void MouseCallbackDispatch(GLFWwindow* window, double xposin, double yposin)
 		{
 			if (static_engine_instance)
-				static_engine_instance->mousecallback(window, xposin, yposin);
+				static_engine_instance->MouseCallback(window, xposin, yposin);
 		}
 		static void ScrollCallbackDispatch(GLFWwindow* window, double xoffset, double yoffset)
 		{
 			if (static_engine_instance)
-				static_engine_instance->scrollcallback(window, xoffset, yoffset);
+				static_engine_instance->ScrollCallback(window, xoffset, yoffset);
 		}
 		static void FramebufferSizeCallbackDispatch(GLFWwindow* window, int width, int height)
 		{
 			if (static_engine_instance)
-				static_engine_instance->framebuffersizecallback(window, width, height);
+				static_engine_instance->FramebufferSizeCallback(window, width, height);
 		}
 
 		const ProjectConfig& GetProjectConfig() const { return project_config; }
@@ -106,7 +103,7 @@ namespace Bonfire
 		std::unique_ptr<Window> window;
 		
 		bool editor_running = true;
-		bool engine_running = false;
+		bool project_running = false;
 		std::vector<std::shared_ptr<Layer>> layers;
 
 		static Engine* static_engine_instance;

@@ -2,9 +2,9 @@
 
 void Editor::DuplicateEntity(std::shared_ptr<Entity> entity)
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
     std::function<uint32_t(std::shared_ptr<Entity>)> DuplicateRecursive;

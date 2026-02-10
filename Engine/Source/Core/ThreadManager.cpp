@@ -45,7 +45,7 @@ namespace Bonfire
         
         while (running.load())
         {
-            if (Engine::GetInstance().GetEngineRunState() && Engine::GetRenderer().GetScene().loaded)
+            if (Engine::GetInstance().GetProjectRunState() && Engine::GetRenderer().GetScene().loaded)
             {
                 std::lock_guard<std::mutex> lock(physics_mutex);
                 Engine::GetPhysicsSystem().OnUpdate(FIXED_TIMESTEP);

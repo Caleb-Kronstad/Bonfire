@@ -38,9 +38,9 @@ void Editor::RemoveItems()
 
 void Editor::RemoveEntity(std::shared_ptr<Entity> entity)
 {
-	Engine& project = Engine::GetInstance();
-	Window& project_window = project.GetWindow();
-	Renderer& renderer = project.GetRenderer();
+	Engine& engine = Engine::GetInstance();
+	Window& project_window = engine.GetWindow();
+	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
 	std::function<void(std::shared_ptr<Entity>)> DeleteRecursive;
