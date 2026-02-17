@@ -14,9 +14,9 @@ Note: The --recursive flag automatically downloads all dependencies (~200MB)
 #### 2. Run the setup script
 ```
 cd Scripts
-Setup-Windows.bat
+Windows-Setup.bat
 ```
-Note: This runs Premake5 and generates Bonfire.sln in the root directory
+Note: This runs Premake5 and generates Bonfire.sln in the Build directory
 
 More information can be found at [bonfireengine.com](https://bonfireengine.com/download)
 
