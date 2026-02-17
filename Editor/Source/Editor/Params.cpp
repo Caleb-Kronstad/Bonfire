@@ -424,14 +424,15 @@ void Editor::DisplayMaterialParams()
             {
                 renderer.GetParamDatabase().material_params.erase(selected_material_param_id);
                 renderer.GetScene().GetMaterials().erase(selected_material_param_id);
+                uint32_t deleted_material_id = selected_material_param_id;
                 selected_material_param_id = FIRST_ID;
-            
+
                 for (auto& [id, entity] : scene.GetEntities())
                 {
                     if (entity->HasComponent<ModelComponent>())
                     {
                         ModelComponent& model_component = entity->GetComponent<ModelComponent>();
-                        if (model_component.material->param_id == selected_material_param_id)
+                        if (model_component.material->param_id == deleted_material_id)
                             model_component.material->param_id = FIRST_ID;
                     }
                 }
@@ -585,15 +586,16 @@ void Editor::DisplayAudioParams()
                 renderer.GetParamDatabase().audio_params.erase(selected_audio_param_id);
                 AudioSystem& audio_system = Engine::GetAudioSystem();
                 audio_system.RemoveAudio(audio_system.GetAudio(selected_audio_param_id));
+                uint32_t deleted_audio_id = selected_audio_param_id;
                 selected_audio_param_id = FIRST_ID;
-        
+
                 for (auto& [id, entity] : scene.GetEntities())
                 {
-                    if (entity->HasComponent<ModelComponent>())
+                    if (entity->HasComponent<AudioComponent>())
                     {
-                        ModelComponent& model_component = entity->GetComponent<ModelComponent>();
-                        if (model_component.material->param_id == selected_material_param_id)
-                            model_component.material->param_id = FIRST_ID;
+                        AudioComponent& audio_component = entity->GetComponent<AudioComponent>();
+                        if (audio_component.audio && audio_component.audio->id == deleted_audio_id)
+                            audio_component.audio = nullptr;
                     }
                 }
             }

@@ -51,14 +51,14 @@ private:
     void RemoveScriptComponent(std::shared_ptr<Entity> entity);
     void RemoveCameraComponent(std::shared_ptr<Entity> entity);
 
-    void DuplicateEntity(std::shared_ptr<Entity> entity);
-    void DuplicateModelComponent(std::shared_ptr<Entity> entity);
-    void DuplicateLightSourceComponent(std::shared_ptr<Entity> entity);
-    void DuplicatePhysicsComponent(std::shared_ptr<Entity> entity);
-    void DuplicateAnimationComponent(std::shared_ptr<Entity> entity);
-    void DuplicateAudioComponent(std::shared_ptr<Entity> entity);
-    void DuplicateScriptComponent(std::shared_ptr<Entity> entity);
-    void DuplicateCameraComponent(std::shared_ptr<Entity> entity);
+    void DuplicateEntity(const std::shared_ptr<Entity>& root_entity);
+    void DuplicateModelComponent(std::shared_ptr<Entity> original_entity, std::shared_ptr<Entity> duplicate_entity, Scene& scene);
+    void DuplicateLightSourceComponent(std::shared_ptr<Entity> original_entity, std::shared_ptr<Entity> duplicate_entity, Scene& scene);
+    void DuplicatePhysicsComponent(std::shared_ptr<Entity> original_entity, std::shared_ptr<Entity> duplicate_entity, Scene& scene);
+    void DuplicateAnimationComponent(std::shared_ptr<Entity> original_entity, std::shared_ptr<Entity> duplicate_entity, Scene& scene);
+    void DuplicateAudioComponent(std::shared_ptr<Entity> original_entity, std::shared_ptr<Entity> duplicate_entity, Scene& scene);
+    void DuplicateScriptComponent(std::shared_ptr<Entity> original_entity, std::shared_ptr<Entity> duplicate_entity, Scene& scene);
+    void DuplicateCameraComponent(std::shared_ptr<Entity> original_entity, std::shared_ptr<Entity> duplicate_entity, Scene& scene);
 
     void DisplayModelComponent();
     void DisplayLightSourceComponent();

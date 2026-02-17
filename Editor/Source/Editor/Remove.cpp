@@ -39,7 +39,6 @@ void Editor::RemoveItems()
 void Editor::RemoveEntity(std::shared_ptr<Entity> entity)
 {
 	Engine& engine = Engine::GetInstance();
-	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
@@ -84,6 +83,7 @@ void Editor::RemoveCameraComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
 	auto& camera_component = entity->GetComponent<CameraComponent>();
+	bool was_current = (scene.GetCurrentCamera().id == camera_component.camera->id);
 	scene.GetCameras().erase(camera_component.camera->id);
 	scene.GetCameraComponents().erase(camera_component.id);
 	entity->RemoveComponent(ComponentType::CAMERA);
@@ -95,7 +95,8 @@ void Editor::RemoveCameraComponent(std::shared_ptr<Entity> entity)
 		scene.SetCurrentCamera(0);
 		return;
 	}
-	scene.SetCurrentCamera(scene.GetCameras().begin()->first);
+	if (was_current)
+		scene.SetCurrentCamera(scene.GetCameras().begin()->first);
 }
 
 void Editor::RemoveModelComponent(std::shared_ptr<Entity> entity)
@@ -138,7 +139,8 @@ void Editor::RemoveAnimationComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
 	auto& animation_component = entity->GetComponent<AnimationComponent>();
-	animation_component.animator->Stop();
+	if (animation_component.animator)
+		animation_component.animator->Stop();
 	scene.GetAnimationComponents().erase(animation_component.id);
 	entity->RemoveComponent(ComponentType::ANIMATION);
 }
@@ -146,7 +148,9 @@ void Editor::RemoveAnimationComponent(std::shared_ptr<Entity> entity)
 void Editor::RemoveAudioComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
-	entity->GetComponent<AudioComponent>().audio->Stop();
+	auto& audio_component = entity->GetComponent<AudioComponent>();
+	if (audio_component.audio)
+		audio_component.audio->Stop();
 	scene.GetAudioComponents().erase(entity->GetComponent<AudioComponent>().id);
 	entity->RemoveComponent(ComponentType::AUDIO);
 }

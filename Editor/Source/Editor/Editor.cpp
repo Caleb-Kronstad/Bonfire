@@ -345,19 +345,22 @@ bool Editor::LoadEditorConfig()
     	engine_camera = std::make_unique<Camera>(1);
     	Log::Warning("Editor config could not find camera -- Setting to default");
     }
-    nlohmann::json camera_json = json["camera"];
-    float yaw = camera_json["yaw"].get<float>();
-    float pitch = camera_json["pitch"].get<float>();
-    auto position_array = camera_json["position"].get<std::vector<float>>();
-    auto up_array = camera_json["up"].get<std::vector<float>>();
-    glm::vec3 position(position_array[0], position_array[1], position_array[2]);
-    glm::vec3 up(up_array[0], up_array[1], up_array[2]);
-    float speed = camera_json["speed"].get<float>();
-    float sensitivity = camera_json["sensitivity"].get<float>();
+	else
+	{
+		nlohmann::json camera_json = json["camera"];
+		float yaw = camera_json["yaw"].get<float>();
+		float pitch = camera_json["pitch"].get<float>();
+		auto position_array = camera_json["position"].get<std::vector<float>>();
+		auto up_array = camera_json["up"].get<std::vector<float>>();
+		glm::vec3 position(position_array[0], position_array[1], position_array[2]);
+		glm::vec3 up(up_array[0], up_array[1], up_array[2]);
+		float speed = camera_json["speed"].get<float>();
+		float sensitivity = camera_json["sensitivity"].get<float>();
 
-    engine_camera_speed = speed;
-    engine_camera_turn_sensitivity = sensitivity;
-    engine_camera = std::make_unique<Camera>(1, position, up, yaw, pitch);
+		engine_camera_speed = speed;
+		engine_camera_turn_sensitivity = sensitivity;
+		engine_camera = std::make_unique<Camera>(1, position, up, yaw, pitch);
+	}
 
     if (!json.contains("editor-settings"))
     {
@@ -365,9 +368,12 @@ bool Editor::LoadEditorConfig()
     	undo_redo_steps = 64;
     	Log::Warning("Editor config could not find editor settings -- Setting to default");
     }
-    nlohmann::json editor_settings_json = json["editor-settings"];
-    drag_step = editor_settings_json["drag-step"].get<float>();
-    undo_redo_steps = editor_settings_json["undo-redo-steps"].get<uint8_t>();
+	else
+	{
+		nlohmann::json editor_settings_json = json["editor-settings"];
+		drag_step = editor_settings_json["drag-step"].get<float>();
+		undo_redo_steps = editor_settings_json["undo-redo-steps"].get<uint8_t>();
+	}
 
     Log::Info("Editor config loaded successfully");
     return true;

@@ -76,9 +76,9 @@ void Editor::DrawConsole(const char* window_name)
 	for (const std::string& line : lines)
 	{
 		auto [color, text] = ParseAnsiLine(line);
-		ImGui::PushTextWrapPos(0.0f);
+		//ImGui::PushTextWrapPos(0.0f);
 		ImGui::TextColored(color, "%s", text.c_str());
-		ImGui::PopTextWrapPos();
+		//ImGui::PopTextWrapPos();
 	}
 	
 	ImGui::PopFont();
@@ -424,9 +424,7 @@ void Editor::DrawProjectViewport(ImGuiWindowFlags window_flags)
 void Editor::DrawDebugInfo()
 {
 	Engine& engine = Engine::GetInstance();
-	Window& project_window = engine.GetWindow();
-	Renderer& renderer = engine.GetRenderer();
-	Scene& scene = renderer.GetScene();
+	Renderer& renderer = Engine::GetRenderer();
     
 	ImGui::PushFont(editor_font);
     ImGui::Begin("Debug Info", nullptr);

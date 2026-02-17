@@ -289,7 +289,7 @@ namespace Bonfire
             window->SetNativeWindow(glfwCreateWindow(window->GetWidth(), window->GetHeight(),
                                                      project_config.project_name.c_str(), NULL, NULL));
 
-        if (window->GetNativeWindow() == NULL)
+        if (window->GetNativeWindow() == nullptr)
         {
             Log::Error("Error creating GLFW window");
             return;

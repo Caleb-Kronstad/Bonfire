@@ -2,6 +2,7 @@ project "GLAD"
     location "../../../Build/Build-Files"
     kind "StaticLib"
     language "C++"
+    staticruntime "On"
 
     targetdir ("../../../Build/Binaries/" .. OutputDir .. "/Dependencies/%{prj.name}")
     objdir ("../../../Build/Binaries-Intermediate/" .. OutputDir .. "/Dependencies/%{prj.name}")
