@@ -49,6 +49,7 @@
 #include "Renderer/Renderer.hpp"
 
 // Scripting
-#include "Scripting/LuaScript.hpp"
+#include "Scripting/Script.hpp"
 #include "Scripting/LuaBindings.hpp"
-#include "Scripting/ScriptSystem.hpp"
+#include "Scripting/LuaScript.hpp"
+#include "Scripting/ScriptManager.hpp"

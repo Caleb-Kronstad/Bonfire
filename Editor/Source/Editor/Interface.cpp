@@ -2,7 +2,7 @@
 
 void Editor::OnInterfaceUpdate()
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Renderer& renderer = Engine::GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
@@ -142,7 +142,7 @@ void Editor::SetInterfaceStyle()
 
 void Editor::DrawMenuBar()
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -252,9 +252,9 @@ void Editor::DrawMenuBar()
 
 void Editor::DrawEditorViewport()
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
-	PhysicsManager& physics_system = engine.GetPhysicsSystem();
+	PhysicsManager& physics_system = engine.GetPhysicsManager();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
@@ -391,7 +391,7 @@ void Editor::DrawEditorViewport()
 
 void Editor::DrawProjectViewport(ImGuiWindowFlags window_flags)
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -423,7 +423,7 @@ void Editor::DrawProjectViewport(ImGuiWindowFlags window_flags)
 
 void Editor::DrawDebugInfo()
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Renderer& renderer = Engine::GetRenderer();
     
 	ImGui::PushFont(editor_font);
@@ -457,8 +457,8 @@ void Editor::DrawDebugInfo()
 
 void Editor::DrawToolbar()
 {
-	Engine& engine = Engine::GetInstance();
-    PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+	Engine& engine = Engine::Instance();
+    PhysicsManager& physics_system = Engine::GetPhysicsManager();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -491,6 +491,7 @@ void Editor::DrawToolbar()
     		engine.SetProjectRunState(true);
     		selected_entity = nullptr;
     		serialized_scene_data = scene.SerializeToString(param_database);
+    		Engine::GetScriptManager().ScriptsAttach();
     		ImGui::SetWindowFocus("Project Name Here");
     	}
     	// stop playing
@@ -498,6 +499,7 @@ void Editor::DrawToolbar()
     	{
     		Log::Info("Stopping...");
     		selected_entity = nullptr;
+    		Engine::GetScriptManager().ScriptsDetach();
     		renderer.LoadScene(renderer.GetCurrentSceneIndex(), serialized_scene_data);
     		engine.SetProjectRunState(false);
     		serialized_scene_data.clear();
@@ -540,7 +542,7 @@ void Editor::DrawToolbar()
 
 void Editor::DrawProjectSettings()
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -621,7 +623,7 @@ void Editor::DrawProjectSettings()
 
 void Editor::DrawHierarchy()
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -687,7 +689,7 @@ void Editor::DrawHierarchy()
 
 void Editor::DrawDetails()
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -699,7 +701,7 @@ void Editor::DrawDetails()
     ImGui::PushTextWrapPos(0.0f);
     ImGui::Spacing();
 	
-    PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+    PhysicsManager& physics_system = Engine::GetPhysicsManager();
     
     if (selected_entity == nullptr)
     {
@@ -997,7 +999,7 @@ void Editor::DrawDetails()
 
 void Editor::DrawEntityTree(std::shared_ptr<Entity> entity)
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -1087,7 +1089,7 @@ void Editor::DrawEntityTree(std::shared_ptr<Entity> entity)
 
 void Editor::DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inactive_color, float thickness)
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -1134,7 +1136,7 @@ void Editor::DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inact
 
 bool Editor::IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared_ptr<Entity> potential_parent)
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -1157,7 +1159,7 @@ bool Editor::IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared
 }
 void Editor::ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> new_parent)
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -1195,7 +1197,7 @@ void Editor::ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Enti
 
 void Editor::BuildProject()
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	
 	try
     {

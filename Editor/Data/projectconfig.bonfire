@@ -4,7 +4,6 @@
     "window-height": 720,
     "fullscreen": false,
     "scene-paths": [ "Data/Scenes/defaultscene.bonfire" ],
-    "project-manager-script": "Data/Editor/Defaults/Scripts/Global.lua",
     "vsync": true,
     "antialiasing-level": 4,
     "shadow-resolution": 2048

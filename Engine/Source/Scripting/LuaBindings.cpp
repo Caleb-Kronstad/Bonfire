@@ -137,17 +137,17 @@ namespace Bonfire
     void LuaBindings::RegisterProjectBindings(lua_State* lua_state)
     {
         lua_register(lua_state, "QuitProject", [](lua_State* L) -> int {
-            Engine::GetInstance().SetProjectRunState(false);
+            Engine::Instance().SetProjectRunState(false);
             return 0;
         });
 
         lua_register(lua_state, "GetProjectName", [](lua_State* L) -> int {
-            lua_pushstring(L, Engine::GetInstance().GetProjectConfig().project_name.c_str());
+            lua_pushstring(L, Engine::Instance().GetProjectConfig().project_name.c_str());
             return 1;
         });
 
         lua_register(lua_state, "GetDeltaTime", [](lua_State* L) -> int {
-            lua_pushnumber(L, Engine::GetInstance().GetDeltaTime());
+            lua_pushnumber(L, Engine::Instance().GetDeltaTime());
             return 1;
         });
     }
@@ -590,7 +590,7 @@ namespace Bonfire
     {
         int key = luaL_checkinteger(lua_state, 1);
     
-        Engine& project = Engine::GetInstance();
+        Engine& project = Engine::Instance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -603,7 +603,7 @@ namespace Bonfire
     {
         int button = luaL_checkinteger(lua_state, 1);
     
-        Engine& project = Engine::GetInstance();
+        Engine& project = Engine::Instance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -614,7 +614,7 @@ namespace Bonfire
     
     static int lua_input_get_mouse_position(lua_State* lua_state)
     {
-        Engine& project = Engine::GetInstance();
+        Engine& project = Engine::Instance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -628,7 +628,7 @@ namespace Bonfire
     
     static int lua_input_get_mouse_x(lua_State* lua_state)
     {
-        Engine& project = Engine::GetInstance();
+        Engine& project = Engine::Instance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -641,7 +641,7 @@ namespace Bonfire
     
     static int lua_input_get_mouse_y(lua_State* lua_state)
     {
-       Engine& project = Engine::GetInstance();
+       Engine& project = Engine::Instance();
        Window& window = project.GetWindow();
        GLFWwindow* glfw_window = window.GetNativeWindow();
     
@@ -656,7 +656,7 @@ namespace Bonfire
     {
         int mode = luaL_checkinteger(lua_state, 1);
   
-        Engine& project = Engine::GetInstance();
+        Engine& project = Engine::Instance();
         Window& window = project.GetWindow();
         GLFWwindow* glfw_window = window.GetNativeWindow();
   

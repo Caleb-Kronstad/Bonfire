@@ -7,7 +7,7 @@
 #include "Core/Layer.hpp"
 
 #include "Audio/AudioSystem.hpp"
-#include "Scripting/ScriptSystem.hpp"
+#include "Scripting/ScriptManager.hpp"
 #include "Renderer/Renderer.hpp"
 
 namespace Bonfire
@@ -38,11 +38,11 @@ namespace Bonfire
 		void PopLayer(const std::shared_ptr<Layer>& layer);
 
 		// Getters
-		static Engine& GetInstance() { return *static_engine_instance; }
+		static Engine& Instance() { return *static_engine_instance; }
 		static Renderer& GetRenderer() { return *static_renderer; }
-		static PhysicsManager& GetPhysicsSystem() { return *static_physics_system; }
-		static AudioSystem& GetAudioSystem() { return *static_audio_system; }
-		static ScriptSystem& GetScriptSystem() { return *static_script_system; }
+		static PhysicsManager& GetPhysicsManager() { return *static_physics_system; }
+		static AudioSystem& GetAudioManager() { return *static_audio_system; }
+		static ScriptManager& GetScriptManager() { return *static_script_manager; }
 		static ThreadManager& GetThreadManager() { return *static_thread_manager; }
 		const std::string& GetProjectName() const { return project_config.project_name; }
 		const float& GetDeltaTime() const { return delta_time; }
@@ -106,11 +106,11 @@ namespace Bonfire
 		bool project_running = false;
 		std::vector<std::shared_ptr<Layer>> layers;
 
-		static Engine* static_engine_instance;
-		static Renderer* static_renderer;
-		static PhysicsManager* static_physics_system;
-		static AudioSystem* static_audio_system;
-		static ScriptSystem* static_script_system;
-		static ThreadManager* static_thread_manager;
+		static Bonfire::Engine* static_engine_instance;
+		static Bonfire::Renderer* static_renderer;
+		static Bonfire::PhysicsManager* static_physics_system;
+		static Bonfire::AudioSystem* static_audio_system;
+		static Bonfire::ScriptManager* static_script_manager;
+		static Bonfire::ThreadManager* static_thread_manager;
 	};
 }

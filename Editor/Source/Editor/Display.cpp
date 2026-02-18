@@ -194,7 +194,7 @@ void Editor::DisplayLightSourceComponent()
 
 void Editor::DisplayPhysicsComponent()
 {
-    PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+    PhysicsManager& physics_system = Engine::GetPhysicsManager();
     Scene& scene = Engine::GetRenderer().GetScene();
     
     if (selected_entity->HasComponent<PhysicsComponent>())
@@ -476,7 +476,7 @@ void Editor::DisplayAudioComponent()
     		ImGui::OpenPopup("ChangeAudioInAudioComponent");
     	ImGui::SameLine(); ImGui::Text("Audio");
 
-    	AudioSystem& audio_system = Engine::GetAudioSystem();
+    	AudioSystem& audio_system = Engine::GetAudioManager();
     	if (ImGui::BeginPopup("ChangeAudioInAudioComponent"))
     	{
     		for (auto& [id, scene_item] : audio_system.GetAudios())
@@ -524,7 +524,7 @@ void Editor::DisplayCameraComponent()
 
 void Editor::DisplayScriptComponent()
 {
-    Scene& scene = Engine::GetRenderer().GetScene();
+    /*Scene& scene = Engine::GetRenderer().GetScene();
     if (selected_entity->HasComponent<ScriptComponent>())
     {
     	ScriptComponent& script_component = selected_entity->GetComponent<ScriptComponent>();
@@ -548,7 +548,7 @@ void Editor::DisplayScriptComponent()
 
     		if (ImGui::BeginPopup("ChangeScriptScriptComponent"))
     		{
-    			ScriptSystem& script_system = Engine::GetScriptSystem();
+    			ScriptManager& script_system = Engine::GetScriptSystem();
     			for (auto& [id, script] : script_system.GetLuaScripts())
     			{
     				ImGui::PushID(&id);
@@ -564,5 +564,5 @@ void Editor::DisplayScriptComponent()
     	}
 
     	ImGui::PopID();
-    }
+    }*/
 }

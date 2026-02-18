@@ -2,7 +2,7 @@
 
 bool Editor::CreateEntity(std::shared_ptr<Entity> parent)
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
@@ -104,7 +104,7 @@ bool Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
 bool Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
-	PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+	PhysicsManager& physics_system = Engine::GetPhysicsManager();
 	
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetPhysicsComponents().empty())
@@ -221,7 +221,7 @@ bool Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
 bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
-	AudioSystem& audio_system = Engine::GetAudioSystem();
+	AudioSystem& audio_system = Engine::GetAudioManager();
 	
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetAudioComponents().empty())
@@ -254,7 +254,7 @@ bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 	std::string new_audio_path = audio_system.GetAudios().begin()->second->path;
 	std::shared_ptr<Audio> audio = std::make_shared<Audio>(next_audio_id, "New Audio", new_audio_path);
 	audio->Set3DPosition(entity->position);
-	Engine::GetAudioSystem().AddAudio(audio);
+	Engine::GetAudioManager().AddAudio(audio);
 	std::shared_ptr<AudioComponent> audio_component = std::make_shared<AudioComponent>(next_id, true, audio);
 	scene.GetAudioComponents().insert_or_assign(next_id, audio_component);
 	entity->AddComponent(ComponentType::AUDIO, audio_component);
@@ -264,8 +264,10 @@ bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 
 bool Editor::CreateScriptComponent(std::shared_ptr<Entity> entity)
 {
-	Scene& scene = Engine::GetRenderer().GetScene();
-	ScriptSystem& script_system = Engine::GetScriptSystem();
+	return false;
+	
+	/*Scene& scene = Engine::GetRenderer().GetScene();
+	ScriptManager& script_system = Engine::GetScriptSystem();
 
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetScriptComponents().empty())
@@ -289,7 +291,7 @@ bool Editor::CreateScriptComponent(std::shared_ptr<Entity> entity)
 	scene.GetScriptComponents().insert_or_assign(next_id, script_component);
 	entity->AddComponent(ComponentType::SCRIPT, script_component);
 	
-	return true;
+	return true;*/
 }
 
 bool Editor::CreateCameraComponent(std::shared_ptr<Entity> entity)
@@ -614,7 +616,7 @@ bool Editor::CreateAudioParam()
 
         Log::Info("Audio file selected at " + relative_audio_path);
         uint32_t next_id = FIRST_ID;
-        AudioSystem& audio_system = Engine::GetAudioSystem();
+        AudioSystem& audio_system = Engine::GetAudioManager();
         if (!audio_system.GetAudios().empty())
         {
             auto max_it = std::max_element(

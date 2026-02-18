@@ -1,12 +1,48 @@
 ﻿#include "Editor/Editor.hpp"
 
+class DemoScript : public Bonfire::Script
+{
+public:
+    void Attach() override
+    {
+        Log::Info("Demo script attached");
+        
+        test_entity = EntityGetByName("Test");
+    }
+    void Update(float delta_time) override
+    {
+        if (!test)
+        {
+            test = true;
+            EntitySetPosition(test_entity, glm::vec3(0.0f, 100.0f, 0.0f));
+        }
+    }
+    void Interface() override
+    {
+        
+    }
+    void Input(Bonfire::Input& input) override
+    {
+        
+    }
+    void Detach() override
+    {
+        Log::Info("Demo script detached");
+    }
+    
+private:
+    uint32_t test_entity = 0;
+    bool test = false;
+};
+
 class BonfireEngineEditor : public Engine
 {
 public:
     BonfireEngineEditor() : Engine("Bonfire")
     {
-        Engine::GetInstance().SetProjectRunState(false);
-        Engine::GetInstance().SetEditorRunState(true);
+        Instance().SetProjectRunState(false);
+        Instance().SetEditorRunState(true);
+        GetScriptManager().ScriptAdd(std::make_shared<DemoScript>());
         PushLayer(std::make_shared<Editor>("Data/editorconfig.bonfire"));
     }
     ~BonfireEngineEditor() override = default;

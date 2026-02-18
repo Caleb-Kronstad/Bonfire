@@ -38,7 +38,7 @@ void Editor::RemoveItems()
 
 void Editor::RemoveEntity(std::shared_ptr<Entity> entity)
 {
-	Engine& engine = Engine::GetInstance();
+	Engine& engine = Engine::Instance();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	
@@ -122,7 +122,7 @@ void Editor::RemoveLightSourceComponent(std::shared_ptr<Entity> entity)
 void Editor::RemovePhysicsComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
-	PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+	PhysicsManager& physics_system = Engine::GetPhysicsManager();
 	JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
 	auto& physics_component = entity->GetComponent<PhysicsComponent>();
 	JPH::BodyID body_id = physics_component.physics_body->GetBodyID();

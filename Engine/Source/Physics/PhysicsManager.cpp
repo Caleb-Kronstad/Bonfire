@@ -516,7 +516,7 @@ namespace Bonfire
     {
         JPH::BodyID body1_id = inBody1.GetID();
         JPH::BodyID body2_id = inBody2.GetID();
-        Engine::GetPhysicsSystem().OnCollisionEnter(body1_id, body2_id);
+        Engine::GetPhysicsManager().OnCollisionEnter(body1_id, body2_id);
     }
 
     void ContactListener::OnContactPersisted(
@@ -527,7 +527,7 @@ namespace Bonfire
     {
         JPH::BodyID body1_id = inBody1.GetID();
         JPH::BodyID body2_id = inBody2.GetID();
-        Engine::GetPhysicsSystem().OnCollisionConstant(body1_id, body2_id);
+        Engine::GetPhysicsManager().OnCollisionConstant(body1_id, body2_id);
     }
 
     void ContactListener::OnContactRemoved(
@@ -535,6 +535,6 @@ namespace Bonfire
     {
         JPH::BodyID body1_id = inSubShapePair.GetBody1ID();
         JPH::BodyID body2_id = inSubShapePair.GetBody2ID();
-        Engine::GetPhysicsSystem().OnCollisionExit(body1_id, body2_id);
+        Engine::GetPhysicsManager().OnCollisionExit(body1_id, body2_id);
     }
 }

@@ -14,7 +14,7 @@ namespace Bonfire
 
     PhysicsBody::~PhysicsBody()
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
 
         if (body_interface.IsAdded(body_id))
@@ -29,7 +29,7 @@ namespace Bonfire
     {
         if (body_type != PhysicsBodyType::DYNAMIC) return;
 
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyLockWrite lock(physics_system.GetBodyLockInterface(), body_id);
         if (lock.Succeeded())
         {
@@ -54,14 +54,14 @@ namespace Bonfire
 
     void PhysicsBody::SetCollisionGroup(const JPH::CollisionGroup& group)
     {
-        PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+        PhysicsManager& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetCollisionGroup(body_id, group);
     }
 
     void PhysicsBody::SetPosition(const glm::vec3& position)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetPosition(body_id, JPH::Vec3(position.x, position.y, position.z),
                                    JPH::EActivation::DontActivate);
@@ -69,7 +69,7 @@ namespace Bonfire
 
     void PhysicsBody::SetRotation(const glm::quat& rotation)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetRotation(body_id, JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w),
                                    JPH::EActivation::DontActivate);
@@ -77,7 +77,7 @@ namespace Bonfire
 
     void PhysicsBody::SetScale(const glm::vec3& scale, std::shared_ptr<Model> model)
     {
-        PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+        PhysicsManager& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         JPH::Ref<JPH::Shape> new_shape = nullptr;
 
@@ -194,7 +194,7 @@ namespace Bonfire
 
     glm::vec3 PhysicsBody::GetPosition() const
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         JPH::Vec3 pos = body_interface.GetPosition(body_id);
         return glm::vec3(pos.GetX(), pos.GetY(), pos.GetZ());
@@ -202,7 +202,7 @@ namespace Bonfire
 
     glm::quat PhysicsBody::GetRotation() const
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         JPH::Quat rot = body_interface.GetRotation(body_id);
         return glm::quat(rot.GetW(), rot.GetX(), rot.GetY(), rot.GetZ());
@@ -210,14 +210,14 @@ namespace Bonfire
 
     void PhysicsBody::SetLinearVelocity(const glm::vec3& velocity)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetLinearVelocity(body_id, JPH::Vec3(velocity.x, velocity.y, velocity.z));
     }
 
     glm::vec3 PhysicsBody::GetLinearVelocity() const
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         JPH::Vec3 vel = body_interface.GetLinearVelocity(body_id);
         return glm::vec3(vel.GetX(), vel.GetY(), vel.GetZ());
@@ -225,7 +225,7 @@ namespace Bonfire
 
     void PhysicsBody::SetAngularVelocity(const glm::vec3& angular_velocity)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetAngularVelocity(
             body_id, JPH::Vec3(angular_velocity.x, angular_velocity.y, angular_velocity.z));
@@ -233,7 +233,7 @@ namespace Bonfire
 
     glm::vec3 PhysicsBody::GetAngularVelocity() const
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         JPH::Vec3 vel = body_interface.GetAngularVelocity(body_id);
         return glm::vec3(vel.GetX(), vel.GetY(), vel.GetZ());
@@ -241,21 +241,21 @@ namespace Bonfire
 
     void PhysicsBody::AddForce(const glm::vec3& force)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.AddForce(body_id, JPH::Vec3(force.x, force.y, force.z));
     }
 
     void PhysicsBody::AddImpulse(const glm::vec3& impulse)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.AddImpulse(body_id, JPH::Vec3(impulse.x, impulse.y, impulse.z));
     }
 
     void PhysicsBody::AddTorque(const glm::vec3& torque)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.AddTorque(body_id, JPH::Vec3(torque.x, torque.y, torque.z));
     }
@@ -264,7 +264,7 @@ namespace Bonfire
     {
         if (body_type != PhysicsBodyType::DYNAMIC || mass <= 0.0f) return;
 
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyLockWrite lock(physics_system.GetBodyLockInterface(), body_id);
         if (lock.Succeeded())
         {
@@ -280,7 +280,7 @@ namespace Bonfire
     {
         if (body_type != PhysicsBodyType::DYNAMIC) return 0.0f;
 
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyLockRead lock(physics_system.GetBodyLockInterface(), body_id);
         if (lock.Succeeded())
         {
@@ -293,28 +293,28 @@ namespace Bonfire
 
     void PhysicsBody::SetFriction(float friction)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetFriction(body_id, friction);
     }
 
     void PhysicsBody::SetRestitution(float restitution)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetRestitution(body_id, restitution);
     }
 
     void PhysicsBody::SetGravityFactor(float factor)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         body_interface.SetGravityFactor(body_id, factor);
     }
 
     void PhysicsBody::SetEnabled(bool enabled)
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         if (enabled)
             body_interface.ActivateBody(body_id);
@@ -324,7 +324,7 @@ namespace Bonfire
 
     bool PhysicsBody::IsEnabled() const
     {
-        auto& physics_system = Engine::GetPhysicsSystem();
+        auto& physics_system = Engine::GetPhysicsManager();
         JPH::BodyInterface& body_interface = physics_system.GetBodyInterface();
         return body_interface.IsActive(body_id);
     }

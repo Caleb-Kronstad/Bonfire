@@ -584,7 +584,7 @@ void Editor::DisplayAudioParams()
             if (selected_audio_param_id != FIRST_ID)
             {
                 renderer.GetParamDatabase().audio_params.erase(selected_audio_param_id);
-                AudioSystem& audio_system = Engine::GetAudioSystem();
+                AudioSystem& audio_system = Engine::GetAudioManager();
                 audio_system.RemoveAudio(audio_system.GetAudio(selected_audio_param_id));
                 uint32_t deleted_audio_id = selected_audio_param_id;
                 selected_audio_param_id = FIRST_ID;

@@ -45,10 +45,10 @@ namespace Bonfire
         
         while (running.load())
         {
-            if (Engine::GetInstance().GetProjectRunState() && Engine::GetRenderer().GetScene().loaded)
+            if (Engine::Instance().GetProjectRunState() && Engine::GetRenderer().GetScene().loaded)
             {
                 std::lock_guard<std::mutex> lock(physics_mutex);
-                Engine::GetPhysicsSystem().OnUpdate(FIXED_TIMESTEP);
+                Engine::GetPhysicsManager().OnUpdate(FIXED_TIMESTEP);
                 
                 next_update += std::chrono::milliseconds(16);
                 std::this_thread::sleep_until(next_update);
@@ -65,7 +65,7 @@ namespace Bonfire
     {
         try
         {
-            Engine& project = Engine::GetInstance();
+            Engine& project = Engine::Instance();
         
             glfwMakeContextCurrent(project.GetWindow().GetNativeWindow());
         
@@ -89,7 +89,7 @@ namespace Bonfire
             
                 for (const auto& layer : project.GetLayers())
                     layer->OnInterfaceUpdate();
-                Engine::GetScriptSystem().OnInterfaceUpdate();
+                Engine::GetScriptManager().OnInterfaceUpdate();
             
                 Engine::GetRenderer().OnUpdate(project.GetDeltaTime());
             

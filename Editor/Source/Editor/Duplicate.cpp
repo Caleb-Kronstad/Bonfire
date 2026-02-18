@@ -163,7 +163,7 @@ void Editor::DuplicateLightSourceComponent(std::shared_ptr<Entity> original_enti
 
 void Editor::DuplicatePhysicsComponent(std::shared_ptr<Entity> original_entity, std::shared_ptr<Entity> duplicate_entity, Scene& scene)
 {
-    PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+    PhysicsManager& physics_system = Engine::GetPhysicsManager();
     auto& original_component = original_entity->GetComponent<PhysicsComponent>();
 
     uint32_t next_comp_id = FIRST_ID;
@@ -283,7 +283,7 @@ void Editor::DuplicateAudioComponent(std::shared_ptr<Entity> original_entity, st
 	std::shared_ptr<Audio> new_audio = nullptr;
 	if (original_component.audio)
 	{
-		AudioSystem& audio_system = Engine::GetAudioSystem();
+		AudioSystem& audio_system = Engine::GetAudioManager();
 		uint32_t next_audio_id = FIRST_ID;
 		if (!audio_system.GetAudios().empty())
 		{

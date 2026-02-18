@@ -12,7 +12,7 @@ Editor::~Editor()
 
 void Editor::OnAttach()
 {
-    Engine& engine = Engine::GetInstance();
+    Engine& engine = Engine::Instance();
     Window& project_window = engine.GetWindow();
     Renderer& renderer = engine.GetRenderer();
     Scene& scene = renderer.GetScene();
@@ -94,7 +94,7 @@ void Editor::OnDetach()
 
 void Editor::OnUpdate(const float& delta_time)
 {
-    Engine& engine = Engine::GetInstance();
+    Engine& engine = Engine::Instance();
     Window& project_window = engine.GetWindow();
     Renderer& renderer = Engine::GetRenderer();
     GLFWwindow* glfw_window = project_window.GetNativeWindow();
@@ -127,7 +127,7 @@ void Editor::OnUpdate(const float& delta_time)
 
 void Editor::OnInput(Input& input)
 {
-    Engine& engine = Engine::GetInstance();
+    Engine& engine = Engine::Instance();
     Window& project_window = engine.GetWindow();
     Renderer& renderer = engine.GetRenderer();
     Scene& scene = renderer.GetScene();
@@ -168,7 +168,7 @@ void Editor::OnInput(Input& input)
 					serialized_scene_data = scene.SerializeToString(renderer.GetParamDatabase());
 					engine.SetProjectRunState(true);
 					selected_entity = nullptr;
-					Engine::GetScriptSystem().StartScripts(scene);
+					Engine::GetScriptManager().ScriptsAttach();
 					ImGui::SetWindowFocus("Project Name Here");
 				}
 				// stop playing
@@ -176,7 +176,7 @@ void Editor::OnInput(Input& input)
 				{
 					Log::Info("Stopping...");
 					engine.SetProjectRunState(false);
-					Engine::GetScriptSystem().DestroyScripts(scene);
+					Engine::GetScriptManager().ScriptsDetach();
 					{
 						auto physics_lock = Engine::GetThreadManager().LockPhysicsMutex();
 						scene.DeserializeFromString(serialized_scene_data, renderer.GetParamDatabase());

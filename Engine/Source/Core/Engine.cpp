@@ -7,7 +7,7 @@ namespace Bonfire
     Renderer* Engine::static_renderer = nullptr;
     PhysicsManager* Engine::static_physics_system = nullptr;
     AudioSystem* Engine::static_audio_system = nullptr;
-    ScriptSystem* Engine::static_script_system = nullptr;
+    ScriptManager* Engine::static_script_manager = nullptr;
     ThreadManager* Engine::static_thread_manager = nullptr;
 
     Engine::Engine(const std::string& project_name)
@@ -16,7 +16,7 @@ namespace Bonfire
         static_renderer = new Renderer();
         static_physics_system = new PhysicsManager();
         static_audio_system = new AudioSystem();
-        static_script_system = new ScriptSystem();
+        static_script_manager = new ScriptManager();
         static_thread_manager = new ThreadManager();
 
         window = std::make_unique<Window>(WindowProperties(1280, 720, 0, 0, project_name));
@@ -60,8 +60,7 @@ namespace Bonfire
         static_audio_system->OnAttach();
         static_physics_system->OnAttach();
 
-        static_script_system->OnAttach();
-        static_script_system->ExecuteGlobalScript(project_config.project_manager_script_path);
+        static_script_manager->OnAttach();
 
         static_renderer->OnAttach();
         for (const std::string& scene_path : project_config.scene_paths)
@@ -93,7 +92,7 @@ namespace Bonfire
 
             if (project_running && static_renderer->GetScene().loaded)
             {
-                static_script_system->OnUpdate(delta_time);
+                static_script_manager->OnUpdate(delta_time);
                 static_audio_system->OnUpdate(delta_time);
             }
 
@@ -119,13 +118,13 @@ namespace Bonfire
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
 
-        static_script_system->OnDetach();
+        static_script_manager->OnDetach();
         static_audio_system->OnDetach();
         static_physics_system->OnDetach();
 
         glfwDestroyWindow(window->GetNativeWindow());
         glfwTerminate();
-        delete static_script_system;
+        delete static_script_manager;
         delete static_audio_system;
         delete static_physics_system;
         delete static_renderer;
@@ -179,7 +178,6 @@ namespace Bonfire
             project_config.fullscreen = json["fullscreen"].get<bool>();
             project_config.scene_paths = json["scene-paths"].get<std::vector<std::string>>();
             project_config.vsync = json["vsync"].get<bool>();
-            project_config.project_manager_script_path = json["project-manager-script"].get<std::string>();
             project_config.antialiasing_level = json["antialiasing-level"].get<int>();
             project_config.shadow_resolution = json["shadow-resolution"].get<int>();
 
@@ -209,7 +207,7 @@ namespace Bonfire
 
             for (const auto& layer : layers)
                 layer->OnInput(input);
-            static_script_system->OnInput(input);
+            static_script_manager->OnInput(input);
         }
         else if (action == GLFW_RELEASE)
         {
@@ -217,7 +215,7 @@ namespace Bonfire
 
             for (const auto& layer : layers)
                 layer->OnInput(input);
-            static_script_system->OnInput(input);
+            static_script_manager->OnInput(input);
         }
     }
 
@@ -229,7 +227,7 @@ namespace Bonfire
 
             for (const auto& layer : layers)
                 layer->OnInput(input);
-            static_script_system->OnInput(input);
+            static_script_manager->OnInput(input);
         }
         else if (action == GLFW_RELEASE)
         {
@@ -237,7 +235,7 @@ namespace Bonfire
 
             for (const auto& layer : layers)
                 layer->OnInput(input);
-            static_script_system->OnInput(input);
+            static_script_manager->OnInput(input);
         }
     }
 
@@ -247,7 +245,7 @@ namespace Bonfire
 
         for (const auto& layer : layers)
             layer->OnInput(input);
-        static_script_system->OnInput(input);
+        static_script_manager->OnInput(input);
     }
 
     void Engine::ScrollCallback(GLFWwindow* glfw_window, double xoffset, double yoffset)
@@ -256,7 +254,7 @@ namespace Bonfire
 
         for (const auto& layer : layers)
             layer->OnInput(input);
-        static_script_system->OnInput(input);
+        static_script_manager->OnInput(input);
     }
 
     void Engine::FramebufferSizeCallback(GLFWwindow* glfw_window, int width, int height)

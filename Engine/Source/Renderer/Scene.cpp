@@ -181,11 +181,11 @@ namespace Bonfire
         for (auto& [audio_id, audio_data] : param_database.audio_params)
         {
             std::shared_ptr<Audio> audio = std::make_shared<Audio>(audio_id, audio_data.name, audio_data.path);
-            Engine::GetAudioSystem().AddAudio(audio);
+            Engine::GetAudioManager().AddAudio(audio);
         }
         for (auto& [script_id, script_data] : param_database.script_params)
         {
-            Engine::GetScriptSystem().LoadScript(script_id, script_data.name, script_data.path);
+            //Engine::GetScriptSystem().LoadScript(script_id, script_data.name, script_data.path);
         }
         //  LOAD OTHER PARAM TYPES
 
@@ -379,7 +379,7 @@ namespace Bonfire
         if (!audios_json.empty())
             components_json["audios"] = audios_json;
 
-        nlohmann::json scripts_json;
+        /*nlohmann::json scripts_json;
         for (const auto& [id, script_component] : script_components)
         {
             nlohmann::json script_json;
@@ -388,7 +388,7 @@ namespace Bonfire
             scripts_json[std::to_string(id)] = script_json;
         }
         if (!scripts_json.empty())
-            components_json["scripts"] = scripts_json;
+            components_json["scripts"] = scripts_json;*/
         
         // entities
         for (const auto& [id, entity] : entities)
@@ -431,8 +431,8 @@ namespace Bonfire
             }
             if (entity->HasComponent<ScriptComponent>())
             {
-                ScriptComponent& script_component = entity->GetComponent<ScriptComponent>();
-                entity_components_json["script_component"] = script_component.id;
+                /*ScriptComponent& script_component = entity->GetComponent<ScriptComponent>();
+                entity_components_json["script_component"] = script_component.id;*/
             }
             if (entity->HasComponent<CameraComponent>())
             {
@@ -638,7 +638,7 @@ namespace Bonfire
             {
                 for (const auto& [physics_component_id, physics_data] : components["physics"].items())
                 {
-                    PhysicsManager& physics_system = Engine::GetPhysicsSystem();
+                    PhysicsManager& physics_system = Engine::GetPhysicsManager();
 
                     uint32_t id = std::stoul(physics_component_id);
                     bool enabled = physics_data["enabled"].get<bool>();
@@ -729,7 +729,7 @@ namespace Bonfire
                     bool play_on_awake = audio_data["play-on-awake"].get<bool>();
                     uint32_t audio_id = audio_data["audio-id"].get<uint32_t>();
 
-                    std::shared_ptr<Audio> audio = Engine::GetAudioSystem().GetAudio(audio_id);
+                    std::shared_ptr<Audio> audio = Engine::GetAudioManager().GetAudio(audio_id);
 
                     if (audio)
                     {
@@ -745,7 +745,7 @@ namespace Bonfire
 
             if (components.contains("scripts"))
             {
-                for (const auto& [script_component_id, script_data] : components["scripts"].items())
+                /*for (const auto& [script_component_id, script_data] : components["scripts"].items())
                 {
                     uint32_t id = std::stoul(script_component_id);
                     bool enabled = script_data["enabled"].get<bool>();
@@ -757,7 +757,7 @@ namespace Bonfire
                         std::shared_ptr<ScriptComponent> script_component = std::make_shared<ScriptComponent>(id, enabled, script);
                         script_components.insert_or_assign(id, script_component);
                     }
-                }
+                }*/
             }
 
             for (auto& [id, light_component] : light_source_components)
@@ -818,8 +818,8 @@ namespace Bonfire
                 }
                 if (entity_components.contains("script_component"))
                 {
-                    uint32_t script_id = entity_components["script_component"].get<uint32_t>();
-                    entity->AddComponent(ComponentType::SCRIPT, script_components.at(script_id));
+                    /*uint32_t script_id = entity_components["script_component"].get<uint32_t>();
+                    entity->AddComponent(ComponentType::SCRIPT, script_components.at(script_id));*/
                 }
                 if (entity_components.contains("camera_component"))
                 {

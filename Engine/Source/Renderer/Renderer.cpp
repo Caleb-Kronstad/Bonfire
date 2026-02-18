@@ -36,7 +36,7 @@ namespace Bonfire
 
 	void Renderer::OnUpdate(const float& delta_time)
 	{
-		Engine& project = Engine::GetInstance();
+		Engine& project = Engine::Instance();
 		Window& project_window = project.GetWindow();
 
 		if (project.GetProjectRunState())
@@ -50,7 +50,7 @@ namespace Bonfire
 
 	void Renderer::RenderViewport(const float& delta_time, Camera& camera, Framebuffer& framebuffer, glm::vec2 viewport_size)
 	{
-		Engine& project = Engine::GetInstance();
+		Engine& project = Engine::Instance();
 		Window& project_window = project.GetWindow();
 
 		if (project_window.GetWidth() <= 0 || project_window.GetHeight() <= 0)
@@ -414,7 +414,7 @@ namespace Bonfire
 	
 	void Renderer::LoadScene(int scene_index, const std::string& json_data)
 	{
-		Engine& project = Engine::GetInstance();
+		Engine& project = Engine::Instance();
 		
 		scene_transition_in_progress = true;
 
@@ -439,9 +439,6 @@ namespace Bonfire
 				if (physics_component->physics_body)
 					physics_component->physics_body->SetEnabled(false);
 			}
-    		
-			Engine::GetScriptSystem().DetachCppScripts();
-			Engine::GetScriptSystem().DestroyScripts(GetScene());
 		}
 		
 		current_scene_index = scene_index;
@@ -479,9 +476,6 @@ namespace Bonfire
 				if (physics_component->physics_body)
 					physics_component->physics_body->SetEnabled(true);
 			}
-			
-			Engine::GetScriptSystem().StartScripts(GetScene());
-			Engine::GetScriptSystem().AttachCppScripts();
 		}
 		
 		GetScene().loaded = true;
