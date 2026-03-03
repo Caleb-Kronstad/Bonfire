@@ -64,6 +64,10 @@ namespace Bonfire {
         glm::vec3 GetForwardVector() const;
         glm::vec3 GetRightVector() const;
         glm::vec3 GetUpVector() const;
+        
+        void SetPosition(const glm::vec3& new_position);
+        void SetRotation(const glm::vec3& new_rotation);
+        void SetScale(const glm::vec3& new_scale);
 
     public:
         uint32_t id;

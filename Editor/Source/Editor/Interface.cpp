@@ -42,7 +42,7 @@ void Editor::OnInterfaceUpdate()
 			break;
 		case 1:
 			DrawParamEditor();
-			DrawConsole("Console##Param");
+			//DrawConsole("Console##Param");
 			break;
 		default:
 			break;

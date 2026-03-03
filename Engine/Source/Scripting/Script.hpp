@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Input/Input.hpp"
+#include "Renderer/Entity.hpp"
 
 namespace Bonfire
 {
@@ -16,10 +17,8 @@ namespace Bonfire
         
     protected:
         // functions that can be called whenever the user pleases
-        uint32_t EntityGetByName(std::string name);
-        std::vector<uint32_t> EntityGetAllByName(std::string name);
-        bool EntitySetPosition(uint32_t entity, glm::vec3 position);
-        bool EntitySetRotation(uint32_t entity, glm::vec3 rotation);
-        bool EntitySetScale(uint32_t entity, glm::vec3 scale);
+        Entity* GetEntityOfName(const std::string& name);
+        std::vector<Entity*> GetEntitiesOfName(const std::string& name);
+        Entity* GetEntityOfId(const uint32_t& id);
     };
 }

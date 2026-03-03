@@ -170,4 +170,34 @@ namespace Bonfire
 	{
 		return glm::normalize(GetTransformOrientation() * glm::vec3(0.0f, 1.0f, 0.0f));
 	}
+
+	void Entity::SetPosition(const glm::vec3& new_position)
+	{
+		position = new_position;
+		if (HasComponent<PhysicsComponent>())
+		{
+			PhysicsComponent& physics_component = GetComponent<PhysicsComponent>();
+			physics_component.physics_body->SetPosition(new_position);
+		}
+	}
+
+	void Entity::SetRotation(const glm::vec3& new_rotation)
+	{
+		rotation = new_rotation;
+		if (HasComponent<PhysicsComponent>())
+		{
+			PhysicsComponent& physics_component = GetComponent<PhysicsComponent>();
+			physics_component.physics_body->SetScale(new_rotation);
+		}
+	}
+
+	void Entity::SetScale(const glm::vec3& new_scale)
+	{
+		scale = new_scale;
+		if (HasComponent<PhysicsComponent>())
+		{
+			PhysicsComponent& physics_component = GetComponent<PhysicsComponent>();
+			physics_component.physics_body->SetPosition(new_scale);
+		}
+	}
 }

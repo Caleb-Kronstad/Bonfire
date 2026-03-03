@@ -45,12 +45,12 @@ namespace Bonfire
         std::unique_ptr<Fog>& GetFog() { return fog; }
 
         std::shared_ptr<Entity> GetEntityOfName(const std::string& name);
-        std::vector<std::shared_ptr<Entity>> GetAllEntitiesOfName(const std::string& name);
-        std::shared_ptr<Entity> GetEntityById(uint32_t id);
+        std::vector<std::shared_ptr<Entity>> GetEntitiesOfName(const std::string& name);
+        std::shared_ptr<Entity> GetEntityOfId(const uint32_t& id);
 
     public:
         std::string path;
-        bool loaded;
+        bool loaded = false;
         
     private:
         

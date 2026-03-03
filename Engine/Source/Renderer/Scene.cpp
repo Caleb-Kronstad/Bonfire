@@ -19,6 +19,13 @@ namespace Bonfire
         return false;
     }
 
+    std::shared_ptr<Entity> Scene::GetEntityOfId(const uint32_t& id)
+    {
+        if (entities.contains(id))
+            return entities.at(id);
+        Log::Error("Could not find entity by id: " + std::to_string(id));
+        return nullptr;
+    }
     std::shared_ptr<Entity> Scene::GetEntityOfName(const std::string& name)
     {
         for (auto& [entity_id, entity] : GetEntities())
@@ -29,7 +36,7 @@ namespace Bonfire
         Log::Warning("Could not find entity of name " + name);
         return nullptr;
     }
-    std::vector<std::shared_ptr<Entity>> Scene::GetAllEntitiesOfName(const std::string& name)
+    std::vector<std::shared_ptr<Entity>> Scene::GetEntitiesOfName(const std::string& name)
     {
         std::vector<std::shared_ptr<Entity>> entities;
         for (auto& [entity_id, entity] : GetEntities())
@@ -40,13 +47,6 @@ namespace Bonfire
         if (entities.empty())
             Log::Warning("Could not find any entities of name " + name);
         return entities;
-    }
-    std::shared_ptr<Entity> Scene::GetEntityById(uint32_t id)
-    {
-        if (entities.contains(id))
-            return entities.at(id);
-        Log::Error("Could not find entity by id: " + std::to_string(id));
-        return nullptr;
     }
     
     void Scene::UpdateLightSources(Shader& shader)
