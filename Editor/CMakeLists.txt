@@ -1,13 +1,18 @@
-file(GLOB_RECURSE EDITOR_SOURCES
-    "Source/**"
-    "Data/**"
+file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
+    "Source/*.h"
+    "Source/*.hpp"
+    "Source/*.cpp"
+    "Source/*.c"
 )
 
-add_executable(Editor ${EDITOR_SOURCES})
+# Include Data files for IDE visibility (not compiled)
+file(GLOB_RECURSE EDITOR_DATA CONFIGURE_DEPENDS "Data/*")
+
+add_executable(Editor ${EDITOR_SOURCES} ${EDITOR_DATA})
 
 target_include_directories(Editor PRIVATE
-    Source
-    Data
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source
+    ${CMAKE_CURRENT_SOURCE_DIR}/Data
     ${CMAKE_SOURCE_DIR}/Engine/Source
     ${INCLUDE_GLAD}
     ${INCLUDE_GLFW}

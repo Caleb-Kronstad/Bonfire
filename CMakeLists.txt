@@ -40,6 +40,8 @@ if(UNIX AND NOT APPLE)
     add_link_options(-pthread)
 elseif(WIN32)
     add_compile_options(/EHsc /Zc:preprocessor /Zc:__cplusplus)
+    # Static runtime — matches Premake staticruntime "on" (/MT instead of /MD)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
 endif()
 
 # ── Include directory variables (mirrors Premake IncludeDir table) ─────────────

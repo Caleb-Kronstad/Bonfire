@@ -2,27 +2,23 @@
 
 set -e
 
-source "$(dirname "$0")/Linux-Config.sh"
-
-cd "$(dirname "$0")/../Build"
-
-# Parse command line arguments
-BUILD_SYSTEM="premake"
+# Defaults
+BUILD_SYSTEM=premake
+BUILD_CONFIG=Debug
 USE_BEAR=false
 
+# Parse arguments
 for arg in "$@"; do
     case $arg in
-        cmake)
-            BUILD_SYSTEM="cmake"
-            ;;
-        premake)
-            BUILD_SYSTEM="premake"
-            ;;
-        --bear)
-            USE_BEAR=true
-            ;;
+        cmake|premake) BUILD_SYSTEM=$arg ;;
+        debug)         BUILD_CONFIG=Debug ;;
+        release)       BUILD_CONFIG=Release ;;
+        dist)          BUILD_CONFIG=Dist ;;
+        --bear)        USE_BEAR=true ;;
     esac
 done
+
+cd "$(dirname "$0")/../Build"
 
 if [ "$BUILD_SYSTEM" = "cmake" ]; then
     echo "=== Building project with CMake ($BUILD_CONFIG) ==="
@@ -38,7 +34,6 @@ if [ "$BUILD_SYSTEM" = "cmake" ]; then
 else
     echo "=== Building project with Premake/Make ($BUILD_CONFIG) ==="
 
-    # Convert BUILD_CONFIG to lowercase for make
     MAKE_CONFIG=$(echo "$BUILD_CONFIG" | tr '[:upper:]' '[:lower:]')
 
     if [ "$USE_BEAR" = true ]; then

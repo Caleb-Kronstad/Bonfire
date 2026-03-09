@@ -1,4 +1,4 @@
-file(GLOB_RECURSE ENGINE_SOURCES
+file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
     "Source/*.h"
     "Source/*.hpp"
     "Source/*.cpp"
@@ -14,7 +14,7 @@ add_library(Engine STATIC
 )
 
 target_include_directories(Engine PUBLIC
-    Source
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source
     ${INCLUDE_GLAD}
     ${INCLUDE_GLFW}
     ${INCLUDE_IMGUI}

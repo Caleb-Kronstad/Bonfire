@@ -1,0 +1,47 @@
+LINUX:
+Run ./Linux-Setup.sh [build_system] [compiler] [config]
+    - build_system: premake (default) or cmake
+    - compiler:     gcc (default) or clang
+    - config:       debug (default), release, or dist
+    - Arguments can be in any order
+    - Examples:
+        ./Linux-Setup.sh
+        ./Linux-Setup.sh cmake clang release
+        ./Linux-Setup.sh premake gcc
+
+Run ./Linux-Build.sh [build_system] [config] [options]
+    - build_system: premake (default) or cmake
+    - config:       debug (default), release, or dist
+    - --bear:       incremental build + generates compile_commands.json at project root (for CLion)
+    - Arguments can be in any order
+    - Examples:
+        ./Linux-Build.sh
+        ./Linux-Build.sh cmake release
+        ./Linux-Build.sh --bear debug
+
+Run ./Linux-Run.sh
+    - Runs the Editor
+
+
+WINDOWS:
+Configure build settings in Windows-Config.bat:
+    - BUILD_CONFIG: Debug, Release, or Dist
+    - MSBUILD: path to MSBuild.exe
+
+Run Scripts\Windows-Setup.bat [build_system]
+    - (no argument): Premake — generates Visual Studio 2022 solution in Build/
+    - cmake: CMake — generates Visual Studio 2022 solution in Build/
+
+Run Scripts\Windows-Build.bat
+    - Cleans and builds using MSBuild with the configured BUILD_CONFIG
+    - Works with both Premake and CMake generated solutions
+
+Run Scripts\Windows-Run.bat
+    - Runs the Editor
+
+
+CLION (LINUX):
+1. Run ./Linux-Build.sh --bear  (generates compile_commands.json at project root)
+2. Open project root in CLion
+3. CLion detects compile_commands.json — open as Compilation Database project
+4. Re-run --bear only when adding new files or changing include paths

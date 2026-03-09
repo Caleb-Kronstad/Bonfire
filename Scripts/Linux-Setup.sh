@@ -1,16 +1,27 @@
 #!/bin/bash
 
-source "$(dirname "$0")/Linux-Config.sh"
-
 pushd "$(dirname "$0")/.."
 
-# Parse build system argument (default to premake)
-BUILD_SYSTEM=${1:-premake}
+# Defaults
+BUILD_SYSTEM=premake
+COMPILER=gcc
+BUILD_CONFIG=Debug
+
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        cmake|premake) BUILD_SYSTEM=$arg ;;
+        clang)         COMPILER=clang ;;
+        gcc)           COMPILER=gcc ;;
+        debug)         BUILD_CONFIG=Debug ;;
+        release)       BUILD_CONFIG=Release ;;
+        dist)          BUILD_CONFIG=Dist ;;
+    esac
+done
 
 if [ "$BUILD_SYSTEM" = "cmake" ]; then
     echo "=== Setting up CMake build system ==="
 
-    # Determine compiler
     if [ "$COMPILER" = "clang" ]; then
         export CC=clang
         export CXX=clang++
@@ -19,17 +30,14 @@ if [ "$BUILD_SYSTEM" = "cmake" ]; then
         export CXX=g++
     fi
 
-    CMAKE_BUILD_TYPE="$BUILD_CONFIG"
-
-    # Generate build files
     cmake -S . -B Build \
-        -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
+        -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
         -DCMAKE_C_COMPILER="$CC" \
         -DCMAKE_CXX_COMPILER="$CXX" \
         -G "Unix Makefiles"
 
     echo "=== CMake setup complete ==="
-    echo "Build type: $CMAKE_BUILD_TYPE"
+    echo "Build type: $BUILD_CONFIG"
     echo "Compiler: $COMPILER"
 else
     echo "=== Setting up Premake build system ==="
@@ -43,6 +51,7 @@ else
     Premake/Linux/premake5 $CC_FLAG --file=Build.lua gmake2
 
     echo "=== Premake setup complete ==="
+    echo "Compiler: $COMPILER"
 fi
 
 popd

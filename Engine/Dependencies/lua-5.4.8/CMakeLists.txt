@@ -12,7 +12,8 @@ target_compile_definitions(LUA PRIVATE
     $<$<CONFIG:Debug>:DEBUG>
     $<$<CONFIG:Release>:RELEASE>
     $<$<CONFIG:Dist>:DIST>
-    $<$<BOOL:${WIN32}>:LUA_USE_WINDOWS _CRT_SECURE_NO_WARNINGS>
+    $<$<BOOL:${WIN32}>:LUA_USE_WINDOWS>
+    $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
     $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:LUA_USE_LINUX>
 )
 
