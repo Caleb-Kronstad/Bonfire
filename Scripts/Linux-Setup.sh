@@ -24,6 +24,8 @@ if [ "$BUILD_SYSTEM" = "cmake" ]; then
     # Generate build files
     cmake -S . -B Build \
         -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
+        -DCMAKE_C_COMPILER="$CC" \
+        -DCMAKE_CXX_COMPILER="$CXX" \
         -G "Unix Makefiles"
 
     echo "=== CMake setup complete ==="

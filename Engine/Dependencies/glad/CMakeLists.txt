@@ -1,27 +1,16 @@
-project(GLAD LANGUAGES C CXX)
+add_library(GLAD STATIC
+    include/glad/glad.h
+    include/KHR/khrplatform.h
+    src/glad.cpp
+)
 
-  # Source files (matching Build-GLAD.lua)
-  set(GLAD_SOURCES
-      src/glad.cpp
-  )
+target_include_directories(GLAD PUBLIC include)
 
-  set(GLAD_HEADERS
-      include/glad/glad.h
-      include/KHR/khrplatform.h
-  )
+target_compile_definitions(GLAD PRIVATE
+    $<$<CONFIG:Debug>:DEBUG>
+    $<$<CONFIG:Release>:RELEASE>
+    $<$<CONFIG:Dist>:DIST>
+    $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
+)
 
-  # Create static library
-  add_library(GLAD STATIC
-      ${GLAD_SOURCES}
-      ${GLAD_HEADERS}
-  )
-
-  # Include directories
-  target_include_directories(GLAD PUBLIC
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
-  )
-
-  # Set output directory
-  set_target_properties(GLAD PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Build/Binaries/${OUTPUT_DIR}/Project/Dependencies/GLAD"
-  )
+set_target_properties(GLAD PROPERTIES POSITION_INDEPENDENT_CODE ON)
