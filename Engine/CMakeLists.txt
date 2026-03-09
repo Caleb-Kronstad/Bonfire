@@ -40,18 +40,17 @@ target_compile_definitions(Engine PRIVATE
 if(UNIX AND NOT APPLE)
     target_compile_definitions(Engine PUBLIC BONFIRE_PLATFORM_LINUX)
     target_link_libraries(Engine PUBLIC GL dl pthread)
-    target_precompile_headers(Engine PRIVATE Source/bonfire_pch.hpp)
+    target_precompile_headers(Engine PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/Source/bonfire_pch.hpp>")
 elseif(WIN32)
     target_compile_definitions(Engine PUBLIC
         BONFIRE_PLATFORM_WINDOWS
         BONFIRE_BUILD_DLL
         _CRT_SECURE_NO_WARNINGS
-        JPH_PROFILE_ENABLED
-        JPH_DEBUG_RENDERER
-        JPH_ENABLE_ASSERTS
     )
     target_link_libraries(Engine PUBLIC opengl32 comdlg32)
-    target_precompile_headers(Engine PRIVATE Source/bonfire_pch.hpp)
+    target_precompile_headers(Engine PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/Source/bonfire_pch.hpp>")
 endif()
 
 set_target_properties(Engine PROPERTIES

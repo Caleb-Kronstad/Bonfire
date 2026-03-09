@@ -384,28 +384,48 @@ bool Editor::CreateModelParam()
 	Renderer& renderer = Engine::GetRenderer();
 	Scene& scene = renderer.GetScene();
 	ParamDatabase& param_database = renderer.GetParamDatabase();
-	
-	char exe_path[MAX_PATH];
-    GetModuleFileNameA(NULL, exe_path, MAX_PATH);
-    std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
-    std::filesystem::path models_dir = exe_dir / "Data/Resources/Models";
-    std::string model_file = std::string(MAX_PATH, '\0');
 
-    OPENFILENAMEA ofn;
-    ZeroMemory(&ofn, sizeof(OPENFILENAME));
-    ofn.lStructSize = sizeof(OPENFILENAME);
-    ofn.lpstrFile = (LPSTR)model_file.c_str();
-    ofn.nMaxFile = model_file.size();
-    ofn.lpstrInitialDir = models_dir.string().c_str();
-    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
-    ofn.lpstrFilter = "Model Files\0*.obj;*.fbx;*.dae;*.gltf;*.glb\0Obj Files\0*.obj\0FBX Files\0*.fbx\0DAE Files\0*.dae\0glTF Files\0*.gltf;*.glb\0All Files\0*.*\0";
-    ofn.lpstrTitle = "Select model file";
+    std::string model_file;
 
-    if (GetOpenFileNameA(&ofn))
+#ifdef BONFIRE_PLATFORM_WINDOWS
     {
-        model_file.resize(model_file.find('\0'));
+        char exe_path[MAX_PATH];
+        GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+        std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
+        std::filesystem::path models_dir = exe_dir / "Data/Resources/Models";
+        std::string file_buf = std::string(MAX_PATH, '\0');
+        OPENFILENAMEA ofn;
+        ZeroMemory(&ofn, sizeof(OPENFILENAME));
+        ofn.lStructSize = sizeof(OPENFILENAME);
+        ofn.lpstrFile = (LPSTR)file_buf.c_str();
+        ofn.nMaxFile = file_buf.size();
+        ofn.lpstrInitialDir = models_dir.string().c_str();
+        ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+        ofn.lpstrFilter = "Model Files\0*.obj;*.fbx;*.dae;*.gltf;*.glb\0Obj Files\0*.obj\0FBX Files\0*.fbx\0DAE Files\0*.dae\0glTF Files\0*.gltf;*.glb\0All Files\0*.*\0";
+        ofn.lpstrTitle = "Select model file";
+        if (!GetOpenFileNameA(&ofn))
+        {
+            Log::Info("File operation cancelled");
+            ImGui::CloseCurrentPopup();
+            return false;
+        }
+        file_buf.resize(file_buf.find('\0'));
+        model_file = file_buf;
+    }
+#elif defined(BONFIRE_PLATFORM_LINUX)
+    {
+        FILE* f = popen("zenity --file-selection --title=\"Select model file\" --file-filter=\"Model Files | *.obj *.fbx *.dae *.gltf *.glb\" 2>/dev/null", "r");
+        if (!f) { Log::Info("File operation cancelled"); ImGui::CloseCurrentPopup(); return false; }
+        char buf[4096] = {};
+        bool ok = fgets(buf, sizeof(buf), f) != nullptr;
+        pclose(f);
+        if (!ok || buf[0] == '\0') { Log::Info("File operation cancelled"); ImGui::CloseCurrentPopup(); return false; }
+        model_file = buf;
+        if (!model_file.empty() && model_file.back() == '\n') model_file.pop_back();
+    }
+#endif
 
-        std::filesystem::path absolute_path = model_file;
+    std::filesystem::path absolute_path = model_file;
         std::string abs_str = absolute_path.string();
 
         size_t data_pos = abs_str.find("Data");
@@ -500,13 +520,7 @@ bool Editor::CreateModelParam()
                     model_component.model->param_id = FIRST_ID;
             }
         }
-    	
-		return true;
-    }
-	
-	Log::Info("File operation cancelled");
-	ImGui::CloseCurrentPopup();
-	return false;
+    return true;
 }
 
 bool Editor::CreateTextureParam()
@@ -514,67 +528,82 @@ bool Editor::CreateTextureParam()
 	Renderer& renderer = Engine::GetRenderer();
 	Scene& scene = renderer.GetScene();
 	ParamDatabase& param_database = renderer.GetParamDatabase();
-	
-	char exe_path[MAX_PATH];
-    GetModuleFileNameA(NULL, exe_path, MAX_PATH);
-    std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
-    std::filesystem::path textures_dir = exe_dir / "Data/Resources/Textures";
-    std::string texture_file = std::string(MAX_PATH, '\0');
-    
-    OPENFILENAMEA ofn;
-    ZeroMemory(&ofn, sizeof(OPENFILENAME));
-    ofn.lStructSize = sizeof(OPENFILENAME);
-    ofn.lpstrFile = (LPSTR)texture_file.c_str();
-    ofn.nMaxFile = texture_file.size();
-    ofn.lpstrInitialDir = textures_dir.string().c_str();
-    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
-    ofn.lpstrFilter = "Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.tif;*.tiff;*.dds;*.hdr\0PNG Files\0*.png\0JPEG Files\0*.jpg;*.jpeg\0BMP Files\0*.bmp\0TGA Files\0*.tga\0All Files\0*.*\0";
-    ofn.lpstrTitle = "Select texture file";
 
-    if (GetOpenFileNameA(&ofn))
+    std::string texture_file;
+
+#ifdef BONFIRE_PLATFORM_WINDOWS
     {
-        texture_file.resize(texture_file.find('\0'));
-
-        std::filesystem::path absolute_path = texture_file;
-        std::string abs_str = absolute_path.string();
-
-        size_t data_pos = abs_str.find("Data");
-        if (data_pos != std::string::npos)
+        char exe_path[MAX_PATH];
+        GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+        std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
+        std::filesystem::path textures_dir = exe_dir / "Data/Resources/Textures";
+        std::string file_buf = std::string(MAX_PATH, '\0');
+        OPENFILENAMEA ofn;
+        ZeroMemory(&ofn, sizeof(OPENFILENAME));
+        ofn.lStructSize = sizeof(OPENFILENAME);
+        ofn.lpstrFile = (LPSTR)file_buf.c_str();
+        ofn.nMaxFile = file_buf.size();
+        ofn.lpstrInitialDir = textures_dir.string().c_str();
+        ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+        ofn.lpstrFilter = "Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.tif;*.tiff;*.dds;*.hdr\0PNG Files\0*.png\0JPEG Files\0*.jpg;*.jpeg\0BMP Files\0*.bmp\0TGA Files\0*.tga\0All Files\0*.*\0";
+        ofn.lpstrTitle = "Select texture file";
+        if (!GetOpenFileNameA(&ofn))
         {
-            default_diffuse_path = abs_str.substr(data_pos);
-            std::replace(default_diffuse_path.begin(), default_diffuse_path.end(), '\\', '/');
+            Log::Info("File operation cancelled");
+            return false;
         }
-        else
-            default_diffuse_path = texture_file;
-
-        Log::Info("File selected at " + default_diffuse_path);
-    
-        uint32_t next_id = FIRST_ID;
-        if (!scene.GetTextures().empty())
-        {
-            auto max_it = std::max_element(
-                scene.GetTextures().begin(),
-                scene.GetTextures().end(),
-                [](const auto& a, const auto& b) { return a.first < b.first; }
-                );
-            next_id = max_it->first + 1;
-        }
-
-        std::filesystem::path path_obj(default_diffuse_path);
-        std::string texture_name = path_obj.stem().string();
-    
-        std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(default_diffuse_path, TextureType::DIFFUSE, false);
-        new_texture->param_id = next_id;
-        new_texture->name = texture_name;
-        new_texture->Load();
-        scene.GetTextures().insert_or_assign(next_id, new_texture);
-        param_database.texture_params[next_id] = TextureParamData(texture_name, TextureType::DIFFUSE, false, default_diffuse_path);
-        selected_texture_param_id = next_id;
-    	return true;
+        file_buf.resize(file_buf.find('\0'));
+        texture_file = file_buf;
     }
-    
-    Log::Info("File operation cancelled");
-    return false;
+#elif defined(BONFIRE_PLATFORM_LINUX)
+    {
+        FILE* f = popen("zenity --file-selection --title=\"Select texture file\" --file-filter=\"Image Files | *.png *.jpg *.jpeg *.bmp *.tga *.tif *.tiff *.hdr\" 2>/dev/null", "r");
+        if (!f) { Log::Info("File operation cancelled"); return false; }
+        char buf[4096] = {};
+        bool ok = fgets(buf, sizeof(buf), f) != nullptr;
+        pclose(f);
+        if (!ok || buf[0] == '\0') { Log::Info("File operation cancelled"); return false; }
+        texture_file = buf;
+        if (!texture_file.empty() && texture_file.back() == '\n') texture_file.pop_back();
+    }
+#endif
+
+    std::filesystem::path absolute_path = texture_file;
+    std::string abs_str = absolute_path.string();
+
+    size_t data_pos = abs_str.find("Data");
+    if (data_pos != std::string::npos)
+    {
+        default_diffuse_path = abs_str.substr(data_pos);
+        std::replace(default_diffuse_path.begin(), default_diffuse_path.end(), '\\', '/');
+    }
+    else
+        default_diffuse_path = texture_file;
+
+    Log::Info("File selected at " + default_diffuse_path);
+
+    uint32_t next_id = FIRST_ID;
+    if (!scene.GetTextures().empty())
+    {
+        auto max_it = std::max_element(
+            scene.GetTextures().begin(),
+            scene.GetTextures().end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; }
+            );
+        next_id = max_it->first + 1;
+    }
+
+    std::filesystem::path path_obj(default_diffuse_path);
+    std::string texture_name = path_obj.stem().string();
+
+    std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(default_diffuse_path, TextureType::DIFFUSE, false);
+    new_texture->param_id = next_id;
+    new_texture->name = texture_name;
+    new_texture->Load();
+    scene.GetTextures().insert_or_assign(next_id, new_texture);
+    param_database.texture_params[next_id] = TextureParamData(texture_name, TextureType::DIFFUSE, false, default_diffuse_path);
+    selected_texture_param_id = next_id;
+    return true;
 }
 
 bool Editor::CreateAudioParam()
@@ -583,60 +612,77 @@ bool Editor::CreateAudioParam()
 	Scene& scene = renderer.GetScene();
 	ParamDatabase& param_database = renderer.GetParamDatabase();
 
-    char exe_path[MAX_PATH];
-    GetModuleFileNameA(NULL, exe_path, MAX_PATH);
-    std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
-    std::filesystem::path audio_dir = exe_dir / "Data/Resources/Audio";
-    std::string audio_file = std::string(MAX_PATH, '\0');
+    std::string audio_file;
 
-    OPENFILENAMEA ofn;
-    ZeroMemory(&ofn, sizeof(OPENFILENAME));
-    ofn.lStructSize = sizeof(OPENFILENAME);
-    ofn.lpstrFile = (LPSTR)audio_file.c_str();
-    ofn.nMaxFile = audio_file.size();
-    ofn.lpstrInitialDir = audio_dir.string().c_str();
-    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
-    ofn.lpstrFilter = "Audio Files\0*.wav;*.mp3;*.ogg;*.flac\0WAV Files\0*.wav\0MP3 Files\0*.mp3\0OGG Files\0*.ogg\0FLAC Files\0*.flac\0All Files\0*.*\0";
-    ofn.lpstrTitle = "Select audio file";
-
-    if (GetOpenFileNameA(&ofn))
+#ifdef BONFIRE_PLATFORM_WINDOWS
     {
-        audio_file.resize(audio_file.find('\0'));
-        std::filesystem::path absolute_path = audio_file;
-        std::string abs_str = absolute_path.string();
-        std::string relative_audio_path;
-        size_t data_pos = abs_str.find("Data");
-        if (data_pos != std::string::npos)
+        char exe_path[MAX_PATH];
+        GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+        std::filesystem::path exe_dir = std::filesystem::path(exe_path).parent_path();
+        std::filesystem::path audio_dir = exe_dir / "Data/Resources/Audio";
+        std::string file_buf = std::string(MAX_PATH, '\0');
+        OPENFILENAMEA ofn;
+        ZeroMemory(&ofn, sizeof(OPENFILENAME));
+        ofn.lStructSize = sizeof(OPENFILENAME);
+        ofn.lpstrFile = (LPSTR)file_buf.c_str();
+        ofn.nMaxFile = file_buf.size();
+        ofn.lpstrInitialDir = audio_dir.string().c_str();
+        ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+        ofn.lpstrFilter = "Audio Files\0*.wav;*.mp3;*.ogg;*.flac\0WAV Files\0*.wav\0MP3 Files\0*.mp3\0OGG Files\0*.ogg\0FLAC Files\0*.flac\0All Files\0*.*\0";
+        ofn.lpstrTitle = "Select audio file";
+        if (!GetOpenFileNameA(&ofn))
         {
-            relative_audio_path = abs_str.substr(data_pos);
-            std::replace(relative_audio_path.begin(), relative_audio_path.end(), '\\', '/');
+            Log::Info("Audio file operation cancelled");
+            return false;
         }
-        else
-            relative_audio_path = audio_file;
-
-        Log::Info("Audio file selected at " + relative_audio_path);
-        uint32_t next_id = FIRST_ID;
-        AudioSystem& audio_system = Engine::GetAudioManager();
-        if (!audio_system.GetAudios().empty())
-        {
-            auto max_it = std::max_element(
-                audio_system.GetAudios().begin(),
-                audio_system.GetAudios().end(),
-                [](const auto& a, const auto& b) { return a.first < b.first; }
-            );
-            next_id = max_it->first + 1;
-        }
-
-        std::filesystem::path path_obj(relative_audio_path);
-        std::string audio_name = path_obj.stem().string();
-
-        std::shared_ptr<Audio> new_audio = std::make_shared<Audio>(next_id, audio_name, relative_audio_path);
-        audio_system.AddAudio(new_audio);
-        param_database.audio_params.insert_or_assign(next_id, AudioParamData(audio_name, relative_audio_path));
-        selected_audio_param_id = next_id;
-        Log::Info("Loaded audio " + audio_name);
-    	return true;
+        file_buf.resize(file_buf.find('\0'));
+        audio_file = file_buf;
     }
-    Log::Info("Audio file operation cancelled");
-    return false;
+#elif defined(BONFIRE_PLATFORM_LINUX)
+    {
+        FILE* f = popen("zenity --file-selection --title=\"Select audio file\" --file-filter=\"Audio Files | *.wav *.mp3 *.ogg *.flac\" 2>/dev/null", "r");
+        if (!f) { Log::Info("Audio file operation cancelled"); return false; }
+        char buf[4096] = {};
+        bool ok = fgets(buf, sizeof(buf), f) != nullptr;
+        pclose(f);
+        if (!ok || buf[0] == '\0') { Log::Info("Audio file operation cancelled"); return false; }
+        audio_file = buf;
+        if (!audio_file.empty() && audio_file.back() == '\n') audio_file.pop_back();
+    }
+#endif
+
+    std::filesystem::path absolute_path = audio_file;
+    std::string abs_str = absolute_path.string();
+    std::string relative_audio_path;
+    size_t data_pos = abs_str.find("Data");
+    if (data_pos != std::string::npos)
+    {
+        relative_audio_path = abs_str.substr(data_pos);
+        std::replace(relative_audio_path.begin(), relative_audio_path.end(), '\\', '/');
+    }
+    else
+        relative_audio_path = audio_file;
+
+    Log::Info("Audio file selected at " + relative_audio_path);
+    uint32_t next_id = FIRST_ID;
+    AudioSystem& audio_system = Engine::GetAudioManager();
+    if (!audio_system.GetAudios().empty())
+    {
+        auto max_it = std::max_element(
+            audio_system.GetAudios().begin(),
+            audio_system.GetAudios().end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; }
+        );
+        next_id = max_it->first + 1;
+    }
+
+    std::filesystem::path path_obj(relative_audio_path);
+    std::string audio_name = path_obj.stem().string();
+
+    std::shared_ptr<Audio> new_audio = std::make_shared<Audio>(next_id, audio_name, relative_audio_path);
+    audio_system.AddAudio(new_audio);
+    param_database.audio_params.insert_or_assign(next_id, AudioParamData(audio_name, relative_audio_path));
+    selected_audio_param_id = next_id;
+    Log::Info("Loaded audio " + audio_name);
+    return true;
 }

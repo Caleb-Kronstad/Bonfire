@@ -7,14 +7,14 @@ public:
     {
         Log::Info("Demo script attached");
         
-        test_entity = EntityGetByName("Test");
+        test_entity = GetEntityOfName("Test");
     }
     void Update(float delta_time) override
     {
         if (!test)
         {
             test = true;
-            EntitySetPosition(test_entity, glm::vec3(0.0f, 100.0f, 0.0f));
+            if (test_entity) test_entity->SetPosition(glm::vec3(0.0f, 100.0f, 0.0f));
         }
     }
     void Interface() override
@@ -31,7 +31,7 @@ public:
     }
     
 private:
-    uint32_t test_entity = 0;
+    Entity* test_entity = nullptr;
     bool test = false;
 };
 

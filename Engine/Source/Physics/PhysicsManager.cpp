@@ -2,6 +2,16 @@
 #include "PhysicsManager.hpp"
 
 #include "Core/Engine.hpp"
+
+static void JoltTraceImpl(const char* fmt, ...)
+{
+    va_list list;
+    va_start(list, fmt);
+    char buffer[1024];
+    vsnprintf(buffer, sizeof(buffer), fmt, list);
+    va_end(list);
+    std::cout << buffer << std::endl;
+}
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 #include "Jolt/Physics/Collision/Shape/ScaledShape.h"
 
@@ -78,14 +88,7 @@ namespace Bonfire
 
         JPH::RegisterDefaultAllocator();
 
-        JPH::Trace = [](const char* fmt, ...) {
-            va_list list;
-            va_start(list, fmt);
-            char buffer[1024];
-            vsnprintf(buffer, sizeof(buffer), fmt, list);
-            va_end(list);
-            std::cout << buffer << std::endl;
-        };
+        JPH::Trace = JoltTraceImpl;
 
         temp_allocator = std::make_unique<JPH::TempAllocatorImpl>(10 * 1024 * 1024);
 

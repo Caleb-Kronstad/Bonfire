@@ -7,6 +7,7 @@ file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
 
 # Include Data files for IDE visibility (not compiled)
 file(GLOB_RECURSE EDITOR_DATA CONFIGURE_DEPENDS "Data/*")
+set_source_files_properties(${EDITOR_DATA} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 add_executable(Editor ${EDITOR_SOURCES} ${EDITOR_DATA})
 
