@@ -49,6 +49,11 @@ project "Editor"
         --"{COPY} %{wks.location}/../Editor/imgui.ini %{cfg.buildtarget.directory}/",
     }
 
+    defines {
+        "JPH_DEBUG_RENDERER",
+        "JPH_PROFILE_ENABLED"
+    }
+
     filter "system:windows"
         systemversion "latest"
         defines {
@@ -73,12 +78,12 @@ project "Editor"
         }
 
     filter "configurations:Debug"
-        defines { "DEBUG" }
+        defines { "DEBUG", "JPH_ENABLE_ASSERTS" }
         runtime "Debug"
         symbols "On"
 
     filter "configurations:Release"
-        defines { "RELEASE" }
+        defines { "RELEASE", "JPH_ENABLE_ASSERTS" }
         runtime "Release"
         optimize "On"
         symbols "On"

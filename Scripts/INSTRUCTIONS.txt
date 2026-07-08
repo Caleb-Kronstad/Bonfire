@@ -17,7 +17,7 @@ Run ./Linux-Build.sh [build_system] [config] [options]
     - Examples:
         ./Linux-Build.sh
         ./Linux-Build.sh cmake release
-        ./Linux-Build.sh --bear debug
+        ./Linux-Build.sh debug --bear
 
 Run ./Linux-Run.sh
     - Runs the Editor

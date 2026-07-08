@@ -38,7 +38,7 @@ else
 
     if [ "$USE_BEAR" = true ]; then
         echo "=== Building with bear (incremental, compile_commands.json will be generated) ==="
-        bear -o ../compile_commands.json -- make config=$MAKE_CONFIG
+        bear --append -o ../compile_commands.json -- make config=$MAKE_CONFIG
     else
         echo "=== Cleaning build ==="
         make clean

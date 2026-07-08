@@ -71,7 +71,9 @@ project "Engine"
         pchsource "Source/bonfire_pch.cpp"
         pic "On"
         defines {
-            "BONFIRE_PLATFORM_LINUX"
+            "BONFIRE_PLATFORM_LINUX",
+            "JPH_PROFILE_ENABLED",
+            "JPH_DEBUG_RENDERER"
         }
         links {
             "GL",
@@ -80,12 +82,12 @@ project "Engine"
         }
 
     filter "configurations:Debug"
-        defines { "DEBUG" }
+        defines { "DEBUG", "JPH_ENABLE_ASSERTS" }
         runtime "Debug"
         symbols "On"
 
     filter "configurations:Release"
-        defines { "RELEASE" }
+        defines { "RELEASE", "JPH_ENABLE_ASSERTS" }
         runtime "Release"
         optimize "On"
         symbols "On"

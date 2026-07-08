@@ -30,17 +30,10 @@ IncludeDir["LUA"] = os.realpath("Engine/Dependencies/lua-5.4.8/src")
 IncludeDir["MINIAUDIO"] = os.realpath("Engine/Dependencies/miniaudio")
 
 group "Dependencies"
-   include "Engine/Dependencies/glad/Build-GLAD.lua"
-   include "Engine/Dependencies/glfw/Build-GLFW.lua"
-   include "Engine/Dependencies/imgui/Build-IMGUI.lua"
-   include "Engine/Dependencies/assimp/Build-ASSIMP.lua"
-   include "Engine/Dependencies/glm/Build-GLM.lua"
-   include "Engine/Dependencies/imguizmo/Build-IMGUIZMO.lua"
-   include "Engine/Dependencies/jolt/Build-JOLT.lua"
-   include "Engine/Dependencies/lua-5.4.8/Build-LUA.lua"
+   include "Engine/Dependencies/Build-DEPENDENCIES.lua"
 group ""
 
-group "Engine"
+group "Runtime"
    include "Engine/Build-ENGINE.lua"
    include "Editor/Build-EDITOR.lua"
 group ""

@@ -12,7 +12,7 @@
   # Both CMake and Premake use capitalized system name
   OUTPUT_DIR="Linux-x86_64/$BUILD_CONFIG"
 
-  EXECUTABLE="$PROJECT_ROOT/Build/Binaries/$OUTPUT_DIR/Project/Project"
+  EXECUTABLE="$PROJECT_ROOT/Build/Binaries/$OUTPUT_DIR/Editor/Editor"
 
   if [ ! -f "$EXECUTABLE" ]; then
       echo "Error: Executable not found at $EXECUTABLE"

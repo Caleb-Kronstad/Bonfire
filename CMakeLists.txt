@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(Bonfire)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # ── Configurations ────────────────────────────────────────────────────────────
 # Add "Dist" as a custom config (multi-config generators like VS)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Dist" CACHE STRING "" FORCE)
@@ -63,6 +65,7 @@ add_subdirectory(Engine/Dependencies/glad)
 add_subdirectory(Engine/Dependencies/glfw)
 add_subdirectory(Engine/Dependencies/imgui)
 add_subdirectory(Engine/Dependencies/assimp)
+add_library(ASSIMP ALIAS assimp)
 add_subdirectory(Engine/Dependencies/glm)
 add_subdirectory(Engine/Dependencies/imguizmo)
 add_subdirectory(Engine/Dependencies/jolt)

@@ -21,3 +21,5 @@ Bonfire/Makefile
 **/Makefile
 
 Bonfire/Data/Resources/
+
+cmake-build-debug/
