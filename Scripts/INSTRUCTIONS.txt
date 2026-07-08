@@ -12,15 +12,23 @@ Run ./Linux-Setup.sh [build_system] [compiler] [config]
 Run ./Linux-Build.sh [build_system] [config] [options]
     - build_system: premake (default) or cmake
     - config:       debug (default), release, or dist
-    - --bear:       incremental build + generates compile_commands.json at project root (for CLion)
+    - --bear:       generates compile_commands.json at project root (for CLion)
+    - --clean:      clean the selected config before building (premake/make only; omit for incremental builds)
     - Arguments can be in any order
     - Examples:
         ./Linux-Build.sh
         ./Linux-Build.sh cmake release
         ./Linux-Build.sh debug --bear
+        ./Linux-Build.sh --clean
 
-Run ./Linux-Run.sh
-    - Runs the Editor
+Run ./Linux-Run.sh [build_system] [config]
+    - build_system: premake (default) or cmake
+    - config:       debug (default), release, or dist
+    - Must match the build_system/config you built with (paths differ between them)
+    - Arguments can be in any order
+    - Examples:
+        ./Linux-Run.sh
+        ./Linux-Run.sh cmake release
 
 
 WINDOWS:

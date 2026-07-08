@@ -1,21 +1,35 @@
-[submodule "imguizmo"]
-	path = Engine/Dependencies/imguizmo
-	url = https://github.com/Caleb-Kronstad/ImGuizmo
-[submodule "imgui"]
-	path = Engine/Dependencies/imgui
-	url = https://github.com/Caleb-Kronstad/imgui
-[submodule "assimp"]
-	path = Engine/Dependencies/assimp
-	url = https://github.com/Caleb-Kronstad/assimp
-[submodule "glm"]
-	path = Engine/Dependencies/glm
-	url = https://github.com/Caleb-Kronstad/glm
-[submodule "glfw"]
+[submodule "Engine/Dependencies/glfw"]
 	path = Engine/Dependencies/glfw
-	url = https://github.com/Caleb-Kronstad/glfw
-[submodule "jolt"]
+	url = git@github.com:Caleb-Kronstad/glfw.git
+[submodule "Engine/Dependencies/imgui"]
+	path = Engine/Dependencies/imgui
+	url = git@github.com:Caleb-Kronstad/imgui.git
+[submodule "imgui"]
+	branch = docking
+[submodule "Engine/Dependencies/imguizmo"]
+	path = Engine/Dependencies/imguizmo
+	url = git@github.com:Caleb-Kronstad/ImGuizmo.git
+[submodule "Engine/Dependencies/assimp"]
+	path = Engine/Dependencies/assimp
+	url = git@github.com:Caleb-Kronstad/assimp.git
+[submodule "Engine/Dependencies/glm"]
+	path = Engine/Dependencies/glm
+	url = git@github.com:g-truc/glm.git
+[submodule "Engine/Dependencies/Engine/Dependencies/glad"]
+	path = Engine/Dependencies/Engine/Dependencies/glad
+	url = git@github.com:Caleb-Kronstad/glad.git
+[submodule "Engine/Dependencies/soil"]
+	path = Engine/Dependencies/soil
+	url = git@github.com:Caleb-Kronstad/soil.git
+[submodule "Engine/Dependencies/miniaudio"]
+	path = Engine/Dependencies/miniaudio
+	url = git@github.com:Caleb-Kronstad/miniaudio.git
+[submodule "Engine/Dependencies/json"]
+	path = Engine/Dependencies/json
+	url = git@github.com:Caleb-Kronstad/json.git
+[submodule "Engine/Dependencies/jolt"]
 	path = Engine/Dependencies/jolt
-	url = https://github.com/Caleb-Kronstad/JoltPhysics
-[submodule "Engine/Dependencies/asio"]
-	path = Engine/Dependencies/asio
-	url = https://github.com/Caleb-Kronstad/asio
+	url = git@github.com:Caleb-Kronstad/JoltPhysics.git
+[submodule "Engine/Dependencies/lua"]
+	path = Engine/Dependencies/lua
+	url = git@github.com:Caleb-Kronstad/lua.git

@@ -2,6 +2,7 @@
 # directories
 .vs/
 .idea/
+.cache/
 Build/
 
 # files
@@ -14,12 +15,8 @@ Build/
 
 compile_commands.json
 
-Makefile
-Engine/Makefile
-Bonfire/Makefile
-
 **/Makefile
 
-Bonfire/Data/Resources/
+Editor/Data/Resources/
 
 cmake-build-debug/
