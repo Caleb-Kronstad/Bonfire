@@ -33,3 +33,6 @@
 [submodule "Engine/Dependencies/lua"]
 	path = Engine/Dependencies/lua
 	url = git@github.com:Caleb-Kronstad/lua.git
+[submodule "Engine/Dependencies/glad"]
+	path = Engine/Dependencies/glad
+	url = git@github.com:Caleb-Kronstad/glad
