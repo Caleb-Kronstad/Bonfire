@@ -1,7 +1,7 @@
 project "GLAD"
     location "../../Build/Build-Files"
     kind "StaticLib"
-    language "C++"
+    language "C"
     staticruntime "On"
 
     targetdir ("../../Build/Binaries/" .. OutputDir .. "/Dependencies/%{prj.name}")
@@ -10,11 +10,55 @@ project "GLAD"
     files {
         "glad/include/glad/glad.h",
         "glad/include/KHR/khrplatform.h",
-        "glad/src/glad.cpp"
+        "glad/src/glad.c"
     }
 
     includedirs {
         "glad/include"
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+        defines {
+            "_CRT_SECURE_NO_WARNINGS"
+        }
+
+    filter "system:linux"
+        pic "On"
+
+    filter "configurations:Debug"
+        defines { "DEBUG" }
+        runtime "Debug"
+        symbols "On"
+
+    filter "configurations:Release"
+        defines { "RELEASE" }
+        runtime "Release"
+        optimize "On"
+        symbols "On"
+
+    filter "configurations:Dist"
+        defines { "DIST" }
+        runtime "Release"
+        optimize "On"
+        symbols "Off"
+
+project "SOIL"
+    location "../../Build/Build-Files"
+    kind "StaticLib"
+    language "C"
+    staticruntime "On"
+
+    targetdir ("../../Build/Binaries/" .. OutputDir .. "/Dependencies/%{prj.name}")
+    objdir ("../../Build/Binaries-Intermediate/" .. OutputDir .. "/Dependencies/%{prj.name}")
+
+    files {
+        "soil/src/SOIL2/*.c",
+        "soil/src/SOIL2/*.h"
+    }
+
+    includedirs {
+        "soil/src/SOIL2"
     }
 
     filter "system:windows"
@@ -62,7 +106,12 @@ project "GLFW"
         "glfw/src/vulkan.c",
         "glfw/src/window.c",
         "glfw/src/egl_context.c",
-        "glfw/src/osmesa_context.c"
+        "glfw/src/osmesa_context.c",
+        "glfw/src/platform.c",
+        "glfw/src/null_init.c",
+        "glfw/src/null_joystick.c",
+        "glfw/src/null_monitor.c",
+        "glfw/src/null_window.c"
     }
 
     includedirs {
@@ -80,7 +129,8 @@ project "GLFW"
             "glfw/src/win32_time.c",
             "glfw/src/win32_thread.c",
             "glfw/src/win32_window.c",
-            "glfw/src/wgl_context.c"
+            "glfw/src/wgl_context.c",
+            "glfw/src/win32_module.c"
         }
 
         defines {
@@ -100,7 +150,9 @@ project "GLFW"
             "glfw/src/posix_time.c",
             "glfw/src/posix_thread.c",
             "glfw/src/glx_context.c",
-            "glfw/src/linux_joystick.c"
+            "glfw/src/linux_joystick.c",
+            "glfw/src/posix_module.c",
+            "glfw/src/posix_poll.c"
         }
 
         defines {
@@ -181,174 +233,169 @@ project "IMGUI"
         optimize "On"
         symbols "Off"
 
+-- ASSIMP: only Obj/Collada/Ply/glTF+glTF2/FBX importers are compiled (matches the
+-- formats this engine actually loads). Everything else is disabled via
+-- ASSIMP_BUILD_NO_<FORMAT>_IMPORTER, which ImporterRegistry.cpp checks to skip
+-- referencing the corresponding (uncompiled) importer classes. Exporters are not
+-- compiled at all (Common/Exporter.cpp is omitted) since nothing here exports.
 project "ASSIMP"
     location "../../Build/Build-Files"
     kind "StaticLib"
     language "C++"
-    cppdialect "C++11"
+    cppdialect "C++17"
     staticruntime "on"
 
     targetdir ("../../Build/Binaries/" .. OutputDir .. "/Dependencies/%{prj.name}")
     objdir ("../../Build/Binaries-Intermediate/" .. OutputDir .. "/Dependencies/%{prj.name}")
 
     defines {
-        -- "SWIG",
-        -- "ASSIMP_BUILD_NO_OWN_ZLIB",
-
-        "ASSIMP_BUILD_NO_X_IMPORTER",
-        "ASSIMP_BUILD_NO_3DS_IMPORTER",
-        "ASSIMP_BUILD_NO_MD3_IMPORTER",
-        "ASSIMP_BUILD_NO_MDL_IMPORTER",
-        "ASSIMP_BUILD_NO_MD2_IMPORTER",
-        -- "ASSIMP_BUILD_NO_PLY_IMPORTER",
-        "ASSIMP_BUILD_NO_ASE_IMPORTER",
-        -- "ASSIMP_BUILD_NO_OBJ_IMPORTER",
         "ASSIMP_BUILD_NO_AMF_IMPORTER",
-        "ASSIMP_BUILD_NO_HMP_IMPORTER",
-        "ASSIMP_BUILD_NO_SMD_IMPORTER",
-        "ASSIMP_BUILD_NO_MDC_IMPORTER",
-        "ASSIMP_BUILD_NO_MD5_IMPORTER",
-        "ASSIMP_BUILD_NO_STL_IMPORTER",
-        "ASSIMP_BUILD_NO_LWO_IMPORTER",
-        "ASSIMP_BUILD_NO_DXF_IMPORTER",
-        "ASSIMP_BUILD_NO_NFF_IMPORTER",
-        "ASSIMP_BUILD_NO_RAW_IMPORTER",
-        "ASSIMP_BUILD_NO_OFF_IMPORTER",
+        "ASSIMP_BUILD_NO_3DS_IMPORTER",
         "ASSIMP_BUILD_NO_AC_IMPORTER",
-        "ASSIMP_BUILD_NO_BVH_IMPORTER",
-        "ASSIMP_BUILD_NO_IRRMESH_IMPORTER",
-        "ASSIMP_BUILD_NO_IRR_IMPORTER",
-        "ASSIMP_BUILD_NO_Q3D_IMPORTER",
+        "ASSIMP_BUILD_NO_ASE_IMPORTER",
+        "ASSIMP_BUILD_NO_ASSBIN_IMPORTER",
         "ASSIMP_BUILD_NO_B3D_IMPORTER",
-        -- "ASSIMP_BUILD_NO_COLLADA_IMPORTER",
-        "ASSIMP_BUILD_NO_TERRAGEN_IMPORTER",
+        "ASSIMP_BUILD_NO_BVH_IMPORTER",
+        "ASSIMP_BUILD_NO_DXF_IMPORTER",
         "ASSIMP_BUILD_NO_CSM_IMPORTER",
-        "ASSIMP_BUILD_NO_3D_IMPORTER",
+        "ASSIMP_BUILD_NO_HMP_IMPORTER",
+        "ASSIMP_BUILD_NO_IRRMESH_IMPORTER",
+        "ASSIMP_BUILD_NO_IQM_IMPORTER",
+        "ASSIMP_BUILD_NO_IRR_IMPORTER",
+        "ASSIMP_BUILD_NO_LWO_IMPORTER",
         "ASSIMP_BUILD_NO_LWS_IMPORTER",
+        "ASSIMP_BUILD_NO_M3D_IMPORTER",
+        "ASSIMP_BUILD_NO_MD2_IMPORTER",
+        "ASSIMP_BUILD_NO_MD3_IMPORTER",
+        "ASSIMP_BUILD_NO_MD5_IMPORTER",
+        "ASSIMP_BUILD_NO_MDC_IMPORTER",
+        "ASSIMP_BUILD_NO_MDL_IMPORTER",
+        "ASSIMP_BUILD_NO_NFF_IMPORTER",
+        "ASSIMP_BUILD_NO_NDO_IMPORTER",
+        "ASSIMP_BUILD_NO_OFF_IMPORTER",
         "ASSIMP_BUILD_NO_OGRE_IMPORTER",
         "ASSIMP_BUILD_NO_OPENGEX_IMPORTER",
         "ASSIMP_BUILD_NO_MS3D_IMPORTER",
         "ASSIMP_BUILD_NO_COB_IMPORTER",
         "ASSIMP_BUILD_NO_BLEND_IMPORTER",
-        "ASSIMP_BUILD_NO_Q3BSP_IMPORTER",
-        "ASSIMP_BUILD_NO_NDO_IMPORTER",
         "ASSIMP_BUILD_NO_IFC_IMPORTER",
         "ASSIMP_BUILD_NO_XGL_IMPORTER",
-        -- "ASSIMP_BUILD_NO_FBX_IMPORTER",
-        "ASSIMP_BUILD_NO_ASSBIN_IMPORTER",
-        -- "ASSIMP_BUILD_NO_GLTF_IMPORTER",
-        "ASSIMP_BUILD_NO_C4D_IMPORTER",
-        "ASSIMP_BUILD_NO_3MF_IMPORTER",
-        "ASSIMP_BUILD_NO_X3D_IMPORTER",
-        "ASSIMP_BUILD_NO_MMD_IMPORTER",
-
-        "ASSIMP_BUILD_NO_STEP_EXPORTER",
+        "ASSIMP_BUILD_NO_Q3D_IMPORTER",
+        "ASSIMP_BUILD_NO_Q3BSP_IMPORTER",
+        "ASSIMP_BUILD_NO_RAW_IMPORTER",
         "ASSIMP_BUILD_NO_SIB_IMPORTER",
+        "ASSIMP_BUILD_NO_SMD_IMPORTER",
+        "ASSIMP_BUILD_NO_STL_IMPORTER",
+        "ASSIMP_BUILD_NO_TERRAGEN_IMPORTER",
+        "ASSIMP_BUILD_NO_3D_IMPORTER",
+        "ASSIMP_BUILD_NO_USD_IMPORTER",
+        "ASSIMP_BUILD_NO_X_IMPORTER",
+        "ASSIMP_BUILD_NO_X3D_IMPORTER",
+        "ASSIMP_BUILD_NO_3MF_IMPORTER",
+        "ASSIMP_BUILD_NO_MMD_IMPORTER",
+        "ASSIMP_BUILD_NO_C4D_IMPORTER",
 
-        -- "ASSIMP_BUILD_NO_MAKELEFTHANDED_PROCESS",
-        -- "ASSIMP_BUILD_NO_FLIPUVS_PROCESS",
-        -- "ASSIMP_BUILD_NO_FLIPWINDINGORDER_PROCESS",
-        -- "ASSIMP_BUILD_NO_CALCTANGENTS_PROCESS",
-        "ASSIMP_BUILD_NO_JOINVERTICES_PROCESS",
-        -- "ASSIMP_BUILD_NO_TRIANGULATE_PROCESS",
-        "ASSIMP_BUILD_NO_GENFACENORMALS_PROCESS",
-        -- "ASSIMP_BUILD_NO_GENVERTEXNORMALS_PROCESS",
-        "ASSIMP_BUILD_NO_REMOVEVC_PROCESS",
-        "ASSIMP_BUILD_NO_SPLITLARGEMESHES_PROCESS",
-        "ASSIMP_BUILD_NO_PRETRANSFORMVERTICES_PROCESS",
-        "ASSIMP_BUILD_NO_LIMITBONEWEIGHTS_PROCESS",
-        -- "ASSIMP_BUILD_NO_VALIDATEDS_PROCESS",
-        "ASSIMP_BUILD_NO_IMPROVECACHELOCALITY_PROCESS",
-        "ASSIMP_BUILD_NO_FIXINFACINGNORMALS_PROCESS",
-        "ASSIMP_BUILD_NO_REMOVE_REDUNDANTMATERIALS_PROCESS",
-        "ASSIMP_BUILD_NO_FINDINVALIDDATA_PROCESS",
-        "ASSIMP_BUILD_NO_FINDDEGENERATES_PROCESS",
-        "ASSIMP_BUILD_NO_SORTBYPTYPE_PROCESS",
-        "ASSIMP_BUILD_NO_GENUVCOORDS_PROCESS",
-        "ASSIMP_BUILD_NO_TRANSFORMTEXCOORDS_PROCESS",
-        "ASSIMP_BUILD_NO_FINDINSTANCES_PROCESS",
-        "ASSIMP_BUILD_NO_OPTIMIZEMESHES_PROCESS",
-        "ASSIMP_BUILD_NO_OPTIMIZEGRAPH_PROCESS",
-        "ASSIMP_BUILD_NO_SPLITBYBONECOUNT_PROCESS",
-        "ASSIMP_BUILD_NO_DEBONE_PROCESS",
-        "ASSIMP_BUILD_NO_EMBEDTEXTURES_PROCESS",
-        "ASSIMP_BUILD_NO_GLOBALSCALE_PROCESS",
+        "ASSIMP_BUILD_NO_EXPORT",
     }
 
     files {
         "assimp/include/**",
-        "assimp/code/Assimp.cpp",
-        "assimp/code/BaseImporter.cpp",
-        "assimp/code/ColladaLoader.cpp",
-        "assimp/code/ColladaParser.cpp",
-        "assimp/code/CreateAnimMesh.cpp",
-        "assimp/code/PlyParser.cpp",
-        "assimp/code/PlyLoader.cpp",
-        "assimp/code/BaseProcess.cpp",
-        "assimp/code/EmbedTexturesProcess.cpp",
-        "assimp/code/ConvertToLHProcess.cpp",
-        "assimp/code/DefaultIOStream.cpp",
-        "assimp/code/DefaultIOSystem.cpp",
-        "assimp/code/DefaultLogger.cpp",
-        "assimp/code/GenVertexNormalsProcess.cpp",
-        "assimp/code/Importer.cpp",
-        "assimp/code/ImporterRegistry.cpp",
-        "assimp/code/MaterialSystem.cpp",
-        "assimp/code/PostStepRegistry.cpp",
-        "assimp/code/ProcessHelper.cpp",
-        "assimp/code/scene.cpp",
-        "assimp/code/ScenePreprocessor.cpp",
-        "assimp/code/ScaleProcess.cpp",
-        "assimp/code/SGSpatialSort.cpp",
-        "assimp/code/SkeletonMeshBuilder.cpp",
-        "assimp/code/SpatialSort.cpp",
-        "assimp/code/TriangulateProcess.cpp",
-        "assimp/code/ValidateDataStructure.cpp",
-        "assimp/code/Version.cpp",
-        "assimp/code/VertexTriangleAdjacency.cpp",
-        "assimp/code/ObjFileImporter.cpp",
-        "assimp/code/ObjFileMtlImporter.cpp",
-        "assimp/code/ObjFileParser.cpp",
-        "assimp/code/glTFImporter.cpp",
-        "assimp/code/glTF2Importer.cpp",
-        "assimp/code/MakeVerboseFormat.cpp",
-        "assimp/code/CalcTangentsProcess.cpp",
-        "assimp/code/FBXAnimation.cpp",
-        "assimp/code/FBXBinaryTokenizer.cpp",
-        "assimp/code/FBXConverter.cpp",
-        "assimp/code/FBXDeformer.cpp",
-        "assimp/code/FBXDocument.cpp",
-        "assimp/code/FBXDocumentUtil.cpp",
-        "assimp/code/FBXImporter.cpp",
-        "assimp/code/FBXMaterial.cpp",
-        "assimp/code/FBXMeshGeometry.cpp",
-        "assimp/code/FBXModel.cpp",
-        "assimp/code/FBXNodeAttribute.cpp",
-        "assimp/code/FBXParser.cpp",
-        "assimp/code/FBXProperties.cpp",
-        "assimp/code/FBXTokenizer.cpp",
-        "assimp/code/FBXUtil.cpp",
-        "assimp/contrib/zlib/adler32.c",
-        "assimp/contrib/zlib/compress.c",
-        "assimp/contrib/zlib/crc32.c",
-        "assimp/contrib/zlib/deflate.c",
-        "assimp/contrib/zlib/infback.c",
-        "assimp/contrib/zlib/inffast.c",
-        "assimp/contrib/zlib/inflate.c",
-        "assimp/contrib/zlib/inftrees.c",
-        "assimp/contrib/zlib/trees.c",
-        "assimp/contrib/zlib/uncompr.c",
-        "assimp/contrib/zlib/zutil.c",
-        "assimp/code/ScaleProcess.cpp",
-        "assimp/code/EmbedTexturesProcess.cpp",
-        "assimp/contrib/irrXML/*",
+
+        -- Core / Common / infra (always required)
+        "assimp/code/Common/Assimp.cpp",
+        "assimp/code/Common/DefaultLogger.cpp",
+        "assimp/code/Common/Compression.cpp",
+        "assimp/code/Common/BaseImporter.cpp",
+        "assimp/code/Common/BaseProcess.cpp",
+        "assimp/code/Common/PostStepRegistry.cpp",
+        "assimp/code/Common/ImporterRegistry.cpp",
+        "assimp/code/Common/DefaultIOStream.cpp",
+        "assimp/code/Common/IOSystem.cpp",
+        "assimp/code/Common/DefaultIOSystem.cpp",
+        "assimp/code/Common/ZipArchiveIOSystem.cpp",
+        "assimp/code/Common/Importer.cpp",
+        "assimp/code/Common/SGSpatialSort.cpp",
+        "assimp/code/Common/VertexTriangleAdjacency.cpp",
+        "assimp/code/Common/SpatialSort.cpp",
+        "assimp/code/Common/SceneCombiner.cpp",
+        "assimp/code/Common/ScenePreprocessor.cpp",
+        "assimp/code/Common/SkeletonMeshBuilder.cpp",
+        "assimp/code/Common/StandardShapes.cpp",
+        "assimp/code/Common/TargetAnimation.cpp",
+        "assimp/code/Common/RemoveComments.cpp",
+        "assimp/code/Common/Subdivision.cpp",
+        "assimp/code/Common/scene.cpp",
+        "assimp/code/Common/Bitmap.cpp",
+        "assimp/code/Common/Version.cpp",
+        "assimp/code/Common/CreateAnimMesh.cpp",
+        "assimp/code/Common/simd.cpp",
+        "assimp/code/Common/material.cpp",
+        "assimp/code/Common/AssertHandler.cpp",
+        "assimp/code/Common/Exceptional.cpp",
+        "assimp/code/Common/Base64.cpp",
+        "assimp/code/CApi/CInterfaceIOWrapper.cpp",
+        "assimp/code/Geometry/GeometryUtils.cpp",
+        "assimp/code/Material/MaterialSystem.cpp",
+
+        -- PostProcessing (format-independent, always compiled)
+        "assimp/code/PostProcessing/*.cpp",
+
+        -- glTF shared asset code (used by both glTF and glTF2 importers)
+        "assimp/code/AssetLib/glTFCommon/glTFCommon.cpp",
+
+        -- Obj
+        "assimp/code/AssetLib/Obj/ObjFileImporter.cpp",
+        "assimp/code/AssetLib/Obj/ObjFileMtlImporter.cpp",
+        "assimp/code/AssetLib/Obj/ObjFileParser.cpp",
+
+        -- Collada
+        "assimp/code/AssetLib/Collada/ColladaHelper.cpp",
+        "assimp/code/AssetLib/Collada/ColladaLoader.cpp",
+        "assimp/code/AssetLib/Collada/ColladaParser.cpp",
+
+        -- Ply
+        "assimp/code/AssetLib/Ply/PlyLoader.cpp",
+        "assimp/code/AssetLib/Ply/PlyParser.cpp",
+
+        -- glTF / glTF2
+        "assimp/code/AssetLib/glTF/glTFImporter.cpp",
+        "assimp/code/AssetLib/glTF2/glTF2Importer.cpp",
+
+        -- FBX
+        "assimp/code/AssetLib/FBX/FBXUtil.cpp",
+        "assimp/code/AssetLib/FBX/FBXAnimation.cpp",
+        "assimp/code/AssetLib/FBX/FBXBinaryTokenizer.cpp",
+        "assimp/code/AssetLib/FBX/FBXConverter.cpp",
+        "assimp/code/AssetLib/FBX/FBXDeformer.cpp",
+        "assimp/code/AssetLib/FBX/FBXDocument.cpp",
+        "assimp/code/AssetLib/FBX/FBXDocumentUtil.cpp",
+        "assimp/code/AssetLib/FBX/FBXImporter.cpp",
+        "assimp/code/AssetLib/FBX/FBXMaterial.cpp",
+        "assimp/code/AssetLib/FBX/FBXMeshGeometry.cpp",
+        "assimp/code/AssetLib/FBX/FBXModel.cpp",
+        "assimp/code/AssetLib/FBX/FBXNodeAttribute.cpp",
+        "assimp/code/AssetLib/FBX/FBXParser.cpp",
+        "assimp/code/AssetLib/FBX/FBXProperties.cpp",
+        "assimp/code/AssetLib/FBX/FBXTokenizer.cpp",
+
+        -- Third-party (only what OBJ/Collada/Ply/glTF/glTF2/FBX + Common actually need:
+        -- pugixml for Collada's XmlParser, zlib for Compression/FBX, unzip for
+        -- ZipArchiveIOSystem, rapidjson/utf8cpp are header-only)
+        "assimp/contrib/pugixml/src/pugixml.cpp",
+        "assimp/contrib/zlib/*.c",
+        "assimp/contrib/unzip/unzip.c",
+        "assimp/contrib/unzip/ioapi.c",
     }
 
     includedirs {
         "assimp/include",
-        "assimp/contrib/irrXML",
-        "assimp/contrib/zlib",
+        "assimp/code",
+        "assimp",
+        "assimp/contrib/pugixml/src",
         "assimp/contrib/rapidjson/include",
+        "assimp/contrib/utf8cpp/source",
+        "assimp/contrib/zlib",
+        "assimp/contrib/unzip",
     }
 
     filter "system:windows"
@@ -359,7 +406,11 @@ project "ASSIMP"
 
     filter "system:linux"
         pic "On"
+        defines { "HAVE_UNISTD_H" }
         buildoptions { "-Wno-unused-variable", "-Wno-unused-but-set-variable" }
+
+    filter { "system:linux", "files:**.c" }
+        buildoptions { "-Wno-old-style-definition", "-Wno-implicit-function-declaration" }
 
     filter "configurations:Debug"
         defines { "DEBUG" }
@@ -387,7 +438,6 @@ project "GLM"
     objdir ("../../Build/Binaries-Intermediate/" .. OutputDir .. "/Dependencies/%{prj.name}")
 
     files {
-        "glm/glm/placeholder.cpp",
         "glm/glm/common.hpp",
         "glm/glm/exponential.hpp",
         "glm/glm/ext.hpp",
@@ -461,12 +511,12 @@ project "IMGUIZMO"
     }
 
     files {
-        "imguizmo/ImGradient.cpp",
-        "imguizmo/ImGradient.h",
-        "imguizmo/ImCurveEdit.cpp",
-        "imguizmo/ImCurveEdit.h",
-        "imguizmo/ImGuizmo.cpp",
-        "imguizmo/ImGuizmo.h",
+        "imguizmo/src/ImGradient.cpp",
+        "imguizmo/src/ImGradient.h",
+        "imguizmo/src/ImCurveEdit.cpp",
+        "imguizmo/src/ImCurveEdit.h",
+        "imguizmo/src/ImGuizmo.cpp",
+        "imguizmo/src/ImGuizmo.h",
     }
 
     defines {

@@ -5,13 +5,15 @@ project "Engine"
     cppdialect "C++20"
     staticruntime "on"
 
+    defines {
+        "GLM_ENABLE_EXPERIMENTAL"
+    }
+
     files {
         "Source/**.h",
         "Source/**.cpp",
         "Source/**.hpp",
         "Source/**.c",
-        "%{IncludeDir.STB_IMAGE}/stb_image.h",
-        "%{IncludeDir.STB_IMAGE}/stb_image.cpp",
         "%{IncludeDir.MINIAUDIO}/miniaudio.h}",
         "%{IncludeDir.MINIAUDIO}/miniaudio.c}",
         "%{IncludeDir.JSON}/**.hpp",
@@ -22,7 +24,7 @@ project "Engine"
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.IMGUI}",
-        "%{IncludeDir.STB_IMAGE}",
+        "%{IncludeDir.SOIL}",
         "%{IncludeDir.ASSIMP}",
         "%{IncludeDir.GLM}",
         "%{IncludeDir.IMGUIZMO}",
@@ -38,6 +40,7 @@ project "Engine"
         "GLAD",
         "GLFW",
         "IMGUI",
+        "SOIL",
         "ASSIMP",
         "GLM",
         "IMGUIZMO",

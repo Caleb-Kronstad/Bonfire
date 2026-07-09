@@ -24,20 +24,14 @@ void Editor::OnAttach()
     console_capture->StartCapture();
 
     GLFWimage images[1];
-    stbi_set_flip_vertically_on_load(false);
     int* channels = new int(4);
-    images[0].pixels = stbi_load("Data/Editor/Icons/bonfire-logo.png", &images[0].width, &images[0].height, channels, 0);
+    images[0].pixels = SOIL_load_image("Data/Editor/Icons/bonfire-logo.png", &images[0].width, &images[0].height, channels, SOIL_LOAD_AUTO);
     glfwSetWindowIcon(glfw_window, 1, images);
-    stbi_image_free(images[0].pixels);
+    free(images[0].pixels);
 
 	ImGuiIO& io = ImGui::GetIO();
     editor_font = io.Fonts->AddFontFromFileTTF("Data/Editor/Defaults/Fonts/Space_Mono/SpaceMono-Regular.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-	unsigned char* pixels;
-	int width, height;
-	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-	ImGui_ImplOpenGL3_DestroyFontsTexture();
-	ImGui_ImplOpenGL3_CreateFontsTexture();
-    
+
     default_model_path = "Data/Editor/Defaults/Models/Cube.obj";
     default_diffuse_path = "Data/Editor/Defaults/Textures/default-diffuse.png";
     default_specular_path = "Data/Editor/Defaults/Textures/default-specular.png";

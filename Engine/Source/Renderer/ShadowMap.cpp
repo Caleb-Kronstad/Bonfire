@@ -142,7 +142,7 @@ namespace Bonfire
 		glGenTextures(1, &textureID);
 
 		int width, height, nrComponents;
-		unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+		unsigned char* data = SOIL_load_image(path, &width, &height, &nrComponents, SOIL_LOAD_AUTO);
 		if (data)
 		{
 			GLenum format;
@@ -162,12 +162,12 @@ namespace Bonfire
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-			stbi_image_free(data);
+			free(data);
 		}
 		else
 		{
-			Log::Error("Texture failed to load at path: " + std::string(path) + " [ShadowMap.cpp]");
-			stbi_image_free(data);
+			Log::Error("Texture failed to load at path: " + std::string(path) + " [ShadowMap.cpp] - " + SOIL_last_result());
+			free(data);
 		}
 
 		return textureID;

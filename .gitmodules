@@ -18,9 +18,6 @@
 [submodule "Engine/Dependencies/Engine/Dependencies/glad"]
 	path = Engine/Dependencies/Engine/Dependencies/glad
 	url = git@github.com:Caleb-Kronstad/glad.git
-[submodule "Engine/Dependencies/soil"]
-	path = Engine/Dependencies/soil
-	url = git@github.com:Caleb-Kronstad/soil.git
 [submodule "Engine/Dependencies/miniaudio"]
 	path = Engine/Dependencies/miniaudio
 	url = git@github.com:Caleb-Kronstad/miniaudio.git
@@ -36,3 +33,6 @@
 [submodule "Engine/Dependencies/glad"]
 	path = Engine/Dependencies/glad
 	url = git@github.com:Caleb-Kronstad/glad
+[submodule "Engine/Dependencies/soil"]
+	path = Engine/Dependencies/soil
+	url = git@github.com:Caleb-Kronstad/SOIL2.git

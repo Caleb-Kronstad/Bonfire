@@ -3,6 +3,20 @@
 
 namespace Bonfire
 {
+    static void FlipImageVertically(unsigned char* data, int width, int height, int channels)
+    {
+        int stride = width * channels;
+        std::vector<unsigned char> row(stride);
+        for (int y = 0; y < height / 2; y++)
+        {
+            unsigned char* top = data + y * stride;
+            unsigned char* bottom = data + (height - 1 - y) * stride;
+            std::memcpy(row.data(), top, stride);
+            std::memcpy(top, bottom, stride);
+            std::memcpy(bottom, row.data(), stride);
+        }
+    }
+
     Texture::Texture(std::string path, TextureType type, bool flip)
         : path(path), type(type), flip(flip)
     {
@@ -16,8 +30,6 @@ namespace Bonfire
 
     void Texture::Load()
     {
-        stbi_set_flip_vertically_on_load(flip);
-
         glGenTextures(1, &gl_id);
         glBindTexture(GL_TEXTURE_2D, gl_id);
 
@@ -27,9 +39,12 @@ namespace Bonfire
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         int width, height, nrComponents;
-        unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+        unsigned char* data = SOIL_load_image(path.c_str(), &width, &height, &nrComponents, SOIL_LOAD_AUTO);
         if (data)
         {
+            if (flip)
+                FlipImageVertically(data, width, height, nrComponents);
+
             GLenum format = GL_RGB;
             if (nrComponents == 1)
                 format = GL_RED;
@@ -44,7 +59,7 @@ namespace Bonfire
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         else
-            Log::Error("Texture failed to load at path: " + std::string(path) + "\n");
-        stbi_image_free(data);
+            Log::Error("Texture failed to load at path: " + std::string(path) + " - " + SOIL_last_result() + "\n");
+        free(data);
     }
 }

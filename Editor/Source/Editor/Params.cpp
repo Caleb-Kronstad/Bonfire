@@ -389,7 +389,7 @@ void Editor::DisplayMaterialParams()
             ImGui::PushID(&texture);
             ImGui::Text(texture->name.c_str()); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(texture->param_id).c_str());
             
-            if (ImGui::ImageButton((void*)texture->gl_id, ImVec2(100, 100)))
+            if (ImGui::ImageButton("##texture_preview", (void*)texture->gl_id, ImVec2(100, 100)))
             {
                 ImGui::OpenPopup("ChangeMaterialTexture");
             }

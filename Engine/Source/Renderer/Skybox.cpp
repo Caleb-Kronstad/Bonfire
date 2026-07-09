@@ -49,8 +49,6 @@ namespace Bonfire
 
     GLuint Skybox::Bind(bool is_png)
     {
-        stbi_set_flip_vertically_on_load(false);
-        
         GLuint texture_id;
         glGenTextures(1, &texture_id);
         glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
@@ -64,7 +62,7 @@ namespace Bonfire
             std::string extension = is_png ? ".png" : ".jpg";
             std::string path = faces_path + "/" + skybox_faces.at(i) + extension;
             
-            unsigned char* data = stbi_load(path.c_str(), &width, &height, &nr_components, 0);
+            unsigned char* data = SOIL_load_image(path.c_str(), &width, &height, &nr_components, SOIL_LOAD_AUTO);
             if (data)
             {
                 if (nr_components == 3)
@@ -82,14 +80,14 @@ namespace Bonfire
                     Log::Error("Unsupported image type");
                     return 0;
                 }
-                
+
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-                stbi_image_free(data);
+                free(data);
             }
             else
             {
-                Log::Error("Failed to load Skybox at path: " + path);
-                stbi_image_free(data);
+                Log::Error("Failed to load Skybox at path: " + path + " - " + SOIL_last_result());
+                free(data);
                 return 0;
             }
         }

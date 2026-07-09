@@ -5,10 +5,10 @@ void Editor::OnInterfaceUpdate()
 	Engine& engine = Engine::Instance();
 	Renderer& renderer = Engine::GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
 	if (EditorViewportVisible())
 		renderer.RenderViewport(engine.GetDeltaTime(), *engine_camera, *editor_viewport_framebuffer, editor_viewport_size);
-	
+
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -25,9 +25,9 @@ void Editor::OnInterfaceUpdate()
 		window_flags |= ImGuiWindowFlags_MenuBar;
 		ImGui::Begin("DockSpace", nullptr, window_flags);
 		ImGui::PopStyleVar(2);
-		
+
 		DrawMenuBar();
-		
+
 		switch (view)
 		{
 		case 0:
@@ -71,7 +71,7 @@ void Editor::DrawConsole(const char* window_name)
 
 	if (ImGui::Button("Clear"))
 		console_capture->Clear();
-	
+
 	std::vector<std::string> lines = console_capture->GetLines();
 	for (const std::string& line : lines)
 	{
@@ -80,7 +80,7 @@ void Editor::DrawConsole(const char* window_name)
 		ImGui::TextColored(color, "%s", text.c_str());
 		//ImGui::PopTextWrapPos();
 	}
-	
+
 	ImGui::PopFont();
 	ImGui::Unindent(8.0f);
 	ImGui::End();
@@ -88,56 +88,81 @@ void Editor::DrawConsole(const char* window_name)
 
 void Editor::SetInterfaceStyle()
 {
-	ImGuiStyle* style = &ImGui::GetStyle();
-	ImVec4* colors = style->Colors;
-	
-	colors[ImGuiCol_Text] = text_primary;
-	colors[ImGuiCol_WindowBg] = background_primary;
-	colors[ImGuiCol_Border] = background_tertiary;
-	colors[ImGuiCol_FrameBg] = background_secondary;
-	colors[ImGuiCol_FrameBgHovered] = highlight_primary;
-	colors[ImGuiCol_FrameBgActive] = highlight_secondary;
-	colors[ImGuiCol_TitleBg] = background_secondary;
-	colors[ImGuiCol_TitleBgActive] = background_secondary;
-	colors[ImGuiCol_TitleBgCollapsed] = background_secondary;
-	colors[ImGuiCol_SliderGrab] = highlight_primary;
-	colors[ImGuiCol_SliderGrabActive] = highlight_primary;
-	colors[ImGuiCol_Header] = background_tertiary;
-	colors[ImGuiCol_HeaderHovered] = highlight_primary;
-	colors[ImGuiCol_HeaderActive] = highlight_primary;
-	colors[ImGuiCol_TextSelectedBg] = highlight_primary;
-	colors[ImGuiCol_CheckMark] = highlight_primary;
-	colors[ImGuiCol_Button] = background_tertiary;
-	colors[ImGuiCol_ButtonHovered] = highlight_secondary;
-	colors[ImGuiCol_ButtonActive] = highlight_primary;
-	colors[ImGuiCol_Separator] = background_tertiary;
-	colors[ImGuiCol_SeparatorHovered] = highlight_primary;
-	colors[ImGuiCol_SeparatorActive] = highlight_primary;
-	colors[ImGuiCol_ResizeGrip] = highlight_primary;
-	colors[ImGuiCol_ResizeGripHovered] = highlight_primary;
-	colors[ImGuiCol_ResizeGripActive] = highlight_primary;
-	colors[ImGuiCol_Tab] = background_primary;
-	colors[ImGuiCol_TabHovered] = background_tertiary;
-	colors[ImGuiCol_TabActive] = background_primary;
-	colors[ImGuiCol_TabUnfocused] = background_primary;
-	colors[ImGuiCol_TabUnfocusedActive] = background_primary;
-	colors[ImGuiCol_DockingPreview] = highlight_primary;
-	colors[ImGuiCol_DockingEmptyBg] = background_secondary;
-	colors[ImGuiCol_PlotHistogram] = highlight_primary;
-	colors[ImGuiCol_PlotHistogramHovered] = highlight_secondary;
-	colors[ImGuiCol_DragDropTarget] = highlight_secondary;
-	
-	style->WindowRounding = 0.0f;
-	style->FrameRounding = 0.0f;
-	style->GrabRounding = 0.0f;
-	style->PopupRounding = 0.0f;
-	style->TabRounding = 0.0f;
-	style->WindowMenuButtonPosition = ImGuiDir_Right;
-	style->ScrollbarSize = 10.0f;
-	style->GrabMinSize = 10.0f;
-	style->DockingSeparatorSize = 1.0f;
-	style->SeparatorTextBorderSize = 2.0f;
-	style->WindowPadding = ImVec2(0.0f, 0.0f);
+  ImGuiStyle* style = &ImGui::GetStyle();
+  ImVec4* colors = style->Colors;
+
+  colors[ImGuiCol_Text] = text_primary;
+  colors[ImGuiCol_TextDisabled] = ImVec4(text_primary.x, text_primary.y, text_primary.z, 0.5f);
+  colors[ImGuiCol_WindowBg] = background_primary;
+  colors[ImGuiCol_ChildBg] = background_primary;
+  colors[ImGuiCol_PopupBg] = background_secondary;
+  colors[ImGuiCol_Border] = background_tertiary;
+  colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+  colors[ImGuiCol_FrameBg] = background_secondary;
+  colors[ImGuiCol_FrameBgHovered] = highlight_primary;
+  colors[ImGuiCol_FrameBgActive] = highlight_secondary;
+  colors[ImGuiCol_TitleBg] = background_secondary;
+  colors[ImGuiCol_TitleBgActive] = background_secondary;
+  colors[ImGuiCol_TitleBgCollapsed] = background_secondary;
+  colors[ImGuiCol_MenuBarBg] = background_secondary;
+  colors[ImGuiCol_ScrollbarBg] = background_primary;
+  colors[ImGuiCol_ScrollbarGrab] = background_tertiary;
+  colors[ImGuiCol_ScrollbarGrabHovered] = highlight_primary;
+  colors[ImGuiCol_ScrollbarGrabActive] = highlight_secondary;
+  colors[ImGuiCol_CheckMark] = highlight_primary;
+  colors[ImGuiCol_SliderGrab] = highlight_primary;
+  colors[ImGuiCol_SliderGrabActive] = highlight_primary;
+  colors[ImGuiCol_Button] = background_tertiary;
+  colors[ImGuiCol_ButtonHovered] = highlight_secondary;
+  colors[ImGuiCol_ButtonActive] = highlight_primary;
+  colors[ImGuiCol_Header] = background_tertiary;
+  colors[ImGuiCol_HeaderHovered] = highlight_primary;
+  colors[ImGuiCol_HeaderActive] = highlight_primary;
+  colors[ImGuiCol_Separator] = background_tertiary;
+  colors[ImGuiCol_SeparatorHovered] = highlight_primary;
+  colors[ImGuiCol_SeparatorActive] = highlight_primary;
+  colors[ImGuiCol_ResizeGrip] = highlight_primary;
+  colors[ImGuiCol_ResizeGripHovered] = highlight_primary;
+  colors[ImGuiCol_ResizeGripActive] = highlight_primary;
+  colors[ImGuiCol_Tab] = background_primary;
+  colors[ImGuiCol_TabHovered] = background_tertiary;
+  colors[ImGuiCol_TabActive] = background_primary;
+  colors[ImGuiCol_TabUnfocused] = background_primary;
+  colors[ImGuiCol_TabUnfocusedActive] = background_primary;
+  colors[ImGuiCol_TabSelectedOverline] = highlight_primary;
+  colors[ImGuiCol_TabDimmedSelectedOverline] = background_tertiary;
+  colors[ImGuiCol_DockingPreview] = highlight_primary;
+  colors[ImGuiCol_DockingEmptyBg] = background_secondary;
+  colors[ImGuiCol_PlotLines] = highlight_primary;
+  colors[ImGuiCol_PlotLinesHovered] = highlight_secondary;
+  colors[ImGuiCol_PlotHistogram] = highlight_primary;
+  colors[ImGuiCol_PlotHistogramHovered] = highlight_secondary;
+  colors[ImGuiCol_TableHeaderBg] = background_secondary;
+  colors[ImGuiCol_TableBorderStrong] = background_tertiary;
+  colors[ImGuiCol_TableBorderLight] = background_tertiary;
+  colors[ImGuiCol_TableRowBg] = background_primary;
+  colors[ImGuiCol_TableRowBgAlt] = background_secondary;
+  colors[ImGuiCol_TextLink] = highlight_primary;
+  colors[ImGuiCol_TextSelectedBg] = highlight_primary;
+  colors[ImGuiCol_TreeLines] = background_tertiary;
+  colors[ImGuiCol_DragDropTarget] = highlight_secondary;
+  colors[ImGuiCol_NavCursor] = highlight_primary;
+  colors[ImGuiCol_NavWindowingHighlight] = highlight_primary;
+  colors[ImGuiCol_CheckboxSelectedBg] = background_secondary;
+  colors[ImGuiCol_NavWindowingDimBg] = ImVec4(background_primary.x, background_primary.y, background_primary.z, 0.5f);
+  colors[ImGuiCol_ModalWindowDimBg] = ImVec4(background_primary.x, background_primary.y, background_primary.z, 0.5f);
+
+  style->WindowRounding = 0.0f;
+  style->FrameRounding = 0.0f;
+  style->GrabRounding = 0.0f;
+  style->PopupRounding = 0.0f;
+  style->TabRounding = 0.0f;
+  style->WindowMenuButtonPosition = ImGuiDir_Right;
+  style->ScrollbarSize = 10.0f;
+  style->GrabMinSize = 10.0f;
+  style->DockingSeparatorSize = 1.0f;
+  style->SeparatorTextBorderSize = 2.0f;
+  style->WindowPadding = ImVec2(0.0f, 0.0f);
 }
 
 void Editor::DrawMenuBar()
@@ -163,12 +188,12 @@ void Editor::DrawMenuBar()
             {
 	            BuildProject();
             }
-            
+
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4")) { engine.SetEditorRunState(false); }
             ImGui::EndMenu();
         }
-        
+
         if (ImGui::BeginMenu("Editor"))
         {
 	        if (ImGui::MenuItem("Save"))
@@ -232,14 +257,14 @@ void Editor::DrawMenuBar()
 	    	}
 	    	ImGui::EndMenu();
 	    }
-        
+
         if (ImGui::BeginMenu("Help"))
         {
             if (ImGui::MenuItem("Documentation")) { Log::Info("Documentation"); }
             if (ImGui::MenuItem("About")) { Log::Info("Find more information at https://bonfireengine.com"); }
             ImGui::EndMenu();
         }
-        
+
         ImGui::EndMenuBar();
     }
 
@@ -257,28 +282,28 @@ void Editor::DrawEditorViewport()
 	PhysicsManager& physics_system = engine.GetPhysicsManager();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
 	ImGui::PushFont(editor_font);
 	editor_viewport_visible = ImGui::Begin("Viewport");
     DrawActiveTitleLine(highlight_primary, background_tertiary);
-	
+
 	if (!editor_viewport_visible)
 	{
 		ImGui::PopFont();
 		ImGui::End();
 		return;
 	}
-    
+
     if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
     {
     	ImGui::SetWindowFocus();
     	engine_camera_can_turn = true;
     }
-    
+
     editor_viewport_focused = ImGui::IsWindowFocused();
 	editor_viewport_hovered = ImGui::IsWindowHovered();
 	ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
-	
+
 	if (!FloatEquals(viewport_panel_size.x, editor_viewport_size.x) || !FloatEquals(viewport_panel_size.y, editor_viewport_size.y))
 	{
 		if (viewport_panel_size.x > 0 && viewport_panel_size.y > 0)
@@ -297,7 +322,7 @@ void Editor::DrawEditorViewport()
     if (selected_entity != nullptr && gizmo_type != -1)
     {
     	ImGuizmo::SetOrthographic(engine_camera->IsOrthographic());
-    	ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+    	ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
     	ImGuizmo::SetRect(viewport_min.x, viewport_min.y, viewport_width, viewport_height);
     	const glm::mat4& camera_view = engine_camera->GetViewMatrix();
     	const glm::mat4& camera_projection = engine_camera->GetProjectionMatrix(viewport_width, viewport_height);
@@ -314,7 +339,7 @@ void Editor::DrawEditorViewport()
     			transform_start_scale = selected_entity->scale;
     			is_modifying_transform = true;
     		}
-    		
+
     		glm::mat4 local_transform = transform;
 
     		if (!selected_entity->IsRoot() && scene.GetEntities().contains(selected_entity->parent))
@@ -397,15 +422,15 @@ void Editor::DrawProjectViewport(ImGuiWindowFlags window_flags)
 	Scene& scene = renderer.GetScene();
 
 	ImGui::PushFont(editor_font);
-	
+
 	renderer.SetProjectViewportVisible(ImGui::Begin("Project Name Here", nullptr, window_flags));
 	if (engine.GetEditorRunState())
 		DrawActiveTitleLine(highlight_primary, background_tertiary);
-    
+
 	renderer.SetProjectViewportFocused(ImGui::IsWindowFocused());
 	renderer.SetProjectViewportHovered(ImGui::IsWindowHovered());
 	ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
-	
+
 	if (!FloatEquals(viewport_panel_size.x, renderer.GetProjectViewportSize().x) || !FloatEquals(viewport_panel_size.y, renderer.GetProjectViewportSize().y))
 	{
 		if (viewport_panel_size.x > 0 && viewport_panel_size.y > 0)
@@ -414,7 +439,7 @@ void Editor::DrawProjectViewport(ImGuiWindowFlags window_flags)
 			renderer.GetProjectViewportFramebuffer().Resize(renderer.GetProjectViewportSize().x, renderer.GetProjectViewportSize().y);
 		}
 	}
-	
+
 	ImGui::Image((void*)(intptr_t)renderer.GetProjectViewportFramebuffer().GetColorAttachment(), viewport_panel_size, ImVec2(0,1), ImVec2(1, 0));
 
 	ImGui::PopFont();
@@ -425,13 +450,13 @@ void Editor::DrawDebugInfo()
 {
 	Engine& engine = Engine::Instance();
 	Renderer& renderer = Engine::GetRenderer();
-    
+
 	ImGui::PushFont(editor_font);
     ImGui::Begin("Debug Info", nullptr);
     DrawActiveTitleLine(highlight_primary, background_tertiary);
     ImGui::Indent(8.0f);
     ImGui::Spacing();
-    
+
     std::string delta_time = "Delta Time: " + std::to_string(engine.GetDeltaTime());
     std::string frame_time = "Frame Time: " + std::to_string(engine.GetDeltaTime() * 1000.0f);
     std::string frame_rate = "Frame Rate: " + std::to_string(std::lround((1.0f / engine.GetDeltaTime())));
@@ -463,15 +488,15 @@ void Editor::DrawToolbar()
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 	ParamDatabase& param_database = renderer.GetParamDatabase();
-	
+
     ImGuiWindowFlags toolbar_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
-    
+
 	ImGui::PushFont(editor_font);
     ImGui::Begin("Toolbar", nullptr, toolbar_flags);
     DrawActiveTitleLine(highlight_primary, background_tertiary);
     ImGui::Indent(8.0f);
     ImGui::Spacing();
-    
+
     if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_E) == GLFW_PRESS)
     	gizmo_type = ImGuizmo::TRANSLATE;
     if (glfwGetKey(project_window.GetNativeWindow(), GLFW_KEY_R) == GLFW_PRESS)
@@ -482,7 +507,7 @@ void Editor::DrawToolbar()
     bool project_running = engine.GetProjectRunState();
     if (project_running)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
-    if (ImGui::ImageButton((void*)play_icon->gl_id, ImVec2(20, 20)))
+    if (ImGui::ImageButton("##play_icon", (void*)play_icon->gl_id, ImVec2(20, 20)))
     {
     	// play
     	if (!engine.GetProjectRunState())
@@ -514,28 +539,28 @@ void Editor::DrawToolbar()
     int temp_gizmo_type = gizmo_type;
     if (temp_gizmo_type == ImGuizmo::TRANSLATE)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
-    if (ImGui::ImageButton((void*)move_icon->gl_id, ImVec2(20, 20)))
+    if (ImGui::ImageButton("##move_icon", (void*)move_icon->gl_id, ImVec2(20, 20)))
     	gizmo_type = ImGuizmo::TRANSLATE;
     if (temp_gizmo_type == ImGuizmo::TRANSLATE)
     	ImGui::PopStyleColor(1);
-	
+
     ImGui::SameLine();
     if (temp_gizmo_type == ImGuizmo::ROTATE)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
-    if (ImGui::ImageButton((void*)rotate_icon->gl_id, ImVec2(20, 20)))
+    if (ImGui::ImageButton("##rotate_icon", (void*)rotate_icon->gl_id, ImVec2(20, 20)))
     	gizmo_type = ImGuizmo::ROTATE;
     if (temp_gizmo_type == ImGuizmo::ROTATE)
     	ImGui::PopStyleColor(1);
-    
+
     ImGui::SameLine();
     if (temp_gizmo_type == ImGuizmo::SCALE)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
-    if (ImGui::ImageButton((void*)resize_icon->gl_id, ImVec2(20, 20)))
+    if (ImGui::ImageButton("##resize_icon", (void*)resize_icon->gl_id, ImVec2(20, 20)))
     	gizmo_type = ImGuizmo::SCALE;
     if (temp_gizmo_type == ImGuizmo::SCALE)
     	ImGui::PopStyleColor(1);
 
-	ImGui::PopFont();    	
+	ImGui::PopFont();
     ImGui::Unindent(8.0f);
     ImGui::End();
 }
@@ -546,7 +571,7 @@ void Editor::DrawProjectSettings()
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
 	ImGui::PushFont(editor_font);
     ImGui::Begin("Project Settings", nullptr);
     DrawActiveTitleLine(highlight_primary, background_tertiary);
@@ -614,7 +639,7 @@ void Editor::DrawProjectSettings()
 		if (ImGui::Combo("Type", &current_fog_type, fog_types, 3))
 			fog->type = static_cast<FogType>(current_fog_type);
 	}
-	
+
     ImGui::PopFont();
 	ImGui::PopTextWrapPos();
     ImGui::Unindent(8.0f);
@@ -627,15 +652,15 @@ void Editor::DrawHierarchy()
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
 	ImGui::PushFont(editor_font);
     ImGui::Begin("Hierarchy", nullptr);
     DrawActiveTitleLine(highlight_primary, background_tertiary);
     ImGui::Indent(8.0f);
     ImGui::Spacing();
-	
+
     ImGui::PushStyleColor(ImGuiCol_Header, background_primary);
-    
+
     if (ImGui::BeginPopupContextWindow())
     {
     	if (ImGui::MenuItem("Create Entity"))
@@ -645,7 +670,7 @@ void Editor::DrawHierarchy()
     	}
     	ImGui::EndPopup();
     }
-	
+
     for (auto& [entity_id, entity] : scene.GetEntities())
     {
     	if (entity->IsRoot())
@@ -659,7 +684,7 @@ void Editor::DrawHierarchy()
     float button_width = available_width * ((available_width - 25.0f) / available_width);
     float button_height = available_height * ((available_width - 5.0f) / available_width);
     float indent = (available_width - button_width) * 0.5f;
-    
+
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
     ImGui::PushStyleColor(ImGuiCol_Button, background_primary);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, background_primary);
@@ -693,16 +718,16 @@ void Editor::DrawDetails()
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
 	ImGui::PushFont(editor_font);
     ImGui::Begin("Details", nullptr);
     DrawActiveTitleLine(highlight_primary, background_tertiary);
     ImGui::Indent(8.0f);
     ImGui::PushTextWrapPos(0.0f);
     ImGui::Spacing();
-	
+
     PhysicsManager& physics_system = Engine::GetPhysicsManager();
-    
+
     if (selected_entity == nullptr)
     {
     	ImGui::Text("No Entity Selected");
@@ -713,13 +738,13 @@ void Editor::DrawDetails()
     	ImGui::SameLine();
     	ImGui::SetNextItemWidth(200.0f);
     	ImGui::InputText(" ", &selected_entity->name); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(selected_entity->id).c_str());
-	
+
     	ImGui::Separator();
     	ImGui::Text("Transform");
     	ImGui::Spacing();
-	
+
     	ImGui::PushItemWidth(200.0f);
-    	
+
     	if (ImGui::DragFloat3("Position ", (float*)&selected_entity->position, drag_step, -1000.0f, 1000.0f, "%.3f"))
     		selected_entity->UpdateComponents();
 
@@ -732,10 +757,10 @@ void Editor::DrawDetails()
     			selected_entity->UpdateComponents();
     		}
     	}
-    	
+
     	if (ImGui::DragFloat3("Rotation ", (float*)&selected_entity->rotation, drag_step, 0.0f, 360.0f, "%.3f"))
     		selected_entity->UpdateComponents();
-    	
+
     	ImGui::PopItemWidth();
 
     	DisplayCameraComponent();
@@ -747,10 +772,10 @@ void Editor::DrawDetails()
     	DisplayScriptComponent();
 
     	ImGui::Separator();
-    	
+
     	// ADD COMPONENT
     	ImGui::PushID("##ADDCOMPONENT");
-	
+
     	if (ImGui::Button("Add Component"))
     		ImGui::OpenPopup("AddComponentPopup");
 
@@ -769,7 +794,7 @@ void Editor::DrawDetails()
 				    ImGui::CloseCurrentPopup();
 			    }
     		}
-    		
+
     		if (ImGui::MenuItem("Model Component"))
     		{
     			if (!selected_entity->HasComponent<ModelComponent>())
@@ -797,7 +822,7 @@ void Editor::DrawDetails()
     				ImGui::CloseCurrentPopup();
     			}
     		}
-    		
+
     		if (ImGui::MenuItem("Physics Component"))
     		{
     			if (!selected_entity->HasComponent<PhysicsComponent>())
@@ -855,11 +880,11 @@ void Editor::DrawDetails()
     		}
     		ImGui::EndPopup();
     	}
-    
+
     	ImGui::PopID();
 
     	ImGui::Spacing();
-    	
+
     	ImGui::PushID("##REMOVECOMPONENT");
 
     	if (ImGui::Button("Remove Component"))
@@ -868,7 +893,7 @@ void Editor::DrawDetails()
     	if (ImGui::BeginPopup("RemoveComponentPopup"))
     	{
     		selected_entity_to_remove_components = selected_entity;
-    		
+
     		if (ImGui::MenuItem("Camera Component"))
     		{
     			if (selected_entity->HasComponent<CameraComponent>())
@@ -883,7 +908,7 @@ void Editor::DrawDetails()
 				    ImGui::CloseCurrentPopup();
 			    }
     		}
-    		
+
     		if (ImGui::MenuItem("Model Component"))
     		{
     			if (selected_entity->HasComponent<ModelComponent>())
@@ -913,7 +938,7 @@ void Editor::DrawDetails()
     				ImGui::CloseCurrentPopup();
     			}
     		}
-    		
+
     		if (ImGui::MenuItem("Physics Component"))
     		{
     			if (selected_entity->HasComponent<PhysicsComponent>())
@@ -975,7 +1000,7 @@ void Editor::DrawDetails()
     		}
     		ImGui::EndPopup();
     	}
-	
+
     	ImGui::Separator();
     	if (selected_entity->parent)
     		ImGui::Text(("Parent: " + scene.GetEntities().at(selected_entity->parent)->name).c_str());
@@ -990,7 +1015,7 @@ void Editor::DrawDetails()
 
     	ImGui::PopID();
     }
-    
+
     ImGui::PopFont();
 	ImGui::PopTextWrapPos();
     ImGui::Unindent(8.0f);
@@ -1003,9 +1028,9 @@ void Editor::DrawEntityTree(std::shared_ptr<Entity> entity)
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
     ImGui::PushID(&entity->id);
-	
+
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
     bool is_selected = (entity == selected_entity);
@@ -1072,7 +1097,7 @@ void Editor::DrawEntityTree(std::shared_ptr<Entity> entity)
     		entity_to_remove = entity;
     		ImGui::CloseCurrentPopup();
     	}
-    	ImGui::EndPopup();	
+    	ImGui::EndPopup();
     }
 
     if (node_open && !entity->children.empty())
@@ -1093,7 +1118,7 @@ void Editor::DrawActiveTitleLine(const ImVec4& active_color, const ImVec4& inact
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
     ImVec4 color = active_color;
     if (!ImGui::IsWindowFocused())
     	color = inactive_color;
@@ -1140,7 +1165,7 @@ bool Editor::IsDescendentOf(std::shared_ptr<Entity> potential_child, std::shared
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
 	if (potential_parent == nullptr)
 		return false;
 	if (potential_parent == potential_child)
@@ -1163,9 +1188,9 @@ void Editor::ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Enti
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
 	glm::mat4 world_transform = entity->GetWorldTransformMatrix(scene.GetEntities());
-	
+
 	if (!entity->IsRoot() && scene.GetEntities().contains(entity->parent))
 		scene.GetEntities().at(entity->parent)->RemoveChild(entity->id);
 
@@ -1198,7 +1223,7 @@ void Editor::ReparentEntity(std::shared_ptr<Entity> entity, std::shared_ptr<Enti
 void Editor::BuildProject()
 {
 	Engine& engine = Engine::Instance();
-	
+
 	try
     {
         std::string project_name = engine.GetProjectConfig().project_name;

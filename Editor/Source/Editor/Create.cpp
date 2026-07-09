@@ -6,7 +6,7 @@ bool Editor::CreateEntity(std::shared_ptr<Entity> parent)
 	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
-	
+
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetEntities().empty())
 	{
@@ -31,7 +31,7 @@ bool Editor::CreateEntity(std::shared_ptr<Entity> parent)
 bool Editor::CreateModelComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
-	
+
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetModelComponents().empty())
 	{
@@ -61,7 +61,7 @@ bool Editor::CreateModelComponent(std::shared_ptr<Entity> entity)
 bool Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
-	
+
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetLightSourceComponents().empty())
 	{
@@ -83,7 +83,7 @@ bool Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
 		);
 		next_light_id = max_it->first + 1;
 	}
-    				
+
 	std::shared_ptr<PointLight> new_light = std::make_shared<PointLight>();
 	new_light->id = next_light_id;
 	new_light->position = entity->position;
@@ -97,7 +97,7 @@ bool Editor::CreateLightSourceComponent(std::shared_ptr<Entity> entity)
 	scene.GetLightSourceComponents().insert_or_assign(next_id, new_component);
 	scene.GetPointLights().insert_or_assign(next_light_id, new_light);
 	entity->AddComponent(ComponentType::LIGHT, new_component);
-	
+
 	return true;
 }
 
@@ -105,7 +105,7 @@ bool Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
 	PhysicsManager& physics_system = Engine::GetPhysicsManager();
-	
+
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetPhysicsComponents().empty())
 	{
@@ -116,7 +116,7 @@ bool Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 		);
 		next_id = max_it->first + 1;
 	}
-    				
+
 	uint32_t next_po_id = FIRST_ID;
 	if (!scene.GetPhysicsComponents().empty())
 	{
@@ -141,10 +141,10 @@ bool Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 	physics_body->SetPosition(entity->position);
 	physics_body->SetRotation(glm::quat(glm::radians(entity->rotation)));
 	physics_body->SetScale(entity->scale);
-	
+
 	std::array<bool, 3> default_can_move_axis = { true, true, true };
 	std::array<bool, 3> default_can_rotate_axis = { true, true, true };
-	
+
 	physics_body->SetAllowedDOFS(
 		default_can_move_axis[0], default_can_move_axis[1], default_can_move_axis[2],
 		default_can_rotate_axis[0], default_can_rotate_axis[1], default_can_rotate_axis[2]
@@ -153,21 +153,21 @@ bool Editor::CreatePhysicsComponent(std::shared_ptr<Entity> entity)
 	std::shared_ptr<PhysicsComponent> physics_component = std::make_shared<PhysicsComponent>(next_id, true, physics_body, default_can_move_axis, default_can_rotate_axis);
 	scene.GetPhysicsComponents().insert_or_assign(next_id, physics_component);
 	entity->AddComponent(ComponentType::PHYSICS, physics_component);
-	
+
 	return true;
 }
 
 bool Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
-	
+
 	if (!entity->HasComponent<ModelComponent>())
     {
     	Log::Warning("Entity must have model to add animator");
 		ImGui::CloseCurrentPopup();
 		return false;
     }
-	
+
 	ModelComponent& model_component = entity->GetComponent<ModelComponent>();
 	if (!model_component.model->IsAnimated())
 	{
@@ -175,7 +175,7 @@ bool Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
 		ImGui::CloseCurrentPopup();
 		return false;
 	}
-	
+
     std::shared_ptr<SkeletalModel> skeletal_model = std::static_pointer_cast<SkeletalModel>(model_component.model);
 
     if (skeletal_model->GetAnimations().empty())
@@ -184,7 +184,7 @@ bool Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
 	    ImGui::CloseCurrentPopup();
 		return false;
     }
-	
+
     uint32_t next_id = FIRST_ID;
     if (!scene.GetAnimationComponents().empty())
     {
@@ -214,7 +214,7 @@ bool Editor::CreateAnimationComponent(std::shared_ptr<Entity> entity)
     {
 	    Log::Info("  - " + anim->GetName());
     }
-	
+
 	return true;
 }
 
@@ -222,7 +222,7 @@ bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 {
 	Scene& scene = Engine::GetRenderer().GetScene();
 	AudioSystem& audio_system = Engine::GetAudioManager();
-	
+
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetAudioComponents().empty())
 	{
@@ -233,7 +233,7 @@ bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 		);
 		next_id = max_it->first + 1;
 	}
-	
+
 	uint32_t next_audio_id = FIRST_ID;
 	if (!scene.GetAudioComponents().empty())
 	{
@@ -258,14 +258,14 @@ bool Editor::CreateAudioComponent(std::shared_ptr<Entity> entity)
 	std::shared_ptr<AudioComponent> audio_component = std::make_shared<AudioComponent>(next_id, true, audio);
 	scene.GetAudioComponents().insert_or_assign(next_id, audio_component);
 	entity->AddComponent(ComponentType::AUDIO, audio_component);
-	
+
 	return true;
 }
 
 bool Editor::CreateScriptComponent(std::shared_ptr<Entity> entity)
 {
 	return false;
-	
+
 	/*Scene& scene = Engine::GetRenderer().GetScene();
 	ScriptManager& script_system = Engine::GetScriptSystem();
 
@@ -290,7 +290,7 @@ bool Editor::CreateScriptComponent(std::shared_ptr<Entity> entity)
 	std::shared_ptr<ScriptComponent> script_component = std::make_shared<ScriptComponent>(next_id, true, script);
 	scene.GetScriptComponents().insert_or_assign(next_id, script_component);
 	entity->AddComponent(ComponentType::SCRIPT, script_component);
-	
+
 	return true;*/
 }
 
@@ -315,7 +315,7 @@ bool Editor::CreateCameraComponent(std::shared_ptr<Entity> entity)
 		scene.GetCameras().erase(0);
 		is_first_camera = true;
 	}
-	
+
 	uint32_t next_camera_id = FIRST_ID;
 	if (!scene.GetCameras().empty())
 	{
@@ -334,7 +334,7 @@ bool Editor::CreateCameraComponent(std::shared_ptr<Entity> entity)
 	entity->AddComponent(ComponentType::CAMERA, new_camera_component);
 	if (is_first_camera)
 		scene.SetCurrentCamera(next_camera_id);
-	
+
 	return true;
 }
 
@@ -343,7 +343,7 @@ bool Editor::CreateMaterialParam()
 	Renderer& renderer = Engine::GetRenderer();
 	Scene& scene = renderer.GetScene();
 	ParamDatabase& param_database = renderer.GetParamDatabase();
-	
+
 	uint32_t next_id = FIRST_ID;
 	if (!scene.GetMaterials().empty())
 	{
@@ -438,7 +438,7 @@ bool Editor::CreateModelParam()
             default_model_path = model_file;
 
         Log::Info("File selected at " + default_model_path);
-    
+
         uint32_t next_id = FIRST_ID;
         if (!scene.GetModels().empty())
         {
@@ -506,7 +506,7 @@ bool Editor::CreateModelParam()
 
         new_model->param_id = next_id;
         new_model->name = model_name;
-        
+
         scene.GetModels().insert_or_assign(next_id, new_model);
         param_database.model_params.insert_or_assign(next_id, ModelParamData(model_name, default_model_path, new_model->IsAnimated()));
         selected_model_param_id = next_id;

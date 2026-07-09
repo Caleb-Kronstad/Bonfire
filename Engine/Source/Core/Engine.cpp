@@ -81,6 +81,7 @@ namespace Bonfire
         while (static_thread_manager->IsRunning())
         {
             glfwPollEvents();
+            ImGui_ImplGlfw_NewFrame();
 
             if (glfwWindowShouldClose(window->GetNativeWindow()))
             {
@@ -114,6 +115,12 @@ namespace Bonfire
 
         static_renderer->OnDetach();
 
+        // Renderer owns every Scene/Entity/Component (including PhysicsBody and Audio objects
+        // whose destructors reach back into PhysicsManager/AudioSystem), and its Framebuffers/
+        // Textures still need a live GL context to release their GL objects. It must be torn
+        // down before those subsystems are detached and before the GL context/window go away.
+        delete static_renderer;
+
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -127,7 +134,6 @@ namespace Bonfire
         delete static_script_manager;
         delete static_audio_system;
         delete static_physics_system;
-        delete static_renderer;
         delete static_thread_manager;
     }
 

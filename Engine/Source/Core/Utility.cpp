@@ -1,8 +1,6 @@
 #include "bonfire_pch.hpp"
 #include "Utility.hpp"
 
-#define GLM_ENABLE_EXPERIMENTAL
-
 namespace Bonfire
 {
 	std::pair<ImVec4, std::string> ParseAnsiLine(const std::string& line)

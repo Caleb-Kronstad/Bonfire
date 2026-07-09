@@ -4,7 +4,7 @@
 
 ## Build
 
-Supports Windows and Linux, with either Premake or CMake as the build system.
+Supports Windows and Linux, using Premake as the build system.
 
 #### 1. Clone the repository with submodules
 ```
@@ -18,7 +18,7 @@ Note: The --recursive flag automatically downloads all dependencies (~200MB)
 **Windows**
 ```
 cd Scripts
-Windows-Setup.bat [premake|cmake]
+Windows-Setup.bat
 Windows-Build.bat
 Windows-Run.bat
 ```
@@ -27,9 +27,9 @@ Note: Generates a Visual Studio 2022 solution in the Build directory. Build sett
 **Linux**
 ```
 cd Scripts
-./Linux-Setup.sh [premake|cmake] [gcc|clang] [debug|release|dist]
-./Linux-Build.sh [premake|cmake] [debug|release|dist]
-./Linux-Run.sh [premake|cmake] [debug|release|dist]
+./Linux-Setup.sh [gcc|clang] [debug|release|dist]
+./Linux-Build.sh [debug|release|dist]
+./Linux-Run.sh [debug|release|dist]
 ```
 
 `Linux-Build.sh` builds incrementally by default; pass `--clean` to force a full rebuild of the selected config.

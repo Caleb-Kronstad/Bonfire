@@ -1,34 +1,30 @@
 LINUX:
-Run ./Linux-Setup.sh [build_system] [compiler] [config]
-    - build_system: premake (default) or cmake
+Run ./Linux-Setup.sh [compiler] [config]
     - compiler:     gcc (default) or clang
     - config:       debug (default), release, or dist
     - Arguments can be in any order
     - Examples:
         ./Linux-Setup.sh
-        ./Linux-Setup.sh cmake clang release
-        ./Linux-Setup.sh premake gcc
+        ./Linux-Setup.sh clang release
+        ./Linux-Setup.sh gcc
 
-Run ./Linux-Build.sh [build_system] [config] [options]
-    - build_system: premake (default) or cmake
+Run ./Linux-Build.sh [config] [options]
     - config:       debug (default), release, or dist
     - --bear:       generates compile_commands.json at project root (for CLion)
-    - --clean:      clean the selected config before building (premake/make only; omit for incremental builds)
+    - --clean:      clean the selected config before building (omit for incremental builds)
     - Arguments can be in any order
     - Examples:
         ./Linux-Build.sh
-        ./Linux-Build.sh cmake release
+        ./Linux-Build.sh release
         ./Linux-Build.sh debug --bear
         ./Linux-Build.sh --clean
 
-Run ./Linux-Run.sh [build_system] [config]
-    - build_system: premake (default) or cmake
+Run ./Linux-Run.sh [config]
     - config:       debug (default), release, or dist
-    - Must match the build_system/config you built with (paths differ between them)
-    - Arguments can be in any order
+    - Must match the config you built with
     - Examples:
         ./Linux-Run.sh
-        ./Linux-Run.sh cmake release
+        ./Linux-Run.sh release
 
 
 WINDOWS:
@@ -36,13 +32,11 @@ Configure build settings in Windows-Config.bat:
     - BUILD_CONFIG: Debug, Release, or Dist
     - MSBUILD: path to MSBuild.exe
 
-Run Scripts\Windows-Setup.bat [build_system]
-    - (no argument): Premake — generates Visual Studio 2022 solution in Build/
-    - cmake: CMake — generates Visual Studio 2022 solution in Build/
+Run Scripts\Windows-Setup.bat
+    - Runs Premake — generates Visual Studio 2022 solution in Build/
 
 Run Scripts\Windows-Build.bat
     - Cleans and builds using MSBuild with the configured BUILD_CONFIG
-    - Works with both Premake and CMake generated solutions
 
 Run Scripts\Windows-Run.bat
     - Runs the Editor

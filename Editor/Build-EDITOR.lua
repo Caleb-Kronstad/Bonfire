@@ -19,7 +19,7 @@ project "Editor"
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.IMGUI}",
-        "%{IncludeDir.STB_IMAGE}",
+        "%{IncludeDir.SOIL}",
         "%{IncludeDir.ASSIMP}",
         "%{IncludeDir.GLM}",
         "%{IncludeDir.IMGUIZMO}",
@@ -34,6 +34,7 @@ project "Editor"
         "GLAD",
         "GLFW",
         "IMGUI",
+        "SOIL",
         "ASSIMP",
         "GLM",
         "IMGUIZMO",
@@ -51,7 +52,8 @@ project "Editor"
 
     defines {
         "JPH_DEBUG_RENDERER",
-        "JPH_PROFILE_ENABLED"
+        "JPH_PROFILE_ENABLED",
+        "GLM_ENABLE_EXPERIMENTAL"
     }
 
     filter "system:windows"
