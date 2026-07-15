@@ -507,7 +507,7 @@ void Editor::DrawToolbar()
     bool project_running = engine.GetProjectRunState();
     if (project_running)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
-    if (ImGui::ImageButton("##play_icon", (void*)play_icon->gl_id, ImVec2(20, 20)))
+    if (ImGui::ImageButton("##play_icon", (void*)(intptr_t)play_icon->gl_id, ImVec2(20, 20)))
     {
     	// play
     	if (!engine.GetProjectRunState())
@@ -539,7 +539,7 @@ void Editor::DrawToolbar()
     int temp_gizmo_type = gizmo_type;
     if (temp_gizmo_type == ImGuizmo::TRANSLATE)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
-    if (ImGui::ImageButton("##move_icon", (void*)move_icon->gl_id, ImVec2(20, 20)))
+    if (ImGui::ImageButton("##move_icon", (void*)(intptr_t)move_icon->gl_id, ImVec2(20, 20)))
     	gizmo_type = ImGuizmo::TRANSLATE;
     if (temp_gizmo_type == ImGuizmo::TRANSLATE)
     	ImGui::PopStyleColor(1);
@@ -547,7 +547,7 @@ void Editor::DrawToolbar()
     ImGui::SameLine();
     if (temp_gizmo_type == ImGuizmo::ROTATE)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
-    if (ImGui::ImageButton("##rotate_icon", (void*)rotate_icon->gl_id, ImVec2(20, 20)))
+    if (ImGui::ImageButton("##rotate_icon", (void*)(intptr_t)rotate_icon->gl_id, ImVec2(20, 20)))
     	gizmo_type = ImGuizmo::ROTATE;
     if (temp_gizmo_type == ImGuizmo::ROTATE)
     	ImGui::PopStyleColor(1);
@@ -555,7 +555,7 @@ void Editor::DrawToolbar()
     ImGui::SameLine();
     if (temp_gizmo_type == ImGuizmo::SCALE)
     	ImGui::PushStyleColor(ImGuiCol_Button, highlight_primary);
-    if (ImGui::ImageButton("##resize_icon", (void*)resize_icon->gl_id, ImVec2(20, 20)))
+    if (ImGui::ImageButton("##resize_icon", (void*)(intptr_t)resize_icon->gl_id, ImVec2(20, 20)))
     	gizmo_type = ImGuizmo::SCALE;
     if (temp_gizmo_type == ImGuizmo::SCALE)
     	ImGui::PopStyleColor(1);

@@ -3,7 +3,6 @@
 bool Editor::CreateEntity(std::shared_ptr<Entity> parent)
 {
 	Engine& engine = Engine::Instance();
-	Window& project_window = engine.GetWindow();
 	Renderer& renderer = engine.GetRenderer();
 	Scene& scene = renderer.GetScene();
 

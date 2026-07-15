@@ -229,7 +229,7 @@ void Editor::DisplayTextureParams()
         if (scene.GetTextures().contains(selected_texture_param_id))
         {
             GLuint texture_gl_id = scene.GetTextures().at(selected_texture_param_id)->gl_id;
-            ImGui::Image((void*)texture_gl_id, ImVec2(100, 100));
+            ImGui::Image((void*)(intptr_t)texture_gl_id, ImVec2(100, 100));
         }
         
         ImGui::Spacing();
@@ -389,7 +389,7 @@ void Editor::DisplayMaterialParams()
             ImGui::PushID(&texture);
             ImGui::Text(texture->name.c_str()); ImGui::SameLine(); ImGui::TextColored(highlight_secondary, std::to_string(texture->param_id).c_str());
             
-            if (ImGui::ImageButton("##texture_preview", (void*)texture->gl_id, ImVec2(100, 100)))
+            if (ImGui::ImageButton("##texture_preview", (void*)(intptr_t)texture->gl_id, ImVec2(100, 100)))
             {
                 ImGui::OpenPopup("ChangeMaterialTexture");
             }
