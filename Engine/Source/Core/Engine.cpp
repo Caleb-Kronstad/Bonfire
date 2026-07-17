@@ -115,10 +115,6 @@ namespace Bonfire
 
         static_renderer->OnDetach();
 
-        // Renderer owns every Scene/Entity/Component (including PhysicsBody and Audio objects
-        // whose destructors reach back into PhysicsManager/AudioSystem), and its Framebuffers/
-        // Textures still need a live GL context to release their GL objects. It must be torn
-        // down before those subsystems are detached and before the GL context/window go away.
         delete static_renderer;
 
         ImGui_ImplOpenGL3_Shutdown();
