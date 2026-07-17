@@ -13,7 +13,7 @@
 namespace Bonfire
 {
     inline constexpr uint32_t FIRST_ID = 1000000000;
-    
+
 	struct ProjectConfig
 	{
 		std::string project_name = "Bonfire Engine";
@@ -26,7 +26,7 @@ namespace Bonfire
 		bool vsync = true;
 		std::vector<std::string> scene_paths;
 	};
-	
+
 	class Engine
 	{
 	public:
@@ -48,7 +48,7 @@ namespace Bonfire
 		const float& GetDeltaTime() const { return delta_time; }
 		Window& GetWindow() const { return *window; }
 		std::vector<std::shared_ptr<Layer>>& GetLayers() { return layers; }
-		
+
 		const bool& GetProjectRunState() const { return project_running; }
 		const bool& GetEditorRunState() const { return editor_running; }
 		void SetProjectRunState(bool state) { project_running = state; }
@@ -98,10 +98,10 @@ namespace Bonfire
 	private:
 		float delta_time = 0.0f;
 		float last_frame_time = 0.0f;
-		
+
 		ProjectConfig project_config;
 		std::unique_ptr<Window> window;
-		
+
 		bool editor_running = true;
 		bool project_running = false;
 		std::vector<std::shared_ptr<Layer>> layers;

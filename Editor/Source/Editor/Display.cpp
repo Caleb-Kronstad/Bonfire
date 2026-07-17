@@ -3,14 +3,14 @@
 void Editor::DisplayModelComponent()
 {
     Scene& scene = Engine::GetRenderer().GetScene();
-    
+
     if (selected_entity->HasComponent<ModelComponent>())
     {
     	ModelComponent& model_component = selected_entity->GetComponent<ModelComponent>();
-    	
+
     	ImGui::PushID(&model_component);
     	ImGui::Separator();
-    	
+
     	ImGui::Checkbox("##Enabled", &model_component.enabled);
     	ImGui::SameLine();
     	ImGui::Text("Model Component");
@@ -84,7 +84,7 @@ void Editor::DisplayLightSourceComponent()
     if (selected_entity->HasComponent<LightSourceComponent>())
     {
     	LightSourceComponent& light_source_component = selected_entity->GetComponent<LightSourceComponent>();
-    	
+
     	ImGui::PushID(&light_source_component);
     	ImGui::Separator();
 
@@ -94,7 +94,7 @@ void Editor::DisplayLightSourceComponent()
     	ImGui::SameLine();
     	ImGui::Text(std::to_string(light_source_component.id).c_str());
     	ImGui::Spacing();
-    	
+
     	if (ImGui::Button(light_source_component.light_source->name.c_str(), ImVec2(100, 22)))
     		ImGui::OpenPopup("ChangeLightSourceComponentLightSource");
     	ImGui::SameLine(); ImGui::Text("Light Source Type");
@@ -146,7 +146,7 @@ void Editor::DisplayLightSourceComponent()
     			preserved_scale = spot_light->scale;
     			preserved_direction = spot_light->direction;
     		}
-    		
+
     		if (ImGui::MenuItem("Point Light"))
     		{
     			if (auto current_type = std::dynamic_pointer_cast<PointLight>(old_light))
@@ -187,7 +187,7 @@ void Editor::DisplayLightSourceComponent()
     		}
     		ImGui::EndPopup();
     	}
-    	
+
     	ImGui::PopID();
     }
 }
@@ -196,21 +196,21 @@ void Editor::DisplayPhysicsComponent()
 {
     PhysicsManager& physics_system = Engine::GetPhysicsManager();
     Scene& scene = Engine::GetRenderer().GetScene();
-    
+
     if (selected_entity->HasComponent<PhysicsComponent>())
     {
     	PhysicsComponent& physics_component = selected_entity->GetComponent<PhysicsComponent>();
 
     	ImGui::PushID(&physics_component);
     	ImGui::Separator();
-		
+
     	ImGui::Checkbox("##Enabled", &physics_component.enabled);
     	ImGui::SameLine();
     	ImGui::Text("Physics Component");
     	ImGui::SameLine();
     	ImGui::Text(std::to_string(physics_component.id).c_str());
     	ImGui::Spacing();
-		
+
     	int selected_body_type = static_cast<int>(physics_component.physics_body->GetBodyType());
     	int selected_shape_type = static_cast<int>(physics_component.physics_body->GetShapeData().type);
     	PhysicsShapeData current_shape_data = physics_component.physics_body->GetShapeData();
@@ -341,7 +341,7 @@ void Editor::DisplayPhysicsComponent()
 	                physics_component.physics_body->GetShapeData().dimensions = dimensions;
 	                physics_component.physics_body->SetScale(dimensions);
 	            }
-	        }	
+	        }
 	    }
 
     	ImGui::Spacing();
@@ -354,7 +354,7 @@ void Editor::DisplayPhysicsComponent()
 
     	selected_entity->ValidateDOFS();
     	selected_entity->UpdateComponents();
-    	
+
     	ImGui::PopID();
     }
 }
@@ -362,7 +362,7 @@ void Editor::DisplayPhysicsComponent()
 void Editor::DisplayAnimationComponent()
 {
     Scene& scene = Engine::GetRenderer().GetScene();
-    
+
     if (selected_entity->HasComponent<AnimationComponent>())
     {
 		AnimationComponent& animation_component = selected_entity->GetComponent<AnimationComponent>();
@@ -370,7 +370,7 @@ void Editor::DisplayAnimationComponent()
 
     	ImGui::PushID(&animation_component);
     	ImGui::Separator();
-		
+
     	ImGui::Checkbox("##Enabled", &animation_component.enabled);
     	ImGui::SameLine();
     	ImGui::Text("Animation Component");
@@ -387,7 +387,7 @@ void Editor::DisplayAnimationComponent()
     		state_text = "PAUSED";
     	ImGui::SameLine();
     	ImGui::Text("State: %s", state_text.c_str());
-    	
+
     	ImGui::Checkbox("Loop", &animator.GetLoop());
     	ImGui::PushItemWidth(100.0f);
     	ImGui::SliderFloat("Speed", &animator.GetSpeed(), 0.0f, 10.0f);
@@ -435,7 +435,7 @@ void Editor::DisplayAnimationComponent()
     		}
     	}
     	ImGui::PopItemWidth();
-    	
+
     	ImGui::PopID();
     }
 }
@@ -443,15 +443,15 @@ void Editor::DisplayAnimationComponent()
 void Editor::DisplayAudioComponent()
 {
     Scene& scene = Engine::GetRenderer().GetScene();
-    
+
     if (selected_entity->HasComponent<AudioComponent>())
     {
     	AudioComponent& audio_component = selected_entity->GetComponent<AudioComponent>();
     	Audio& audio = *audio_component.audio;
-    		
+
     	ImGui::PushID(&audio_component);
     	ImGui::Separator();
-			
+
     	ImGui::Checkbox("##Enabled", &audio_component.enabled);
     	ImGui::SameLine();
     	ImGui::Text("Audio Component");
@@ -492,7 +492,7 @@ void Editor::DisplayAudioComponent()
     		}
     		ImGui::EndPopup();
     	}
-    		
+
     	ImGui::PopID();
     }
 }
@@ -500,7 +500,7 @@ void Editor::DisplayAudioComponent()
 void Editor::DisplayCameraComponent()
 {
     Scene& scene = Engine::GetRenderer().GetScene();
-    
+
     if (selected_entity->HasComponent<CameraComponent>())
     {
     	CameraComponent& camera_component = selected_entity->GetComponent<CameraComponent>();

@@ -1,4 +1,4 @@
-﻿#include "Editor.hpp"
+#include "Editor.hpp"
 
 void Editor::DuplicateEntity(const std::shared_ptr<Entity>& root_entity)
 {
